@@ -7,6 +7,7 @@ public class CameraControl : MonoBehaviour
     private float mouseThresholdBottom;
     private float mouseThresholdRight;
     private float mouseThresholdLeft;
+    private bool cameraTeleportationPending;
     private Vector3 cameraUp = Vector3.Normalize(new Vector3(1f, 0f, 0f) * 1.7f + new Vector3(0f, 0f, 1f));
     private Vector3 cameraRight = Vector3.Normalize(new Vector3(1f, 0f, 0f) - new Vector3(0f, 0f, 1f) * 1.7f);
     private Vector3 cameraMovementDirection;
@@ -27,9 +28,47 @@ public class CameraControl : MonoBehaviour
         Debug.DrawLine(new Vector3(0f, 0f, 0f), 5f * cameraRight, Color.green, 30f);*/
     }
 
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            // Use space bar to teleport the camera to the first selected tank, or the first owned tank if none are selected
+            cameraTeleportationPending = true;
+        }
+    }
+
     private void FixedUpdate()
     {
         // Use FixedUpdate for the camera movement in order to sync with the players' movement and avoid jittering
+        if (cameraTeleportationPending)
+        {
+            cameraTeleportationPending = false;
+            GameObject firstSelectedTank = null;
+            GameObject[] tanks = GameObject.FindGameObjectsWithTag("Player");
+            for (int i = 0; i < tanks.Length; ++i)
+            {
+                TankMovement tankMovementComponent = tanks[i].GetComponent<TankMovement>();
+                // TODO - use game manager when checking the player number
+                if (tankMovementComponent.playerNumber == 1)
+                {
+                    if (firstSelectedTank == null)
+                    {
+                        firstSelectedTank = tanks[i];
+                    }
+                    if (tankMovementComponent.isSelectedByOwner)
+                    {
+                        firstSelectedTank = tanks[i];
+                        break;
+                    }
+                }
+            }
+            if (firstSelectedTank != null)
+            {
+                transform.position = firstSelectedTank.transform.position;
+                return;
+            }
+        }
+
         cameraMovementDirection = Vector3.zero;
         if (Input.mousePosition.y >= mouseThresholdTop)
         {
@@ -51,7 +90,7 @@ public class CameraControl : MonoBehaviour
         {
             if (insideLevel)
             {
-                // We normalize the direction so the camera's speed won't increase when scrolling diagonally
+                // Normalize the direction so the camera's speed won't increase when scrolling diagonally
                 transform.Translate(Vector3.Normalize(cameraMovementDirection) * cameraSpeed * Time.fixedDeltaTime, Space.World);
             }
             else
@@ -68,7 +107,7 @@ public class CameraControl : MonoBehaviour
         }
     }
 
-    // TODO - camera bounds (shouldn't go over the map's boundaries)
+    // Have camera bounds so that the camera doesn't go over the map's boundaries
     private void OnTriggerExit(Collider other)
     {
         if (other.name.Contains("Level"))
