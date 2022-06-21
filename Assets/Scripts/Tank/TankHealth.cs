@@ -23,8 +23,11 @@ public class TankHealth : MonoBehaviour
 
     private void OnEnable()
     {
+        // TODO - reset stats to default values
+
         slider.maxValue = maxHealth;
         currentHealth = maxHealth;
+        isDead = false;
         UpdateHealthBar();
     }
 
@@ -51,6 +54,7 @@ public class TankHealth : MonoBehaviour
         tankExplosionParticleSystem.gameObject.SetActive(true);
         tankExplosionParticleSystem.Play();
         tankExplosionAudioSource.Play();
+        // TODO - destroy gameObject instead
         gameObject.SetActive(false);
     }
 }

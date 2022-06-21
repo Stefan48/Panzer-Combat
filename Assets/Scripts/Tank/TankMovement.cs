@@ -25,7 +25,7 @@ public class TankMovement : MonoBehaviour
 
     private void OnEnable()
     {
-
+        // TODO - reset stats to default values
     }
 
     private void OnDisable()

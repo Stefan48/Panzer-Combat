@@ -157,4 +157,20 @@ public class UIManager : MonoBehaviour
             }
         }
     }
+
+    public void Reset()
+    {
+        for (int i = 0; i < selectedAlliedTanks.Count; ++i)
+        {
+            selectedAlliedTanks[i].GetComponent<TankMovement>().isSelectedByOwner = false;
+            alliedSelectionRings[i].SetActive(false);
+        }
+        selectedAlliedTanks.Clear();
+
+        if (selectedEnemyTank != null)
+        {
+            selectedEnemyTank = null;
+            enemySelectionRing.SetActive(false);
+        }
+    }
 }

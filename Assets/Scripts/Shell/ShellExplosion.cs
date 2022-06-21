@@ -5,6 +5,7 @@ public class ShellExplosion : MonoBehaviour
 {
     [SerializeField] private LayerMask playersLayerMask;
     [SerializeField] private LayerMask noCollisionsLayerMask;
+    private GameObject shellExplosion;
     private ParticleSystem shellExplosionParticleSystem;
     private AudioSource shellExplosionAudioSource;
     private float shellDamage = 25f;
@@ -12,7 +13,8 @@ public class ShellExplosion : MonoBehaviour
 
     private void Awake()
     {
-        shellExplosionParticleSystem = transform.Find("ShellExplosion").GetComponent<ParticleSystem>();
+        shellExplosion = transform.Find("ShellExplosion").gameObject;
+        shellExplosionParticleSystem = shellExplosion.GetComponent<ParticleSystem>();
         shellExplosionAudioSource = shellExplosionParticleSystem.GetComponent<AudioSource>();
     }
 
@@ -34,7 +36,7 @@ public class ShellExplosion : MonoBehaviour
         else if (((1 << other.gameObject.layer) & noCollisionsLayerMask.value) == 0)
         {
             // The shell hit the environment
-            Debug.Log(other.name);
+            //Debug.Log(other.name);
             StartCoroutine(Explode(0f));
         }
     }
@@ -46,7 +48,8 @@ public class ShellExplosion : MonoBehaviour
         shellExplosionParticleSystem.transform.parent = null;
         shellExplosionParticleSystem.Play();
         shellExplosionAudioSource.Play();
-        Destroy(shellExplosionParticleSystem, shellExplosionParticleSystem.main.duration);
+        //Destroy(shellExplosionParticleSystem, shellExplosionParticleSystem.main.duration);
+        Destroy(shellExplosion, shellExplosionParticleSystem.main.duration);
         Destroy(gameObject);
     }
 }

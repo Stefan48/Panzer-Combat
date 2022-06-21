@@ -14,6 +14,11 @@ public class TankShooting : MonoBehaviour
         tankMovementComponent = GetComponent<TankMovement>();
     }
 
+    private void OnEnable()
+    {
+        // TODO - reset stats to default values
+    }
+
     private void Update()
     {
         // Tank may shoot only when selected
