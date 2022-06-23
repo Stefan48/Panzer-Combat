@@ -49,6 +49,18 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         }
     }
 
+    public void LoadMainMenu()
+    {
+        if (PhotonNetwork.IsConnected)
+        {
+            Disconnect();
+        }
+        else
+        {
+            SceneManager.LoadScene("MainMenuScene");
+        }
+    }
+
     public void Disconnect()
     {
         PhotonNetwork.Disconnect();

@@ -8,13 +8,13 @@ public class RoomListing : MonoBehaviour
     public RoomInfo RoomInfo { get; private set; }
     [SerializeField] private Text _roomListingText;
     [SerializeField] private GameObject _passwordRequiredImage;
-    private GameObject _enterPasswordModal;
-    private Text _roomNameText;
+    private GameObject _passwordModal;
+    private Text _passwordModalRoomNameText;
 
     private void Start()
     {
-        _enterPasswordModal = GameObject.Find("LobbyManager").GetComponent<LobbyManager>().PasswordModal;
-        _roomNameText = _enterPasswordModal.transform.Find("PasswordBox").Find("RoomNameText").GetComponent<Text>();
+        _passwordModal = GameObject.Find("LobbyManager").GetComponent<LobbyManager>().PasswordModal;
+        _passwordModalRoomNameText = _passwordModal.transform.Find("PasswordBox").Find("RoomNameText").GetComponent<Text>();
     }
 
     public void SetRoomInfo(RoomInfo info)
@@ -28,8 +28,8 @@ public class RoomListing : MonoBehaviour
     {
         if (RoomInfo.CustomProperties.ContainsKey(LobbyManager.PasswordPropertyKey))
         {
-            _enterPasswordModal.SetActive(true);
-            _roomNameText.text = RoomInfo.Name;
+            _passwordModal.SetActive(true);
+            _passwordModalRoomNameText.text = RoomInfo.Name;
         }
         else
         {

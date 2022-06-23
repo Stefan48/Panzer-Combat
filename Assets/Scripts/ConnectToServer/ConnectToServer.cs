@@ -19,6 +19,7 @@ public class ConnectToServer : MonoBehaviourPunCallbacks
     {
         PhotonNetwork.ConnectUsingSettings();
         PhotonNetwork.GameVersion = "1";
+        PhotonNetwork.EnableCloseConnection = true;
     }
 
     public override void OnConnectedToMaster()
