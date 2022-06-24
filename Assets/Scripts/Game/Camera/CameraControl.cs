@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class CameraControl : MonoBehaviour
 {
+    [SerializeField] private GameManager _gameManager;
+
+
     [SerializeField] private const float cameraSpeed = 15f;
     private float mouseThresholdTop;
     private float mouseThresholdBottom;
@@ -14,6 +17,19 @@ public class CameraControl : MonoBehaviour
     [SerializeField] private GameObject level;
     private bool insideLevel = true;
 
+    private void Awake()
+    {
+        _gameManager.RoundStartingEvent += OnRoundStarting;
+        _gameManager.RoundPlayingEvent += OnRoundPlaying;
+        _gameManager.RoundEndingEvent += OnRoundEnding;
+    }
+
+    private void OnDestroy()
+    {
+        _gameManager.RoundStartingEvent -= OnRoundStarting;
+        _gameManager.RoundPlayingEvent -= OnRoundPlaying;
+        _gameManager.RoundEndingEvent -= OnRoundEnding;
+    }
 
     private void Start()
     {
@@ -124,5 +140,21 @@ public class CameraControl : MonoBehaviour
             // Camera Rig goes back inside the level's borders
             insideLevel = true;
         }
+    }
+
+    private void OnRoundStarting(int round)
+    {
+        enabled = false;
+    }
+
+    private void OnRoundPlaying()
+    {
+        enabled = true;
+    }
+
+    private void OnRoundEnding(PlayerManager roundWinner, bool isGameWinner)
+    {
+        // TODO - Go to winner's location (if isGameWinner ?)
+        enabled = false;
     }
 }

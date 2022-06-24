@@ -4,6 +4,10 @@ using UnityEngine.UI;
 
 public class UiManager : MonoBehaviour
 {
+    [SerializeField] private GameManager _gameManager;
+    [SerializeField] private Text _infoText;
+
+
     [SerializeField] private int playerNumber = 1;
     [SerializeField] private LayerMask playersLayerMask;
     [SerializeField] private GameObject selectionRingPrefab;
@@ -13,6 +17,19 @@ public class UiManager : MonoBehaviour
     private List<GameObject> selectedAlliedTanks = new List<GameObject>();
     private GameObject selectedEnemyTank = null;
 
+    private void Awake()
+    {
+        _gameManager.RoundStartingEvent += OnRoundStarting;
+        _gameManager.RoundPlayingEvent += OnRoundPlaying;
+        _gameManager.RoundEndingEvent += OnRoundEnding;
+    }
+
+    private void OnDestroy()
+    {
+        _gameManager.RoundStartingEvent -= OnRoundStarting;
+        _gameManager.RoundPlayingEvent -= OnRoundPlaying;
+        _gameManager.RoundEndingEvent -= OnRoundEnding;
+    }
 
     private void Start()
     {
@@ -158,6 +175,25 @@ public class UiManager : MonoBehaviour
         }
     }
 
+    private void OnRoundStarting(int round)
+    {
+        _infoText.text = "ROUND " + round;
+        enabled = false;
+    }
+
+    private void OnRoundPlaying()
+    {
+        enabled = true;
+        _infoText.text = string.Empty;
+    }
+
+    private void OnRoundEnding(PlayerManager roundWinner, bool isGameWinner)
+    {
+        Reset();
+        _infoText.text = GetRoundEndText(roundWinner, isGameWinner);
+        enabled = false;
+    }
+
     public void Reset()
     {
         for (int i = 0; i < selectedAlliedTanks.Count; ++i)
@@ -172,5 +208,35 @@ public class UiManager : MonoBehaviour
             selectedEnemyTank = null;
             enemySelectionRing.SetActive(false);
         }
+    }
+
+    private string GetRoundEndText(PlayerManager roundWinner, bool isGameWinner)
+    {
+        if (roundWinner == null)
+        {
+            return "DRAW!";
+        }
+        string text;
+        string coloredPlayerText = GetColoredPlayerText(roundWinner.PlayerColor, roundWinner.PlayerNumber);
+        if (isGameWinner)
+        {
+            text = coloredPlayerText + " WON THE GAME!";
+        }
+        else
+        {
+            text = coloredPlayerText + " WON THE ROUND!";
+        }
+        text += "\n\n";
+        for (int i = 0; i < _gameManager.NumberOfPlayers; ++i)
+        {
+            text += GetColoredPlayerText(_gameManager.playerManagers[i].PlayerColor, _gameManager.playerManagers[i].PlayerNumber)
+                + ": " + _gameManager.playerManagers[i].RoundsWon + "\n";
+        }
+        return text;
+    }
+
+    private string GetColoredPlayerText(Color playerColor, int playerNumber)
+    {
+        return "<color=#" + ColorUtility.ToHtmlStringRGB(playerColor) + ">PLAYER " + playerNumber + "</color>";
     }
 }

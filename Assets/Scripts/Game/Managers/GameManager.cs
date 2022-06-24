@@ -1,27 +1,27 @@
+using System;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
-    public static int NumberOfPlayers { get; private set; } = 2;
+    public int NumberOfPlayers { get; private set; } = 2;
     [SerializeField] private Color[] playerColors;
     [SerializeField] private Transform[] playerSpawnPoints;
     [SerializeField] private GameObject tankPrefab;
-    private PlayerManager[] playerManagers = new PlayerManager[NumberOfPlayers];
+    public PlayerManager[] playerManagers { get; private set; } = new PlayerManager[2]; // TODO
     public int TotalRoundsToWin { get; private set; } = 2;
     [SerializeField] public Transform[] SpawnPoints { get; private set; }
     private readonly float startDelay = 1f;
     private readonly float endDelay = 1f;
     private WaitForSeconds startWait;
     private WaitForSeconds endWait;
-    [SerializeField] private CameraControl cameraControl;
-    [SerializeField] private UiManager uiManager;
-    [SerializeField] private Text infoText;
     private int currentRound;
     private bool matchEnded;
 
+
+    public event Action<int> RoundStartingEvent;
+    public event Action RoundPlayingEvent;
+    public event Action<PlayerManager, bool> RoundEndingEvent;
 
 
     private void Start()
@@ -66,8 +66,9 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator RoundStarting()
     {
-        cameraControl.enabled = false;
-        uiManager.enabled = false;
+        currentRound++;
+        RoundStartingEvent?.Invoke(currentRound);
+
 
         for (int i = 0; i < NumberOfPlayers; ++i)
         {
@@ -76,23 +77,17 @@ public class GameManager : MonoBehaviour
         }
 
         // TODO - Set camera initial position
-
-        currentRound++;
-        infoText.text = "ROUND " + currentRound;
         yield return startWait;
     }
 
     private IEnumerator RoundPlaying()
     {
-        cameraControl.enabled = true;
-        uiManager.enabled = true;
+        RoundPlayingEvent?.Invoke();
 
         for (int i = 0; i < NumberOfPlayers; ++i)
         {
             playerManagers[i].EnableControl();
         }
-
-        infoText.text = string.Empty;
 
         while(RoundInProgress())
         {
@@ -102,10 +97,6 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator RoundEnding()
     {
-        cameraControl.enabled = false;
-        uiManager.Reset();
-        uiManager.enabled = false;
-
         PlayerManager roundWinner = null;
         for (int i = 0; i < NumberOfPlayers; ++i)
         {
@@ -126,7 +117,7 @@ public class GameManager : MonoBehaviour
             matchEnded = true;
         }
 
-        infoText.text = GetRoundEndText(roundWinner);
+        RoundEndingEvent?.Invoke(roundWinner, matchEnded);
 
         yield return endWait;
     }
@@ -146,34 +137,5 @@ public class GameManager : MonoBehaviour
             }
         }
         return false;
-    }
-
-    private string GetRoundEndText(PlayerManager roundWinner)
-    {
-        if (roundWinner == null)
-        {
-            return "DRAW!";
-        }
-        string text;
-        string coloredPlayerText = GetColoredPlayerText(roundWinner.PlayerColor, roundWinner.PlayerNumber);
-        if (roundWinner.RoundsWon == TotalRoundsToWin)
-        {
-            text = coloredPlayerText + " WON THE GAME!";
-        }
-        else
-        {
-            text = coloredPlayerText + " WON THE ROUND!";
-        }
-        text += "\n\n";
-        for (int i = 0; i < NumberOfPlayers; ++i)
-        {
-            text += GetColoredPlayerText(playerManagers[i].PlayerColor, playerManagers[i].PlayerNumber) + ": " + playerManagers[i].RoundsWon + "\n";
-        }
-        return text;
-    }
-
-    private string GetColoredPlayerText(Color playerColor, int playerNumber)
-    {
-        return "<color=#" + ColorUtility.ToHtmlStringRGB(playerColor) + ">PLAYER " + playerNumber + "</color>";
     }
 }
