@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.UI;
 
-public class UIManager : MonoBehaviour
+public class UiManager : MonoBehaviour
 {
     [SerializeField] private int playerNumber = 1;
     [SerializeField] private LayerMask playersLayerMask;

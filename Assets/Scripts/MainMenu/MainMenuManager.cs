@@ -12,4 +12,6 @@ public class MainMenuManager : MonoBehaviour
     {
         Application.Quit();
     }
+
+    // TODO - Options section for controls (saved in PlayerPrefs)
 }

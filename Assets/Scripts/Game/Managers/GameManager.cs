@@ -17,7 +17,7 @@ public class GameManager : MonoBehaviour
     private WaitForSeconds startWait;
     private WaitForSeconds endWait;
     [SerializeField] private CameraControl cameraControl;
-    [SerializeField] private UIManager uiManager;
+    [SerializeField] private UiManager uiManager;
     [SerializeField] private Text infoText;
     private int currentRound;
     private bool matchEnded;
