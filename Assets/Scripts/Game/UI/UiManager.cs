@@ -54,11 +54,12 @@ public class UiManager : MonoBehaviour
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
+            // TODO - No hit if user clicked on UI
             if (Physics.Raycast(ray, out hit, Mathf.Infinity, playersLayerMask, QueryTriggerInteraction.Ignore))
             {
                 GameObject tank = hit.transform.gameObject;
-                TankMovement tankMovementComponent = tank.GetComponent<TankMovement>();
-                if (tankMovementComponent.playerNumber == playerNumber)
+                TankInfo tankInfo = tank.GetComponent<TankInfo>();
+                if (tankInfo.PlayerNumber == playerNumber)
                 {
                     // Player selected an allied tank
                     if (selectedEnemyTank != null)
@@ -79,7 +80,7 @@ public class UiManager : MonoBehaviour
                         }
                         if (selectedNewTank)
                         {
-                            tankMovementComponent.isSelectedByOwner = true;
+                            tankInfo.IsSelected = true;
                             selectedAlliedTanks.Add(tank);
                             alliedSelectionRings[selectedAlliedTanks.Count - 1].SetActive(true);
                         }
@@ -92,12 +93,12 @@ public class UiManager : MonoBehaviour
                             for (int i = 1; i < selectedAlliedTanks.Count; ++i)
                             {
                                 alliedSelectionRings[i].SetActive(false);
-                                selectedAlliedTanks[i].GetComponent<TankMovement>().isSelectedByOwner = false;
+                                selectedAlliedTanks[i].GetComponent<TankInfo>().IsSelected = false;
                             }
-                            selectedAlliedTanks[0].GetComponent<TankMovement>().isSelectedByOwner = false;
+                            selectedAlliedTanks[0].GetComponent<TankInfo>().IsSelected = false;
                             selectedAlliedTanks.Clear();
                         }
-                        tankMovementComponent.isSelectedByOwner = true;
+                        tankInfo.IsSelected = true;
                         selectedAlliedTanks.Add(tank);
                         alliedSelectionRings[0].SetActive(true);
                     }
@@ -110,7 +111,7 @@ public class UiManager : MonoBehaviour
                         for (int i = 0; i < selectedAlliedTanks.Count; ++i)
                         {
                             alliedSelectionRings[i].SetActive(false);
-                            selectedAlliedTanks[i].GetComponent<TankMovement>().isSelectedByOwner = false;
+                            selectedAlliedTanks[i].GetComponent<TankInfo>().IsSelected = false;
                         }
                         selectedAlliedTanks.Clear();
                     }
@@ -126,7 +127,7 @@ public class UiManager : MonoBehaviour
                     for (int i = 0; i < selectedAlliedTanks.Count; ++i)
                     {
                         alliedSelectionRings[i].SetActive(false);
-                        selectedAlliedTanks[i].GetComponent<TankMovement>().isSelectedByOwner = false;
+                        selectedAlliedTanks[i].GetComponent<TankInfo>().IsSelected = false;
                     }
                     selectedAlliedTanks.Clear();
                 }
@@ -187,7 +188,7 @@ public class UiManager : MonoBehaviour
         _infoText.text = string.Empty;
     }
 
-    private void OnRoundEnding(PlayerManager roundWinner, bool isGameWinner)
+    private void OnRoundEnding(PlayerInfo roundWinner, bool isGameWinner)
     {
         Reset();
         _infoText.text = GetRoundEndText(roundWinner, isGameWinner);
@@ -198,7 +199,7 @@ public class UiManager : MonoBehaviour
     {
         for (int i = 0; i < selectedAlliedTanks.Count; ++i)
         {
-            selectedAlliedTanks[i].GetComponent<TankMovement>().isSelectedByOwner = false;
+            selectedAlliedTanks[i].GetComponent<TankInfo>().IsSelected = false;
             alliedSelectionRings[i].SetActive(false);
         }
         selectedAlliedTanks.Clear();
@@ -210,14 +211,14 @@ public class UiManager : MonoBehaviour
         }
     }
 
-    private string GetRoundEndText(PlayerManager roundWinner, bool isGameWinner)
+    private string GetRoundEndText(PlayerInfo roundWinner, bool isGameWinner)
     {
         if (roundWinner == null)
         {
             return "DRAW!";
         }
         string text;
-        string coloredPlayerText = GetColoredPlayerText(roundWinner.PlayerColor, roundWinner.PlayerNumber);
+        string coloredPlayerText = GetColoredPlayerText(roundWinner.Color, roundWinner.PlayerNumber);
         if (isGameWinner)
         {
             text = coloredPlayerText + " WON THE GAME!";
@@ -229,8 +230,8 @@ public class UiManager : MonoBehaviour
         text += "\n\n";
         for (int i = 0; i < _gameManager.NumberOfPlayers; ++i)
         {
-            text += GetColoredPlayerText(_gameManager.playerManagers[i].PlayerColor, _gameManager.playerManagers[i].PlayerNumber)
-                + ": " + _gameManager.playerManagers[i].RoundsWon + "\n";
+            /*text += GetColoredPlayerText(_gameManager.playerManagers[i].PlayerColor, _gameManager.playerManagers[i].PlayerNumber)
+                + ": " + _gameManager.playerManagers[i].RoundsWon + "\n";*/
         }
         return text;
     }

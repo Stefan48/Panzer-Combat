@@ -63,15 +63,16 @@ public class CameraControl : MonoBehaviour
             GameObject[] tanks = GameObject.FindGameObjectsWithTag("Player");
             for (int i = 0; i < tanks.Length; ++i)
             {
-                TankMovement tankMovementComponent = tanks[i].GetComponent<TankMovement>();
+                TankInfo tankInfo = tanks[i].GetComponent<TankInfo>();
                 // TODO - use game manager when checking the player number
-                if (tankMovementComponent.playerNumber == 1)
+                // TODO - Actually, use the list of tanks from PlayerManager
+                if (tankInfo.PlayerNumber == 1)
                 {
                     if (firstSelectedTank == null)
                     {
                         firstSelectedTank = tanks[i];
                     }
-                    if (tankMovementComponent.isSelectedByOwner)
+                    if (tankInfo.IsSelected)
                     {
                         firstSelectedTank = tanks[i];
                         break;
@@ -144,6 +145,7 @@ public class CameraControl : MonoBehaviour
 
     private void OnRoundStarting(int round)
     {
+        // TODO - Go to player's spawn position
         enabled = false;
     }
 
@@ -152,7 +154,7 @@ public class CameraControl : MonoBehaviour
         enabled = true;
     }
 
-    private void OnRoundEnding(PlayerManager roundWinner, bool isGameWinner)
+    private void OnRoundEnding(PlayerInfo roundWinner, bool isGameWinner)
     {
         // TODO - Go to winner's location (if isGameWinner ?)
         enabled = false;

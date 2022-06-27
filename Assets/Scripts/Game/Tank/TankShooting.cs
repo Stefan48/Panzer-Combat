@@ -2,16 +2,18 @@ using UnityEngine;
 
 public class TankShooting : MonoBehaviour
 {
+    private TankInfo _tankInfo;
+
     [SerializeField] private GameObject shellPrefab;
     [SerializeField] private AudioSource shotFiredAudioSource;
     private float shotShellSpeed = 20f;
     private Transform muzzleTransform;
-    private TankMovement tankMovementComponent;
 
     private void Awake()
     {
         muzzleTransform = transform.Find("Muzzle");
-        tankMovementComponent = GetComponent<TankMovement>();
+
+        _tankInfo = GetComponent<TankInfo>();
     }
 
     private void OnEnable()
@@ -22,7 +24,7 @@ public class TankShooting : MonoBehaviour
     private void Update()
     {
         // Tank may shoot only when selected
-        if (tankMovementComponent.isSelectedByOwner)
+        if (_tankInfo.IsSelected)
         {
             if (Input.GetMouseButtonDown(1))
             {

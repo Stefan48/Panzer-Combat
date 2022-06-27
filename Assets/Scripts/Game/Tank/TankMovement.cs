@@ -2,122 +2,112 @@ using UnityEngine;
 
 public class TankMovement : MonoBehaviour
 {
-    public int playerNumber;
-    public bool isSelectedByOwner = false;
-    [SerializeField] private float speed = 12f;
-    [SerializeField] private AudioSource engineAudioSource;
-    [SerializeField] private AudioClip engineIdleAudioClip;
-    [SerializeField] private AudioClip engineDrivingAudioClip;
-    private float engineOriginalPitch;
-    private float enginePitchRange = 0.2f;
-    private Rigidbody rb;
-    private SphereCollider sphereCollider;
-    private bool isMoving = false;
-    private Vector3 movementDirection;
-    private const float viewAngleOffset = 60f;
-    private float newRotation;
+    private TankInfo _tankInfo;
+    private Rigidbody _rigidbody;
+    private SphereCollider _sphereCollider;
+    [SerializeField] private AudioSource _engineAudioSource;
+    [SerializeField] private AudioClip _engineIdleAudioClip;
+    [SerializeField] private AudioClip _engineDrivingAudioClip;
+    private float _engineOriginalPitch;
+    private const float _enginePitchRange = 0.2f;
+    [SerializeField] private Transform _orientation;
+    [SerializeField] private LayerMask _groundLayerMask;
+    private bool _isMoving = false;
+    private Vector3 _movementDirection;
+    
 
     private void Awake()
     {
-        rb = GetComponent<Rigidbody>();
-        sphereCollider = GetComponent<SphereCollider>();
-    }
+        // TODO - Disable script if !_photonView.IsMine
 
-    private void OnEnable()
-    {
-        // TODO - reset stats to default values
-    }
-
-    private void OnDisable()
-    {
-        isMoving = false;
+        _tankInfo = GetComponent<TankInfo>();
+        _rigidbody = GetComponent<Rigidbody>();
+        _sphereCollider = GetComponent<SphereCollider>();
     }
 
     private void Start()
     {
-        engineOriginalPitch = engineAudioSource.pitch;
+        _engineOriginalPitch = _engineAudioSource.pitch;
     }
 
     private void Update()
     {
-        // Tank may move only when selected
-        if (isSelectedByOwner)
+        if (_tankInfo.IsSelected)
         {
-            // Process input
-            if (Input.GetKey(KeyCode.W))
-            {
-                isMoving = true;
-                movementDirection = transform.forward;
-            }
-            else if (Input.GetKey(KeyCode.Q))
-            {
-                isMoving = true;
-                movementDirection = -transform.forward;
-            }
-            else
-            {
-                isMoving = false;
-            }
-
-            // Tank is always oriented towards the player's cursor
-            Vector3 screenPosition = Camera.main.WorldToScreenPoint(transform.position);
-            screenPosition.z = 0f;
-            Vector3 mousePosition = Input.mousePosition;
-            float angle = Vector3.Angle(mousePosition - screenPosition, new Vector3(0f, 1f, 0f));
-            if (mousePosition.x < screenPosition.x)
-            {
-                angle = 360.0f - angle;
-            }
-            newRotation = angle + viewAngleOffset;
+            ProcessMovementInput();
         }
-
         PlayEngineAudio();
     }
 
     private void FixedUpdate()
     {
-        // Tank may move only when selected
-        if (isSelectedByOwner)
+        if (_tankInfo.IsSelected)
         {
-            rb.MoveRotation(Quaternion.Euler(0f, newRotation, 0f));
+            ApplyMovement();
+        }
+    }
 
-            if (isMoving)
+    private void ProcessMovementInput()
+    {
+        _isMoving = false;
+        if (Input.GetKey(KeyCode.W))
+        {
+            _isMoving = true;
+            _movementDirection = transform.forward;
+        }
+        else if (Input.GetKey(KeyCode.Q))
+        {
+            _isMoving = true;
+            _movementDirection = -transform.forward;
+        }
+    }
+
+    private void ApplyMovement()
+    {
+        // The tank is always oriented towards the player's cursor
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, _groundLayerMask, QueryTriggerInteraction.Collide))
+        {            
+            _orientation.LookAt(hit.point);
+            _rigidbody.MoveRotation(_orientation.rotation);
+        }
+
+        if (_isMoving)
+        {
+            Vector3 movement = _movementDirection * _tankInfo.Speed * Time.fixedDeltaTime;
+            Vector3 desiredPosition = _rigidbody.position + movement;
+            bool wouldHitColliders = false;
+            // Query ignores triggers (like the Camera Rig, the collider for the level's boundaries or the shells)
+            Collider[] collidersThatWouldBeHit = Physics.OverlapSphere(desiredPosition + _sphereCollider.center, _sphereCollider.radius,
+                Physics.AllLayers, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < collidersThatWouldBeHit.Length; ++i)
             {
-                Vector3 movement = movementDirection * speed * Time.fixedDeltaTime;
-                Vector3 desiredPosition = rb.position + movement;
-                bool wouldHitColliders = false;
-                // Query ignores triggers (like the Camera Rig, the collider for the level's boundaries or the shells)
-                Collider[] collidersThatWouldBeHit = Physics.OverlapSphere(desiredPosition + sphereCollider.center, sphereCollider.radius, Physics.AllLayers, QueryTriggerInteraction.Ignore);
-                for (int i = 0; i < collidersThatWouldBeHit.Length; ++i)
+                if (collidersThatWouldBeHit[i].name != transform.name)
                 {
-                    if (collidersThatWouldBeHit[i].name != transform.name)
-                    {
-                        //Debug.Log(collidersThatWouldBeHit[i].name);
-                        wouldHitColliders = true;
-                        break;
-                    }
+                    wouldHitColliders = true;
+                    break;
                 }
-                if (!wouldHitColliders)
-                {
-                    rb.MovePosition(desiredPosition);
-                }
+            }
+            if (!wouldHitColliders)
+            {
+                _rigidbody.MovePosition(desiredPosition);
             }
         }
     }
 
     private void PlayEngineAudio()
     {
-        if (isMoving && engineAudioSource.clip == engineIdleAudioClip)
+        if (_isMoving && _engineAudioSource.clip == _engineIdleAudioClip)
         {
-            engineAudioSource.clip = engineDrivingAudioClip;
-            engineAudioSource.pitch = Random.Range(engineOriginalPitch - enginePitchRange, engineOriginalPitch + enginePitchRange);
-            engineAudioSource.Play();
+            _engineAudioSource.clip = _engineDrivingAudioClip;
+            _engineAudioSource.pitch = Random.Range(_engineOriginalPitch - _enginePitchRange, _engineOriginalPitch + _enginePitchRange);
+            _engineAudioSource.Play();
         }
-        else if (!isMoving && engineAudioSource.clip == engineDrivingAudioClip)
+        else if (!_isMoving && _engineAudioSource.clip == _engineDrivingAudioClip)
         {
-            engineAudioSource.clip = engineIdleAudioClip;
-            engineAudioSource.pitch = Random.Range(engineOriginalPitch - enginePitchRange, engineOriginalPitch + enginePitchRange);
-            engineAudioSource.Play();
+            _engineAudioSource.clip = _engineIdleAudioClip;
+            _engineAudioSource.pitch = Random.Range(_engineOriginalPitch - _enginePitchRange, _engineOriginalPitch + _enginePitchRange);
+            _engineAudioSource.Play();
         }
     }
 }

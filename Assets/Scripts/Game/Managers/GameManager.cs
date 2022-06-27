@@ -1,41 +1,120 @@
+using Photon.Pun;
+using Photon.Realtime;
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    public int NumberOfPlayers { get; private set; } = 2;
-    [SerializeField] private Color[] playerColors;
-    [SerializeField] private Transform[] playerSpawnPoints;
-    [SerializeField] private GameObject tankPrefab;
-    public PlayerManager[] playerManagers { get; private set; } = new PlayerManager[2]; // TODO
-    public int TotalRoundsToWin { get; private set; } = 2;
-    [SerializeField] public Transform[] SpawnPoints { get; private set; }
-    private readonly float startDelay = 1f;
-    private readonly float endDelay = 1f;
-    private WaitForSeconds startWait;
-    private WaitForSeconds endWait;
-    private int currentRound;
-    private bool matchEnded;
-
+    private PhotonView _photonView;
+    private int _actorNumber;
+    private Player[] _players;
+    public int NumberOfPlayers { get; private set; }
+    [SerializeField] private List<Color> _availablePlayerColors = new List<Color>();
+    [SerializeField] private List<Transform> _availablePlayerSpawnPoints = new List<Transform>();
+    [SerializeField] private readonly int _initialTankCount = 1; // TODO - Creator of the room should set this in the UI
+    [SerializeField] private readonly int _totalRoundsToWin = 2; // TODO - Creator of the room should set this in the UI
+    public List<PlayerInfo> PlayersInfo = new List<PlayerInfo>();
+    [SerializeField] private GameObject _tankPrefab;
+    private PlayerManager _playerManager;
+    private const float _startDelay = 1f;
+    private const float _endDelay = 1f;
+    private readonly WaitForSeconds _startWait = new WaitForSeconds(_startDelay);
+    private readonly WaitForSeconds _endWait = new WaitForSeconds(_endDelay);
+    private int _currentRound = 0;
+    private int _playersRemaining;
 
     public event Action<int> RoundStartingEvent;
     public event Action RoundPlayingEvent;
-    public event Action<PlayerManager, bool> RoundEndingEvent;
+    public event Action<PlayerInfo, bool> RoundEndingEvent;
 
+
+
+    private void Awake()
+    {
+        _photonView = GetComponent<PhotonView>();
+        _actorNumber = PhotonNetwork.LocalPlayer.ActorNumber;
+        _players = PhotonNetwork.PlayerList;
+        NumberOfPlayers = _players.Length;
+    }
 
     private void Start()
     {
         //Physics.defaultMaxDepenetrationVelocity = float.PositiveInfinity;
 
-        startWait = new WaitForSeconds(startDelay);
-        endWait = new WaitForSeconds(endDelay);
+        if (PhotonNetwork.IsMasterClient)
+        {
+            InitializePlayersInfo();
+            InitializePlayersManagers();
+            _photonView.RPC("RPC_NewRound", RpcTarget.AllViaServer);
+        }
 
-        SetupPlayerManagers();
-
-        StartCoroutine(GameLoop());
+        //_playerManager.Setup(); // This gets called before InitializePlayersManagers finished
     }
 
+    private void InitializePlayersInfo()
+    {
+        for (int i = 0; i < NumberOfPlayers; ++i)
+        {
+            int index = UnityEngine.Random.Range(0, _availablePlayerColors.Count - 1);
+            Color color = _availablePlayerColors[index];
+            _availablePlayerColors.RemoveAt(index);
+            PlayersInfo.Add(new PlayerInfo(_players[i].ActorNumber, color));
+        }
+        _photonView.RPC("RPC_SetPlayersInfo", RpcTarget.Others, PlayersInfo.Select(info => new Vector3(info.Color.r, info.Color.g, info.Color.b)).ToArray());
+    }
+
+    [PunRPC]
+    private void RPC_SetPlayersInfo(Vector3[] colors)
+    {
+        for (int i = 0; i < NumberOfPlayers; ++i)
+        {
+            PlayersInfo.Add(new PlayerInfo(_players[i].ActorNumber, new Color(colors[i].x, colors[i].y, colors[i].z)));
+        }
+    }
+
+    private void InitializePlayersManagers()
+    {
+        for (int i = 0; i < NumberOfPlayers; ++i)
+        {
+            int index = UnityEngine.Random.Range(0, _availablePlayerSpawnPoints.Count - 1);
+            Transform spawnPoint = _availablePlayerSpawnPoints[index];
+            _availablePlayerSpawnPoints.RemoveAt(index);
+            _photonView.RPC("RPC_SetPlayerManager", _players[i], spawnPoint.position);
+            
+        }
+    }
+
+    [PunRPC]
+    private void RPC_SetPlayerManager(Vector3 spawnPosition)
+    {
+        _playerManager = new PlayerManager(_actorNumber, PlayersInfo[_actorNumber-1].Color, spawnPosition, _tankPrefab);
+    }
+
+    [PunRPC]
+    private void RPC_NewRound()
+    {
+        StartCoroutine(StartRound());
+    }
+
+    private IEnumerator StartRound()
+    {
+        _currentRound++;
+        _playerManager.Reset();
+        _playerManager.Setup();
+        _playerManager.SetControlEnabled(false);
+        RoundStartingEvent?.Invoke(_currentRound);
+        yield return _startWait;
+        RoundPlayingEvent?.Invoke();
+        _playerManager.SetControlEnabled(true);
+    }
+
+    // TODO - Callbacks for OnPlayerJoin/Leave
+
+
+#if false
     private void SetupPlayerManagers()
     {
         for (int i = 0; i < NumberOfPlayers; ++i)
@@ -53,8 +132,7 @@ public class GameManager : MonoBehaviour
 
         if (matchEnded)
         {
-            // If there is a game winner, restart the level
-            //SceneManager.LoadScene(0);
+            // TODO - Display game end modal
         }
         else
         {
@@ -76,7 +154,6 @@ public class GameManager : MonoBehaviour
             playerManagers[i].DisableControl();
         }
 
-        // TODO - Set camera initial position
         yield return startWait;
     }
 
@@ -138,4 +215,6 @@ public class GameManager : MonoBehaviour
         }
         return false;
     }
+
+#endif
 }

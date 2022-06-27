@@ -1,3 +1,4 @@
+using Photon.Pun;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,66 +6,46 @@ using UnityEngine;
 [Serializable]
 public class PlayerManager
 {
-    public int PlayerNumber { get; private set; }
-    public Color PlayerColor { get; private set; }
-    public Transform SpawnPoint { get; private set; }
-    private readonly GameObject tankPrefab;
-    public List<GameObject> Tanks { get; private set; }
-    public int RoundsWon { get; set; }
+    private readonly int _playerNumber;
+    private readonly Color _playerColor;
+    private readonly Vector3 _spawnPosition;
+    private readonly GameObject _tankPrefab;
+    private List<GameObject> _tanks = new List<GameObject>();
     
 
-    public PlayerManager(int playerNumber, Color playerColor, Transform spawnPoint, GameObject tankPrefab)
+    public PlayerManager(int playerNumber, Color playerColor, Vector3 spawnPosition, GameObject tankPrefab)
     {
-        PlayerNumber = playerNumber;
-        PlayerColor = playerColor;
-        SpawnPoint = spawnPoint;
-        this.tankPrefab = tankPrefab;
+        _playerNumber = playerNumber;
+        _playerColor = playerColor;
+        _spawnPosition = spawnPosition;
+        _tankPrefab = tankPrefab;
     }
 
     public void Setup()
     {
-        Tanks = new List<GameObject>();
-        GameObject tank = GameObject.Instantiate(tankPrefab, SpawnPoint.position, Quaternion.identity);
-        Tanks.Add(tank);
-        tank.GetComponent<TankMovement>().playerNumber = PlayerNumber;
-        
-        MeshRenderer[] renderers = tank.GetComponentsInChildren<MeshRenderer>();
-        for (int i = 0; i < renderers.Length; ++i)
-        {
-            renderers[i].material.color = PlayerColor;
-        }
+        // TODO - Have user-defined initial number of tanks
+        GameObject tank = PhotonNetwork.Instantiate(_tankPrefab.name, _spawnPosition, Quaternion.identity);
+        TankInfo tankInfo = tank.GetComponent<TankInfo>();
+        tankInfo.SetPlayerNumber(_playerNumber);
+        tankInfo.SetColor(_playerColor);
+        _tanks.Add(tank);
     }
 
-    public void DisableControl()
+    public void SetControlEnabled(bool enabled)
     {
-        for (int i = 0; i < Tanks.Count; ++i)
+        foreach (GameObject tank in _tanks)
         {
-            Tanks[i].GetComponent<TankMovement>().enabled = false;
-            Tanks[i].GetComponent<TankShooting>().enabled = false;
-            Tanks[i].GetComponentInChildren<Canvas>(true).gameObject.SetActive(false);
-        }
-    }
-
-    public void EnableControl()
-    {
-        for (int i = 0; i < Tanks.Count; ++i)
-        {
-            Tanks[i].GetComponent<TankMovement>().enabled = true;
-            Tanks[i].GetComponent<TankShooting>().enabled = true;
-            Tanks[i].GetComponentInChildren<Canvas>(true).gameObject.SetActive(true);
+            tank.GetComponent<TankMovement>().enabled = enabled;
+            tank.GetComponent<TankShooting>().enabled = enabled;
+            tank.GetComponentInChildren<Canvas>(true).gameObject.SetActive(enabled);
         }
     }
 
     public void Reset()
     {
-        while (Tanks.Count > 1)
+        foreach (GameObject tank in _tanks)
         {
-            GameObject.Destroy(Tanks[1]);
+            PhotonNetwork.Destroy(tank);
         }
-        Tanks[0].transform.position = SpawnPoint.position;
-        Tanks[0].transform.rotation = Quaternion.identity;
-        Tanks[0].SetActive(false);
-        Tanks[0].SetActive(true);
     }
-
 }
