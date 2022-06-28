@@ -1,21 +1,27 @@
+using System.Linq;
 using UnityEngine;
 
 public class CameraControl : MonoBehaviour
 {
     [SerializeField] private GameManager _gameManager;
+    private const float _cameraSpeed = 15f;
+    /*private readonly float _mouseThresholdTop = Screen.height * 0.95f;
+    private readonly float _mouseThresholdBottom = Screen.height * 0.05f;
+    private readonly float _mouseThresholdRight = Screen.width * 0.95f;
+    private readonly float _mouseThresholdLeft = Screen.width * 0.05f;*/
 
+    private readonly float[] _mouseThresholdsTop = { Screen.height * 0.95f, Screen.height * 0.999f };
+    private readonly float[] _mouseThresholdsBottom = { Screen.height * 0.001f, Screen.height * 0.05f };
+    private readonly float[] _mouseThresholdsRight = { Screen.width * 0.95f, Screen.width * 0.999f };
+    private readonly float[] _mouseThresholdsLeft = { Screen.width * 0.001f, Screen.width * 0.05f };
 
-    [SerializeField] private const float cameraSpeed = 15f;
-    private float mouseThresholdTop;
-    private float mouseThresholdBottom;
-    private float mouseThresholdRight;
-    private float mouseThresholdLeft;
-    private bool cameraTeleportationPending;
-    private Vector3 cameraUp = Vector3.Normalize(new Vector3(1f, 0f, 0f) * 1.7f + new Vector3(0f, 0f, 1f));
-    private Vector3 cameraRight = Vector3.Normalize(new Vector3(1f, 0f, 0f) - new Vector3(0f, 0f, 1f) * 1.7f);
-    private Vector3 cameraMovementDirection;
-    [SerializeField] private GameObject level;
-    private bool insideLevel = true;
+    private readonly Vector3 _cameraUp = Vector3.Normalize(new Vector3(1f, 0f, 0f) * 1.7f + new Vector3(0f, 0f, 1f));
+    private readonly Vector3 _cameraRight = Vector3.Normalize(new Vector3(1f, 0f, 0f) - new Vector3(0f, 0f, 1f) * 1.7f);
+    private Vector3 _cameraMovementDirection;
+    private bool _cameraTeleportationPending = false;
+    [SerializeField] private GameObject _level;
+    private bool _insideLevel = true;
+
 
     private void Awake()
     {
@@ -31,91 +37,76 @@ public class CameraControl : MonoBehaviour
         _gameManager.RoundEndingEvent -= OnRoundEnding;
     }
 
-    private void Start()
-    {
-        mouseThresholdTop = Screen.height * 0.95f;
-        mouseThresholdBottom = Screen.height * 0.05f;
-        mouseThresholdRight = Screen.width * 0.95f;
-        mouseThresholdLeft = Screen.width * 0.05f;
-
-        /*Debug.DrawLine(new Vector3(0f, 0f, 0f), new Vector3(5f, 0f, 0f), Color.red, 30f);
-        Debug.DrawLine(new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 5f), Color.blue, 30f);
-        Debug.DrawLine(new Vector3(0f, 0f, 0f), 5f * cameraUp, Color.green, 30f);
-        Debug.DrawLine(new Vector3(0f, 0f, 0f), 5f * cameraRight, Color.green, 30f);*/
-    }
-
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            // Use space bar to teleport the camera to the first selected tank, or the first owned tank if none are selected
-            cameraTeleportationPending = true;
+            _cameraTeleportationPending = true;
         }
     }
 
     private void FixedUpdate()
     {
         // Use FixedUpdate for the camera movement in order to sync with the players' movement and avoid jittering
-        if (cameraTeleportationPending)
+        if (_cameraTeleportationPending)
         {
-            cameraTeleportationPending = false;
-            GameObject firstSelectedTank = null;
-            GameObject[] tanks = GameObject.FindGameObjectsWithTag("Player");
-            for (int i = 0; i < tanks.Length; ++i)
-            {
-                TankInfo tankInfo = tanks[i].GetComponent<TankInfo>();
-                // TODO - use game manager when checking the player number
-                // TODO - Actually, use the list of tanks from PlayerManager
-                if (tankInfo.PlayerNumber == 1)
-                {
-                    if (firstSelectedTank == null)
-                    {
-                        firstSelectedTank = tanks[i];
-                    }
-                    if (tankInfo.IsSelected)
-                    {
-                        firstSelectedTank = tanks[i];
-                        break;
-                    }
-                }
-            }
-            if (firstSelectedTank != null)
-            {
-                transform.position = firstSelectedTank.transform.position;
-                return;
-            }
+            _cameraTeleportationPending = false;
+            TeleportCamera();
         }
+        GlideCamera();
+    }
 
-        cameraMovementDirection = Vector3.zero;
-        if (Input.mousePosition.y >= mouseThresholdTop)
+    private void TeleportCamera()
+    {
+        // Teleport to the first selected tank, or the first owned tank if none are selected
+        if (_gameManager.PlayerManager.Tanks.Count == 0)
         {
-            cameraMovementDirection += cameraUp;
+            return;
         }
-        else if (Input.mousePosition.y <= mouseThresholdBottom)
+        GameObject firstTank = _gameManager.PlayerManager.Tanks.Find(tank => tank.GetComponent<TankInfo>().IsSelected);
+        if (firstTank == null)
         {
-            cameraMovementDirection -= cameraUp;
+            firstTank = _gameManager.PlayerManager.Tanks[0];
         }
-        if (Input.mousePosition.x >= mouseThresholdRight)
+        transform.position = firstTank.transform.position;
+    }
+
+    private void GlideCamera()
+    {
+        _cameraMovementDirection = Vector3.zero;
+        //if (Input.mousePosition.y >= _mouseThresholdTop)
+        if (Input.mousePosition.y >= _mouseThresholdsTop[0] && Input.mousePosition.y <= _mouseThresholdsTop[1])
         {
-            cameraMovementDirection += cameraRight;
+            _cameraMovementDirection += _cameraUp;
         }
-        else if (Input.mousePosition.x <= mouseThresholdLeft)
+        //else if (Input.mousePosition.y <= _mouseThresholdBottom)
+        if (Input.mousePosition.y >= _mouseThresholdsBottom[0] && Input.mousePosition.y <= _mouseThresholdsBottom[1])
         {
-            cameraMovementDirection -= cameraRight;
+            _cameraMovementDirection -= _cameraUp;
         }
-        if (cameraMovementDirection != Vector3.zero)
+        //if (Input.mousePosition.x >= _mouseThresholdRight)
+        if (Input.mousePosition.x >= _mouseThresholdsRight[0] && Input.mousePosition.x <= _mouseThresholdsRight[1])
         {
-            if (insideLevel)
+            _cameraMovementDirection += _cameraRight;
+        }
+        //else if (Input.mousePosition.x <= _mouseThresholdLeft)
+        if (Input.mousePosition.x >= _mouseThresholdsLeft[0] && Input.mousePosition.x <= _mouseThresholdsLeft[1])
+        {
+            _cameraMovementDirection -= _cameraRight;
+        }
+        if (_cameraMovementDirection != Vector3.zero)
+        {
+            if (_insideLevel)
             {
                 // Normalize the direction so the camera's speed won't increase when scrolling diagonally
-                transform.Translate(Vector3.Normalize(cameraMovementDirection) * cameraSpeed * Time.fixedDeltaTime, Space.World);
+                transform.Translate(Vector3.Normalize(_cameraMovementDirection) * _cameraSpeed * Time.fixedDeltaTime, Space.World);
             }
             else
             {
                 // Prevent the camera from moving further away from the level's center
-                float currentDistance = Vector3.Distance(transform.position, level.transform.position);
-                Vector3 newPosition = transform.position + Vector3.Normalize(cameraMovementDirection) * cameraSpeed * Time.fixedDeltaTime;
-                float newDistance = Vector3.Distance(newPosition, level.transform.position);
+                float currentDistance = Vector3.Distance(transform.position, _level.transform.position);
+                Vector3 newPosition = transform.position + Vector3.Normalize(_cameraMovementDirection) * _cameraSpeed * Time.fixedDeltaTime;
+                float newDistance = Vector3.Distance(newPosition, _level.transform.position);
                 if (newDistance <= currentDistance)
                 {
                     transform.position = newPosition;
@@ -127,25 +118,25 @@ public class CameraControl : MonoBehaviour
     // Have camera bounds so that the camera doesn't go over the map's boundaries
     private void OnTriggerExit(Collider other)
     {
-        if (other.name.Contains("Level"))
+        if (other.tag == "Level")
         {
             // Camera Rig goes beyond the level's borders
-            insideLevel = false;
+            _insideLevel = false;
         }
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.name.Contains("Level"))
+        if (other.tag == "Level")
         {
             // Camera Rig goes back inside the level's borders
-            insideLevel = true;
+            _insideLevel = true;
         }
     }
 
     private void OnRoundStarting(int round)
     {
-        // TODO - Go to player's spawn position
+        TeleportCamera();
         enabled = false;
     }
 
@@ -156,7 +147,16 @@ public class CameraControl : MonoBehaviour
 
     private void OnRoundEnding(PlayerInfo roundWinner, bool isGameWinner)
     {
-        // TODO - Go to winner's location (if isGameWinner ?)
+        if (roundWinner != null && isGameWinner)
+        {
+            // Go to the winner's location
+            GameObject[] tanks = GameObject.FindGameObjectsWithTag("Tank")
+                .Where(tank => tank.GetComponent<TankInfo>().PlayerNumber == roundWinner.PlayerNumber).ToArray();
+            if (tanks.Length > 0)
+            {
+                transform.position = tanks[0].transform.position;
+            }
+        }
         enabled = false;
     }
 }

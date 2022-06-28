@@ -254,11 +254,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _gameManager: {fileID: 600546197}
   _infoText: {fileID: 1215747275}
-  playerNumber: 1
-  playersLayerMask:
+  _tanksLayerMask:
     serializedVersion: 2
     m_Bits: 64
-  selectionRingPrefab: {fileID: 7264523080108605, guid: 0d4f103209186d8419ec08f296d635f4, type: 3}
+  _selectionRingPrefab: {fileID: 7264523080108605, guid: 0d4f103209186d8419ec08f296d635f4, type: 3}
 --- !u!4 &66733861
 Transform:
   m_ObjectHideFlags: 0
@@ -520,6 +519,79 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 171356, guid: 161b039a016380246b4f62969a81f784, type: 3}
   m_PrefabInstance: {fileID: 804327409}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1116910992
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -2153250219920769582, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
+      propertyPath: sceneViewId
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 398565061, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 398565061, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6208117419158437637, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
+      propertyPath: m_Name
+      value: Tank (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 6208117419158437637, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6208117419158659813, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
+      propertyPath: m_RootOrder
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 6208117419158659813, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -3.75
+      objectReference: {fileID: 0}
+    - target: {fileID: 6208117419158659813, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6208117419158659813, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6208117419158659813, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6208117419158659813, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6208117419158659813, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6208117419158659813, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6208117419158659813, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6208117419158659813, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6208117419158659813, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
 --- !u!1 &1215747272
 GameObject:
   m_ObjectHideFlags: 0
@@ -720,7 +792,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _gameManager: {fileID: 600546197}
-  level: {fileID: 975080660}
+  _level: {fileID: 975080660}
 --- !u!4 &2128680656
 Transform:
   m_ObjectHideFlags: 0

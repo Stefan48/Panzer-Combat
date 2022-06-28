@@ -6,13 +6,16 @@ public class TankInfo : MonoBehaviour
     private PhotonView _photonView;
     // TODO - Have the username of the owner (and display it in the UI)
     // Then, the player number might not be necessary (maybe yes though, for the camera and the UiManager)
-    public int PlayerNumber { get; private set; } = 1;//
+    public int PlayerNumber { get; private set; } //= -1;//
     public bool IsSelected = false;
     public float Speed { get; private set; } = 12f;
+    public float ShellSpeed { get; private set; } = 20f;
 
     private void Awake()
     {
         _photonView = GetComponent<PhotonView>();
+
+        //PlayerNumber = Random.Range(0, 100) % 2 == 0 ? 0 : -1;//
     }
 
     public void SetPlayerNumber(int playerNumber)

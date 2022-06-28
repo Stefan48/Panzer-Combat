@@ -10,7 +10,7 @@ public class PlayerManager
     private readonly Color _playerColor;
     private readonly Vector3 _spawnPosition;
     private readonly GameObject _tankPrefab;
-    private List<GameObject> _tanks = new List<GameObject>();
+    public List<GameObject> Tanks { get; private set; } = new List<GameObject>();
     
 
     public PlayerManager(int playerNumber, Color playerColor, Vector3 spawnPosition, GameObject tankPrefab)
@@ -28,12 +28,12 @@ public class PlayerManager
         TankInfo tankInfo = tank.GetComponent<TankInfo>();
         tankInfo.SetPlayerNumber(_playerNumber);
         tankInfo.SetColor(_playerColor);
-        _tanks.Add(tank);
+        Tanks.Add(tank);
     }
 
     public void SetControlEnabled(bool enabled)
     {
-        foreach (GameObject tank in _tanks)
+        foreach (GameObject tank in Tanks)
         {
             tank.GetComponent<TankMovement>().enabled = enabled;
             tank.GetComponent<TankShooting>().enabled = enabled;
@@ -43,7 +43,7 @@ public class PlayerManager
 
     public void Reset()
     {
-        foreach (GameObject tank in _tanks)
+        foreach (GameObject tank in Tanks)
         {
             PhotonNetwork.Destroy(tank);
         }

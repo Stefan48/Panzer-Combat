@@ -1,7 +1,9 @@
+using Photon.Pun;
 using UnityEngine;
 
 public class TankMovement : MonoBehaviour
 {
+    private PhotonView _photonView;
     private TankInfo _tankInfo;
     private Rigidbody _rigidbody;
     private SphereCollider _sphereCollider;
@@ -18,11 +20,15 @@ public class TankMovement : MonoBehaviour
 
     private void Awake()
     {
-        // TODO - Disable script if !_photonView.IsMine
-
+        _photonView = GetComponent<PhotonView>();
+        if (!_photonView.IsMine)
+        {
+            enabled = false;
+        }
         _tankInfo = GetComponent<TankInfo>();
         _rigidbody = GetComponent<Rigidbody>();
         _sphereCollider = GetComponent<SphereCollider>();
+
     }
 
     private void Start()

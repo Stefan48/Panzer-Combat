@@ -603,7 +603,7 @@ GameObject:
   - component: {fileID: -4368800187431399302}
   m_Layer: 6
   m_Name: Tank
-  m_TagString: Player
+  m_TagString: Tank
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -877,10 +877,10 @@ MonoBehaviour:
   _engineAudioSource: {fileID: 6208117420013672364}
   _engineIdleAudioClip: {fileID: 8300000, guid: 4932ab25b84dd7649b80af68a9660ddc, type: 3}
   _engineDrivingAudioClip: {fileID: 8300000, guid: d7ca9fb5aa30155449192b23d7fb3336, type: 3}
+  _orientation: {fileID: 1351138691475587989}
   _groundLayerMask:
     serializedVersion: 2
     m_Bits: 256
-  _orientation: {fileID: 1351138691475587989}
 --- !u!114 &3359018915896853493
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -910,8 +910,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 754300043954dfb48af74d6984e83cc4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shellPrefab: {fileID: 3838508987572279607, guid: c0d26d418d4db5e419b72a5b7296ebdd, type: 3}
-  shotFiredAudioSource: {fileID: 6208117420013672361}
+  _muzzle: {fileID: 1110268858}
+  _shellPrefab: {fileID: 3838508987572279607, guid: c0d26d418d4db5e419b72a5b7296ebdd, type: 3}
+  _shotFiredAudioSource: {fileID: 6208117420013672361}
 --- !u!114 &-2153250219920769582
 MonoBehaviour:
   m_ObjectHideFlags: 0

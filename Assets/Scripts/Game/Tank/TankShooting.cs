@@ -1,39 +1,42 @@
+using Photon.Pun;
 using UnityEngine;
 
 public class TankShooting : MonoBehaviour
 {
+    private PhotonView _photonView;
     private TankInfo _tankInfo;
+    [SerializeField] private Transform _muzzle;
+    [SerializeField] private GameObject _shellPrefab;
+    [SerializeField] private AudioSource _shotFiredAudioSource;
 
-    [SerializeField] private GameObject shellPrefab;
-    [SerializeField] private AudioSource shotFiredAudioSource;
-    private float shotShellSpeed = 20f;
-    private Transform muzzleTransform;
 
     private void Awake()
     {
-        muzzleTransform = transform.Find("Muzzle");
-
+        _photonView = GetComponent<PhotonView>();
+        if (!_photonView.IsMine)
+        {
+            enabled = false;
+        }
         _tankInfo = GetComponent<TankInfo>();
-    }
-
-    private void OnEnable()
-    {
-        // TODO - reset stats to default values
     }
 
     private void Update()
     {
-        // Tank may shoot only when selected
         if (_tankInfo.IsSelected)
         {
             if (Input.GetMouseButtonDown(1))
             {
-                // TODO - direction doesn't exactly follow the mouse's cursor
-                // TODO - object pooling
-                GameObject shell = Instantiate(shellPrefab, muzzleTransform.position, muzzleTransform.rotation);
-                shell.GetComponent<ShellMovement>().speed = shotShellSpeed;
-                shotFiredAudioSource.Play();
+                Shoot();
             }
         }
+    }
+
+    private void Shoot()
+    {
+        // TODO - Object pooling
+        // TODO - RPC
+        GameObject shell = Instantiate(_shellPrefab, _muzzle.position, _muzzle.rotation);
+        shell.GetComponent<ShellMovement>().speed = _tankInfo.ShellSpeed;
+        _shotFiredAudioSource.Play();
     }
 }

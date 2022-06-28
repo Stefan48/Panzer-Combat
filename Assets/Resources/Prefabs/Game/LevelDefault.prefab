@@ -9303,7 +9303,7 @@ GameObject:
   - component: {fileID: 9216482159313210390}
   m_Layer: 7
   m_Name: LevelDefault
-  m_TagString: Untagged
+  m_TagString: Level
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4

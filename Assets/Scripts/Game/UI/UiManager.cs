@@ -6,16 +6,14 @@ public class UiManager : MonoBehaviour
 {
     [SerializeField] private GameManager _gameManager;
     [SerializeField] private Text _infoText;
+    [SerializeField] private LayerMask _tanksLayerMask;
+    [SerializeField] private GameObject _selectionRingPrefab;
+    private const int _numAlliedSelectionRingsPooled = 10;
+    private List<GameObject> _alliedSelectionRings = new List<GameObject>();
+    private GameObject _enemySelectionRing;
+    private List<GameObject> _selectedAlliedTanks = new List<GameObject>();
+    private GameObject _selectedEnemyTank = null;
 
-
-    [SerializeField] private int playerNumber = 1;
-    [SerializeField] private LayerMask playersLayerMask;
-    [SerializeField] private GameObject selectionRingPrefab;
-    private const int numAlliedSelectionRingsStored = 10;
-    private List<GameObject> alliedSelectionRings = new List<GameObject>();
-    private GameObject enemySelectionRing;
-    private List<GameObject> selectedAlliedTanks = new List<GameObject>();
-    private GameObject selectedEnemyTank = null;
 
     private void Awake()
     {
@@ -33,145 +31,149 @@ public class UiManager : MonoBehaviour
 
     private void Start()
     {
-        // Instantiate selection rings prefabs
-        for (int i = 0; i < numAlliedSelectionRingsStored; ++i)
+        // Pool selection rings
+        for (int i = 0; i < _numAlliedSelectionRingsPooled; ++i)
         {
-            GameObject ring = Instantiate(selectionRingPrefab);
+            GameObject ring = Instantiate(_selectionRingPrefab);
             ring.name = "AlliedSelectionRing" + (i + 1);
             ring.SetActive(false);
-            alliedSelectionRings.Add(ring);
+            _alliedSelectionRings.Add(ring);
         }
-        enemySelectionRing = Instantiate(selectionRingPrefab, selectionRingPrefab.transform.position, selectionRingPrefab.transform.rotation);
-        enemySelectionRing.transform.Find("Slider").Find("Fill Area").Find("Fill").GetComponent<Image>().color = new Color32(255, 0, 0, 180);
-        enemySelectionRing.name = "EnemySelectionRing";
-        enemySelectionRing.SetActive(false);
+        _enemySelectionRing = Instantiate(_selectionRingPrefab);
+        _enemySelectionRing.transform.Find("Slider").Find("Fill Area").Find("Fill").GetComponent<Image>().color = new Color32(255, 0, 0, 180);
+        _enemySelectionRing.name = "EnemySelectionRing";
+        _enemySelectionRing.SetActive(false);
     }
 
     private void Update()
     {
-        // Process input
         if (Input.GetMouseButtonDown(0))
         {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
-            // TODO - No hit if user clicked on UI
-            if (Physics.Raycast(ray, out hit, Mathf.Infinity, playersLayerMask, QueryTriggerInteraction.Ignore))
+            UpdateSelectedTanks();
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        // This is called in FixedUpdate so the rings get synced with the players' movement
+        UpdateSelectionRingsPositions();
+    }
+
+    private void DeselectEnemyTank()
+    {
+        if (_selectedEnemyTank != null)
+        {
+            _selectedEnemyTank = null;
+            _enemySelectionRing.SetActive(false);
+        }
+    }
+
+    private void DeselectAlliedTanks()
+    {
+        if (_selectedAlliedTanks.Count > 0)
+        {
+            for (int i = 0; i < _selectedAlliedTanks.Count; ++i)
             {
-                GameObject tank = hit.transform.gameObject;
-                TankInfo tankInfo = tank.GetComponent<TankInfo>();
-                if (tankInfo.PlayerNumber == playerNumber)
+                _alliedSelectionRings[i].SetActive(false);
+                _selectedAlliedTanks[i].GetComponent<TankInfo>().IsSelected = false;
+            }
+            _selectedAlliedTanks.Clear();
+        }
+    }
+
+    private void UpdateSelectedTanks()
+    {
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        // TODO - No hit if user clicked on UI
+        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, _tanksLayerMask, QueryTriggerInteraction.Ignore))
+        {
+            GameObject tank = hit.transform.gameObject;
+            TankInfo tankInfo = tank.GetComponent<TankInfo>();
+            if (tankInfo.PlayerNumber == _gameManager.ActorNumber)
+            {
+                // Player selected an allied tank
+                DeselectEnemyTank();
+                if (Input.GetKey(KeyCode.LeftAlt))
                 {
-                    // Player selected an allied tank
-                    if (selectedEnemyTank != null)
+                    // Player might have selected multiple allied tanks
+                    bool selectedNewTank = true;
+                    for (int i = 0; i < _selectedAlliedTanks.Count; ++i)
                     {
-                        selectedEnemyTank = null;
-                        enemySelectionRing.SetActive(false);
-                    }
-                    if (Input.GetKey(KeyCode.LeftAlt))
-                    {
-                        // Player might have selected multiple allied tanks
-                        bool selectedNewTank = true;
-                        for (int i = 0; i < selectedAlliedTanks.Count; ++i)
+                        if (ReferenceEquals(tank, _selectedAlliedTanks[i]))
                         {
-                            if (ReferenceEquals(tank, selectedAlliedTanks[i]))
-                            {
-                                selectedNewTank = false;
-                            }
-                        }
-                        if (selectedNewTank)
-                        {
-                            tankInfo.IsSelected = true;
-                            selectedAlliedTanks.Add(tank);
-                            alliedSelectionRings[selectedAlliedTanks.Count - 1].SetActive(true);
+                            selectedNewTank = false;
+                            // Player deselected one of the selected tanks
+                            tankInfo.IsSelected = false;
+                            _alliedSelectionRings[_selectedAlliedTanks.Count - 1].SetActive(false);
+                            _selectedAlliedTanks.RemoveAt(i);
+                            break;
                         }
                     }
-                    else
+                    if (selectedNewTank)
                     {
-                        // Player selected a single allied tank
-                        if (selectedAlliedTanks.Count > 0)
-                        {
-                            for (int i = 1; i < selectedAlliedTanks.Count; ++i)
-                            {
-                                alliedSelectionRings[i].SetActive(false);
-                                selectedAlliedTanks[i].GetComponent<TankInfo>().IsSelected = false;
-                            }
-                            selectedAlliedTanks[0].GetComponent<TankInfo>().IsSelected = false;
-                            selectedAlliedTanks.Clear();
-                        }
                         tankInfo.IsSelected = true;
-                        selectedAlliedTanks.Add(tank);
-                        alliedSelectionRings[0].SetActive(true);
+                        _selectedAlliedTanks.Add(tank);
+                        _alliedSelectionRings[_selectedAlliedTanks.Count - 1].SetActive(true);
                     }
                 }
                 else
                 {
-                    // Player selected an enemy tank
-                    if (selectedAlliedTanks.Count > 0)
-                    {
-                        for (int i = 0; i < selectedAlliedTanks.Count; ++i)
-                        {
-                            alliedSelectionRings[i].SetActive(false);
-                            selectedAlliedTanks[i].GetComponent<TankInfo>().IsSelected = false;
-                        }
-                        selectedAlliedTanks.Clear();
-                    }
-                    selectedEnemyTank = tank;
-                    enemySelectionRing.SetActive(true);
+                    // Player selected a single allied tank
+                    DeselectAlliedTanks();
+                    tankInfo.IsSelected = true;
+                    _selectedAlliedTanks.Add(tank);
+                    _alliedSelectionRings[0].SetActive(true);
                 }
             }
             else
             {
-                // Left-clicking  outside of any tank deselects the currently selected tanks (if any)
-                if (selectedAlliedTanks.Count > 0)
-                {
-                    for (int i = 0; i < selectedAlliedTanks.Count; ++i)
-                    {
-                        alliedSelectionRings[i].SetActive(false);
-                        selectedAlliedTanks[i].GetComponent<TankInfo>().IsSelected = false;
-                    }
-                    selectedAlliedTanks.Clear();
-                }
-                else if (selectedEnemyTank != null)
-                {
-                    selectedEnemyTank = null;
-                    enemySelectionRing.SetActive(false);
-                }
+                // Player selected an enemy tank
+                DeselectAlliedTanks();
+                _selectedEnemyTank = tank;
+                _enemySelectionRing.SetActive(true);
             }
         }
-    }
-    private void FixedUpdate()
-    {
-        // Update selection rings' positions (use FixedUpdate to sync with the players' movement)
-        if (selectedAlliedTanks.Count > 0)
+        else
         {
-            for (int i = 0; i < selectedAlliedTanks.Count; ++i)
+            // Left-clicking  outside of any tank deselects the currently selected tanks (if any)
+            DeselectAlliedTanks();
+            DeselectEnemyTank();
+        }
+    }
+
+    private void UpdateSelectionRingsPositions()
+    {
+        if (_selectedAlliedTanks.Count > 0)
+        {
+            for (int i = 0; i < _selectedAlliedTanks.Count; ++i)
             {
-                if (!selectedAlliedTanks[i].activeSelf)
+                // TODO - Null error?
+                if (!_selectedAlliedTanks[i].activeSelf)
                 {
                     // Selected allied tank got destroyed
-                    alliedSelectionRings[selectedAlliedTanks.Count - 1].SetActive(false);
-                    selectedAlliedTanks.RemoveAt(i);
+                    _alliedSelectionRings[_selectedAlliedTanks.Count - 1].SetActive(false);
+                    _selectedAlliedTanks.RemoveAt(i);
                     i--;
                 }
                 else
                 {
-                    Vector3 tankPosition = selectedAlliedTanks[i].transform.position;
-                    alliedSelectionRings[i].transform.position = new Vector3(tankPosition.x, alliedSelectionRings[i].transform.position.y, tankPosition.z);
+                    Vector3 tankPosition = _selectedAlliedTanks[i].transform.position;
+                    _alliedSelectionRings[i].transform.position = new Vector3(tankPosition.x, _alliedSelectionRings[i].transform.position.y, tankPosition.z);
                 }
             }
         }
-        else if (selectedEnemyTank != null)
+        else if (_selectedEnemyTank != null)
         {
-            if (!selectedEnemyTank.activeSelf)
+            if (!_selectedEnemyTank.activeSelf)
             {
                 // The selected enemy tank got destroyed
-                selectedEnemyTank = null;
-                enemySelectionRing.SetActive(false);
+                _selectedEnemyTank = null;
+                _enemySelectionRing.SetActive(false);
             }
             else
             {
-                Vector3 tankPosition = selectedEnemyTank.transform.position;
-                enemySelectionRing.transform.position = new Vector3(tankPosition.x, enemySelectionRing.transform.position.y, tankPosition.z);
+                Vector3 tankPosition = _selectedEnemyTank.transform.position;
+                _enemySelectionRing.transform.position = new Vector3(tankPosition.x, _enemySelectionRing.transform.position.y, tankPosition.z);
             }
         }
     }
@@ -195,20 +197,15 @@ public class UiManager : MonoBehaviour
         enabled = false;
     }
 
-    public void Reset()
+    private void Reset()
     {
-        for (int i = 0; i < selectedAlliedTanks.Count; ++i)
+        for (int i = 0; i < _selectedAlliedTanks.Count; ++i)
         {
-            selectedAlliedTanks[i].GetComponent<TankInfo>().IsSelected = false;
-            alliedSelectionRings[i].SetActive(false);
+            //_selectedAlliedTanks[i].GetComponent<TankInfo>().IsSelected = false;
+            _alliedSelectionRings[i].SetActive(false);
         }
-        selectedAlliedTanks.Clear();
-
-        if (selectedEnemyTank != null)
-        {
-            selectedEnemyTank = null;
-            enemySelectionRing.SetActive(false);
-        }
+        _selectedAlliedTanks.Clear();
+        DeselectEnemyTank();
     }
 
     private string GetRoundEndText(PlayerInfo roundWinner, bool isGameWinner)
@@ -218,26 +215,17 @@ public class UiManager : MonoBehaviour
             return "DRAW!";
         }
         string text;
-        string coloredPlayerText = GetColoredPlayerText(roundWinner.Color, roundWinner.PlayerNumber);
-        if (isGameWinner)
-        {
-            text = coloredPlayerText + " WON THE GAME!";
-        }
-        else
-        {
-            text = coloredPlayerText + " WON THE ROUND!";
-        }
-        text += "\n\n";
+        string coloredPlayerText = GetColoredPlayerText(roundWinner);
+        text = coloredPlayerText + (isGameWinner ? " WON THE GAME!" : " WON THE ROUND!") + "\n\n";        
         for (int i = 0; i < _gameManager.NumberOfPlayers; ++i)
         {
-            /*text += GetColoredPlayerText(_gameManager.playerManagers[i].PlayerColor, _gameManager.playerManagers[i].PlayerNumber)
-                + ": " + _gameManager.playerManagers[i].RoundsWon + "\n";*/
+            text += GetColoredPlayerText(_gameManager.PlayersInfo[i]) + ": " + _gameManager.PlayersInfo[i].RoundsWon + "\n";
         }
         return text;
     }
 
-    private string GetColoredPlayerText(Color playerColor, int playerNumber)
+    private string GetColoredPlayerText(PlayerInfo playerInfo)
     {
-        return "<color=#" + ColorUtility.ToHtmlStringRGB(playerColor) + ">PLAYER " + playerNumber + "</color>";
+        return "<color=#" + ColorUtility.ToHtmlStringRGB(playerInfo.Color) + ">" + playerInfo.Username + "</color>";
     }
 }

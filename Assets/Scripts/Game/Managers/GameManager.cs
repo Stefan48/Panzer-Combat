@@ -9,7 +9,7 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     private PhotonView _photonView;
-    private int _actorNumber;
+    public int ActorNumber { get; private set; }
     private Player[] _players;
     public int NumberOfPlayers { get; private set; }
     [SerializeField] private List<Color> _availablePlayerColors = new List<Color>();
@@ -18,7 +18,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private readonly int _totalRoundsToWin = 2; // TODO - Creator of the room should set this in the UI
     public List<PlayerInfo> PlayersInfo = new List<PlayerInfo>();
     [SerializeField] private GameObject _tankPrefab;
-    private PlayerManager _playerManager;
+    public PlayerManager PlayerManager { get; private set; }
     private const float _startDelay = 1f;
     private const float _endDelay = 1f;
     private readonly WaitForSeconds _startWait = new WaitForSeconds(_startDelay);
@@ -31,11 +31,10 @@ public class GameManager : MonoBehaviour
     public event Action<PlayerInfo, bool> RoundEndingEvent;
 
 
-
     private void Awake()
     {
         _photonView = GetComponent<PhotonView>();
-        _actorNumber = PhotonNetwork.LocalPlayer.ActorNumber;
+        ActorNumber = PhotonNetwork.LocalPlayer.ActorNumber;
         _players = PhotonNetwork.PlayerList;
         NumberOfPlayers = _players.Length;
     }
@@ -61,7 +60,7 @@ public class GameManager : MonoBehaviour
             int index = UnityEngine.Random.Range(0, _availablePlayerColors.Count - 1);
             Color color = _availablePlayerColors[index];
             _availablePlayerColors.RemoveAt(index);
-            PlayersInfo.Add(new PlayerInfo(_players[i].ActorNumber, color));
+            PlayersInfo.Add(new PlayerInfo(_players[i].ActorNumber, _players[i].NickName, color));
         }
         _photonView.RPC("RPC_SetPlayersInfo", RpcTarget.Others, PlayersInfo.Select(info => new Vector3(info.Color.r, info.Color.g, info.Color.b)).ToArray());
     }
@@ -71,7 +70,7 @@ public class GameManager : MonoBehaviour
     {
         for (int i = 0; i < NumberOfPlayers; ++i)
         {
-            PlayersInfo.Add(new PlayerInfo(_players[i].ActorNumber, new Color(colors[i].x, colors[i].y, colors[i].z)));
+            PlayersInfo.Add(new PlayerInfo(_players[i].ActorNumber, _players[i].NickName, new Color(colors[i].x, colors[i].y, colors[i].z)));
         }
     }
 
@@ -90,7 +89,7 @@ public class GameManager : MonoBehaviour
     [PunRPC]
     private void RPC_SetPlayerManager(Vector3 spawnPosition)
     {
-        _playerManager = new PlayerManager(_actorNumber, PlayersInfo[_actorNumber-1].Color, spawnPosition, _tankPrefab);
+        PlayerManager = new PlayerManager(ActorNumber, PlayersInfo[ActorNumber-1].Color, spawnPosition, _tankPrefab);
     }
 
     [PunRPC]
@@ -102,13 +101,13 @@ public class GameManager : MonoBehaviour
     private IEnumerator StartRound()
     {
         _currentRound++;
-        _playerManager.Reset();
-        _playerManager.Setup();
-        _playerManager.SetControlEnabled(false);
+        PlayerManager.Reset();
+        PlayerManager.Setup();
+        PlayerManager.SetControlEnabled(false);
         RoundStartingEvent?.Invoke(_currentRound);
         yield return _startWait;
         RoundPlayingEvent?.Invoke();
-        _playerManager.SetControlEnabled(true);
+        PlayerManager.SetControlEnabled(true);
     }
 
     // TODO - Callbacks for OnPlayerJoin/Leave
