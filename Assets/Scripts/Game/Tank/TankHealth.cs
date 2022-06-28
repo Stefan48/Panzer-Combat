@@ -55,6 +55,7 @@ public class TankHealth : MonoBehaviour
         tankExplosionParticleSystem.Play();
         tankExplosionAudioSource.Play();
         // TODO - destroy gameObject instead
-        gameObject.SetActive(false);
+        //gameObject.SetActive(false);
+        Destroy(gameObject);
     }
 }

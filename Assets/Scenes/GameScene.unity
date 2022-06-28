@@ -257,7 +257,6 @@ MonoBehaviour:
   _tanksLayerMask:
     serializedVersion: 2
     m_Bits: 64
-  _selectionRingPrefab: {fileID: 7264523080108605, guid: 0d4f103209186d8419ec08f296d635f4, type: 3}
 --- !u!4 &66733861
 Transform:
   m_ObjectHideFlags: 0
@@ -519,7 +518,7 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 171356, guid: 161b039a016380246b4f62969a81f784, type: 3}
   m_PrefabInstance: {fileID: 804327409}
   m_PrefabAsset: {fileID: 0}
---- !u!1001 &1116910992
+--- !u!1001 &997459836
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -540,7 +539,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6208117419158437637, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
       propertyPath: m_Name
-      value: Tank (1)
+      value: Tank
       objectReference: {fileID: 0}
     - target: {fileID: 6208117419158437637, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
       propertyPath: m_IsActive
@@ -548,11 +547,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6208117419158659813, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
       propertyPath: m_RootOrder
-      value: 7
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 6208117419158659813, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -3.75
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 6208117419158659813, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
       propertyPath: m_LocalPosition.y
@@ -687,7 +686,7 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1215747272}
   m_CullTransparentMesh: 1
---- !u!1001 &1974211345
+--- !u!1001 &1317409856
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -696,7 +695,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -2153250219920769582, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
       propertyPath: sceneViewId
-      value: 5
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 398565061, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
       propertyPath: m_AnchorMax.x
@@ -708,7 +707,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6208117419158437637, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
       propertyPath: m_Name
-      value: Tank
+      value: Tank (1)
       objectReference: {fileID: 0}
     - target: {fileID: 6208117419158437637, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
       propertyPath: m_IsActive
@@ -716,11 +715,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6208117419158659813, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
       propertyPath: m_RootOrder
-      value: 6
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 6208117419158659813, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0
+      value: 5.79
       objectReference: {fileID: 0}
     - target: {fileID: 6208117419158659813, guid: b34a40ba2531aff48b46cfd3ea461bf2, type: 3}
       propertyPath: m_LocalPosition.y

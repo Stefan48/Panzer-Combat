@@ -10,10 +10,10 @@ public class CameraControl : MonoBehaviour
     private readonly float _mouseThresholdRight = Screen.width * 0.95f;
     private readonly float _mouseThresholdLeft = Screen.width * 0.05f;*/
 
-    private readonly float[] _mouseThresholdsTop = { Screen.height * 0.95f, Screen.height * 0.999f };
-    private readonly float[] _mouseThresholdsBottom = { Screen.height * 0.001f, Screen.height * 0.05f };
-    private readonly float[] _mouseThresholdsRight = { Screen.width * 0.95f, Screen.width * 0.999f };
-    private readonly float[] _mouseThresholdsLeft = { Screen.width * 0.001f, Screen.width * 0.05f };
+    private readonly float[] _mouseThresholdsTop = { Screen.height * 0.95f, Screen.height * 0.99999f };
+    private readonly float[] _mouseThresholdsBottom = { Screen.height * 0.00001f, Screen.height * 0.05f };
+    private readonly float[] _mouseThresholdsRight = { Screen.width * 0.95f, Screen.width * 0.99999f };
+    private readonly float[] _mouseThresholdsLeft = { Screen.width * 0.00001f, Screen.width * 0.05f };
 
     private readonly Vector3 _cameraUp = Vector3.Normalize(new Vector3(1f, 0f, 0f) * 1.7f + new Vector3(0f, 0f, 1f));
     private readonly Vector3 _cameraRight = Vector3.Normalize(new Vector3(1f, 0f, 0f) - new Vector3(0f, 0f, 1f) * 1.7f);
