@@ -1,55 +1,97 @@
 using UnityEngine;
 using System.Collections;
+using System;
+using Photon.Pun;
+using Photon.Realtime;
+using ExitGames.Client.Photon;
 
-public class ShellExplosion : MonoBehaviour
+public class ShellExplosion : MonoBehaviourPunCallbacks
 {
-    [SerializeField] private LayerMask playersLayerMask;
-    [SerializeField] private LayerMask noCollisionsLayerMask;
-    private GameObject shellExplosion;
-    private ParticleSystem shellExplosionParticleSystem;
-    private AudioSource shellExplosionAudioSource;
-    private float shellDamage = 25f;
-    private float shellLifetime = 10f;
+    [SerializeField] private LayerMask _tanksLayerMask;
+    [SerializeField] private LayerMask _noCollisionsLayerMask;
+    public int Id; // unique shell identifier
+    public float Damage;
+    public float Lifetime;
+    private bool _explosionPending = false;
 
-    private void Awake()
+    private static readonly byte s_shellExplosionEvent = 0;
+
+
+    public override void OnEnable()
     {
-        shellExplosion = transform.Find("ShellExplosion").gameObject;
-        shellExplosionParticleSystem = shellExplosion.GetComponent<ParticleSystem>();
-        shellExplosionAudioSource = shellExplosionParticleSystem.GetComponent<AudioSource>();
+        base.OnEnable();
+        PhotonNetwork.NetworkingClient.EventReceived += NetworkingClient_EventReceived;
     }
 
-    private void Start()
+    public override void OnDisable()
     {
-        StartCoroutine(Explode(shellLifetime));
+        base.OnDisable();
+        PhotonNetwork.NetworkingClient.EventReceived -= NetworkingClient_EventReceived;
+    }
+
+    public void Init(int id, float damage, float lifetime)
+    {
+        Id = id;
+        Damage = damage;
+        Lifetime = lifetime;
+        StartCoroutine(Explosion(Lifetime));
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (((1 << other.gameObject.layer) & playersLayerMask.value) > 0)
+        // Shell collisions are checked only by the Master Client
+        if (!PhotonNetwork.IsMasterClient)
+        {
+            return;
+        }
+        if (((1 << other.gameObject.layer) & _tanksLayerMask.value) > 0)
         {
             // The shell hit a tank
-            GameObject tank = other.gameObject;
-            TankHealth tankHealthComponent = tank.GetComponent<TankHealth>();
-            tankHealthComponent.TakeDamage(shellDamage);
-            StartCoroutine(Explode(0f));
+            other.gameObject.GetComponent<TankHealth>().TakeDamage(Damage);
+            StartCoroutine(Explosion(0f));
         }
-        else if (((1 << other.gameObject.layer) & noCollisionsLayerMask.value) == 0)
+        else if (((1 << other.gameObject.layer) & _noCollisionsLayerMask.value) == 0)
         {
             // The shell hit the environment
-            //Debug.Log(other.name);
-            StartCoroutine(Explode(0f));
+            StartCoroutine(Explosion(0f));
         }
     }
 
-    private IEnumerator Explode(float delay)
+    private IEnumerator Explosion(float delay)
     {
         yield return new WaitForSeconds(delay);
-        // Detach the particle system from the shell GameObject
-        shellExplosionParticleSystem.transform.parent = null;
+        if (PhotonNetwork.IsMasterClient)
+        {
+            if (!_explosionPending)
+            {
+                _explosionPending = true;
+                // Using events since shells don't have a PhotonView component (they're not instantiated over the network for optimization reasons)
+                PhotonNetwork.RaiseEvent(s_shellExplosionEvent, Id, new RaiseEventOptions { Receivers = ReceiverGroup.All }, SendOptions.SendReliable);
+            }
+        }
+    }
+
+    private void NetworkingClient_EventReceived(EventData obj)
+    {
+        if (obj.Code == s_shellExplosionEvent)
+        {
+            if ((int)obj.CustomData == Id)
+            {
+                Explode();
+            }
+        }
+    }
+
+    private void Explode()
+    {
+        GameObject shellExplosion = transform.Find("ShellExplosion").gameObject;
+        ParticleSystem shellExplosionParticleSystem = shellExplosion.GetComponent<ParticleSystem>();
+        AudioSource shellExplosionAudioSource = shellExplosion.GetComponent<AudioSource>();
+        // Detach shellExplosion from the shell GameObject
+        shellExplosion.transform.parent = null;
         shellExplosionParticleSystem.Play();
         shellExplosionAudioSource.Play();
-        //Destroy(shellExplosionParticleSystem, shellExplosionParticleSystem.main.duration);
-        Destroy(shellExplosion, shellExplosionParticleSystem.main.duration);
+        Destroy(shellExplosion, Math.Max(shellExplosionParticleSystem.main.duration, shellExplosionAudioSource.clip.length));
         Destroy(gameObject);
     }
 }

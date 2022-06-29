@@ -1,3 +1,4 @@
+using ExitGames.Client.Photon;
 using Photon.Pun;
 using Photon.Realtime;
 using System;
@@ -110,7 +111,8 @@ public class GameManager : MonoBehaviour
         PlayerManager.SetControlEnabled(true);
     }
 
-    // TODO - Callbacks for OnPlayerJoin/Leave
+    // TODO - Callbacks for OnPlayerJoin/Leave => update _players (but not PlayersInfo)
+
 
 
 #if false

@@ -2,17 +2,22 @@ using UnityEngine;
 
 public class ShellMovement : MonoBehaviour
 {
-    public float speed = 20f;
-    private Rigidbody rb;
+    public float Speed;
+    private Rigidbody _rigidbody;
 
     private void Awake()
     {
-        rb = GetComponent<Rigidbody>();
+        _rigidbody = GetComponent<Rigidbody>();
+    }
+
+    public void Init(float speed)
+    {
+        Speed = speed;
     }
 
     private void FixedUpdate()
     {
-        Vector3 movement = transform.forward * speed * Time.fixedDeltaTime;
-        rb.MovePosition(rb.position + movement);
+        Vector3 movement = transform.forward * Speed * Time.fixedDeltaTime;
+        _rigidbody.MovePosition(_rigidbody.position + movement);
     }
 }

@@ -9,11 +9,17 @@ public class TankInfo : MonoBehaviour
     public int PlayerNumber { get; private set; } //= -1;//
     public bool IsSelected = false;
     public float Speed { get; private set; } = 12f;
+    public float MaxHealth { get; private set; } = 100f;
+    public float Health;
+    public float Damage { get; private set; } = 25f;
     public float ShellSpeed { get; private set; } = 20f;
+    public float ShellLifetime { get; private set; } = 10f;
+
 
     private void Awake()
     {
         _photonView = GetComponent<PhotonView>();
+        Health = MaxHealth;
 
         //PlayerNumber = Random.Range(0, 100) % 2 == 0 ? 0 : -1;//
     }

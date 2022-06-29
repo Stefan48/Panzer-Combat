@@ -476,6 +476,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   IsSelected: 0
+  Health: 0
 --- !u!114 &2101444913
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -507,11 +508,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63fbbddb7905d9943989d5af0791e493, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  slider: {fileID: 806860545}
-  fillImage: {fileID: 398565062}
-  maxHealthColor: {r: 0, g: 1, b: 0, a: 0.7058824}
-  minHealthColor: {r: 1, g: 0, b: 0, a: 0.7058824}
-  tankExplosionPrefab: {fileID: 151086, guid: 60027f5a6804c87409967fc296cb4c04, type: 3}
+  _healthBarSlider: {fileID: 806860545}
+  _healthBarFillImage: {fileID: 398565062}
+  _maxHealthColor: {r: 0, g: 1, b: 0, a: 0.7058824}
+  _minHealthColor: {r: 1, g: 0, b: 0, a: 0.7058824}
+  _tankExplosionPrefab: {fileID: 151086, guid: 60027f5a6804c87409967fc296cb4c04, type: 3}
 --- !u!114 &210013133
 MonoBehaviour:
   m_ObjectHideFlags: 0

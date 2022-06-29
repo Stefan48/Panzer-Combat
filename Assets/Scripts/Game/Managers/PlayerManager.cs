@@ -19,6 +19,13 @@ public class PlayerManager
         _playerColor = playerColor;
         _spawnPosition = spawnPosition;
         _tankPrefab = tankPrefab;
+
+        TankHealth.TankGotDestroyedEvent += OnTankGotDestroyed;
+    }
+
+    ~PlayerManager()
+    {
+        TankHealth.TankGotDestroyedEvent -= OnTankGotDestroyed;
     }
 
     public void Setup()
@@ -47,5 +54,15 @@ public class PlayerManager
         {
             PhotonNetwork.Destroy(tank);
         }
+    }
+
+    private void OnTankGotDestroyed(GameObject tank)
+    {
+        if (!Tanks.Remove(tank))
+        {
+            Debug.LogWarning("Could not remove destroyed tank from Tanks list");
+        }
+
+        // TODO - If there are no more tanks left, notify the GameManager
     }
 }
