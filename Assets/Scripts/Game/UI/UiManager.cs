@@ -146,8 +146,8 @@ public class UiManager : MonoBehaviour
 
     private void Reset()
     {
-        _selectedAlliedTanks.Clear();
-        _selectedEnemyTank = null;
+        DeselectAlliedTanks();
+        DeselectEnemyTank();
     }
 
     private string GetRoundEndText(PlayerInfo roundWinner, bool isGameWinner)

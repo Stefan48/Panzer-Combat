@@ -1,4 +1,3 @@
-using ExitGames.Client.Photon;
 using Photon.Pun;
 using Photon.Realtime;
 using System;
@@ -20,12 +19,14 @@ public class GameManager : MonoBehaviour
     public List<PlayerInfo> PlayersInfo = new List<PlayerInfo>();
     [SerializeField] private GameObject _tankPrefab;
     public PlayerManager PlayerManager { get; private set; }
-    private const float _startDelay = 1f;
-    private const float _endDelay = 1f;
+    private const float _startDelay = 2f;
+    private const float _endDelay = 2f;
+    private const float _potentialDrawDelay = 0.3f;
     private readonly WaitForSeconds _startWait = new WaitForSeconds(_startDelay);
     private readonly WaitForSeconds _endWait = new WaitForSeconds(_endDelay);
+    private readonly WaitForSeconds _potentialDrawWait = new WaitForSeconds(_potentialDrawDelay);
     private int _currentRound = 0;
-    private int _playersRemaining;
+    private List<int> _playersRemaining = new List<int>();
 
     public event Action<int> RoundStartingEvent;
     public event Action RoundPlayingEvent;
@@ -90,7 +91,7 @@ public class GameManager : MonoBehaviour
     [PunRPC]
     private void RPC_SetPlayerManager(Vector3 spawnPosition)
     {
-        PlayerManager = new PlayerManager(ActorNumber, PlayersInfo[ActorNumber-1].Color, spawnPosition, _tankPrefab);
+        PlayerManager = new PlayerManager(this, ActorNumber, PlayersInfo[ActorNumber-1].Color, spawnPosition, _tankPrefab);
     }
 
     [PunRPC]
@@ -102,6 +103,7 @@ public class GameManager : MonoBehaviour
     private IEnumerator StartRound()
     {
         _currentRound++;
+        _playersRemaining = _players.Select(p => p.ActorNumber).ToList();
         PlayerManager.Reset();
         PlayerManager.Setup();
         PlayerManager.SetControlEnabled(false);
@@ -110,6 +112,56 @@ public class GameManager : MonoBehaviour
         RoundPlayingEvent?.Invoke();
         PlayerManager.SetControlEnabled(true);
     }
+
+    public void LocalPlayerLost()
+    {
+        _photonView.RPC("RPC_PlayerLost", RpcTarget.AllViaServer);
+    }
+
+    [PunRPC]
+    private void RPC_PlayerLost(PhotonMessageInfo info)
+    {
+        _playersRemaining.Remove(info.Sender.ActorNumber);
+        // There should be exactly 1 player remaining so we don't start the coroutine more than once
+        if (PhotonNetwork.IsMasterClient && _playersRemaining.Count == 1)
+        {
+            StartCoroutine(AnnounceRoundEnd());
+        }
+    }
+
+    private IEnumerator AnnounceRoundEnd()
+    {
+        yield return _potentialDrawWait;
+        _photonView.RPC("RPC_RoundEnded", RpcTarget.AllViaServer);
+    }
+
+    [PunRPC]
+    private void RPC_RoundEnded()
+    {
+        StartCoroutine(EndRound());
+    }
+
+    private IEnumerator EndRound()
+    {
+        PlayerManager.SetControlEnabled(false);
+        PlayerInfo roundWinner = _playersRemaining.Count > 0 ? PlayersInfo[_playersRemaining[0] - 1] : null;
+        if (roundWinner != null)
+        {
+            roundWinner.WonRound();
+        }
+        bool isGameWinner = (roundWinner.RoundsWon == _totalRoundsToWin);
+        RoundEndingEvent?.Invoke(roundWinner, isGameWinner);
+        yield return _endWait;
+
+        if (!isGameWinner)
+        {
+            if (PhotonNetwork.IsMasterClient)
+            {
+                _photonView.RPC("RPC_NewRound", RpcTarget.AllViaServer);
+            }
+        }
+    }
+
 
     // TODO - Callbacks for OnPlayerJoin/Leave => update _players (but not PlayersInfo)
 

@@ -46,6 +46,8 @@ MonoBehaviour:
   - RPC_SetPlayerNumber
   - RPC_TakeDamage
   - RPC_Shoot
+  - RPC_PlayerLost
+  - RPC_RoundEnded
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

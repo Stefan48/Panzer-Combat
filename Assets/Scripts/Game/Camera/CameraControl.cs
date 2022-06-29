@@ -4,6 +4,7 @@ using UnityEngine;
 public class CameraControl : MonoBehaviour
 {
     [SerializeField] private GameManager _gameManager;
+    // TODO - Adjust camera speed based on quickest (selected) tank's speed, or in settings (camera should not be slower than the quickest tank)
     private const float _cameraSpeed = 15f;
     /*private readonly float _mouseThresholdTop = Screen.height * 0.95f;
     private readonly float _mouseThresholdBottom = Screen.height * 0.05f;

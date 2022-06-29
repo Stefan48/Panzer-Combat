@@ -14,4 +14,9 @@ public class PlayerInfo
         Color = color;
         RoundsWon = 0;
     }
+
+    public void WonRound()
+    {
+        RoundsWon++;
+    }
 }

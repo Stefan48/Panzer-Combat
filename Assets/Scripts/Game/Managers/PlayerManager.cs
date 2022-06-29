@@ -6,6 +6,7 @@ using UnityEngine;
 [Serializable]
 public class PlayerManager
 {
+    private readonly GameManager _gameManager;
     private readonly int _playerNumber;
     private readonly Color _playerColor;
     private readonly Vector3 _spawnPosition;
@@ -13,8 +14,9 @@ public class PlayerManager
     public List<GameObject> Tanks { get; private set; } = new List<GameObject>();
     
 
-    public PlayerManager(int playerNumber, Color playerColor, Vector3 spawnPosition, GameObject tankPrefab)
+    public PlayerManager(GameManager gameManager, int playerNumber, Color playerColor, Vector3 spawnPosition, GameObject tankPrefab)
     {
+        _gameManager = gameManager;
         _playerNumber = playerNumber;
         _playerColor = playerColor;
         _spawnPosition = spawnPosition;
@@ -44,7 +46,7 @@ public class PlayerManager
         {
             tank.GetComponent<TankMovement>().enabled = enabled;
             tank.GetComponent<TankShooting>().enabled = enabled;
-            tank.GetComponentInChildren<Canvas>(true).gameObject.SetActive(enabled);
+            tank.transform.Find("HealthBar").gameObject.SetActive(enabled);
         }
     }
 
@@ -54,6 +56,7 @@ public class PlayerManager
         {
             PhotonNetwork.Destroy(tank);
         }
+        Tanks.Clear();
     }
 
     private void OnTankGotDestroyed(GameObject tank)
@@ -63,6 +66,9 @@ public class PlayerManager
             Debug.LogWarning("Could not remove destroyed tank from Tanks list");
         }
 
-        // TODO - If there are no more tanks left, notify the GameManager
+        if (Tanks.Count == 0)
+        {
+            _gameManager.LocalPlayerLost();
+        }
     }
 }
