@@ -23,6 +23,7 @@ public class PlayerManager
         _tankPrefab = tankPrefab;
 
         TankHealth.TankGotDestroyedEvent += OnTankGotDestroyed;
+        UiManager.EscPanelToggledEvent += OnEscPanelToggled;
     }
 
     ~PlayerManager()
@@ -33,6 +34,8 @@ public class PlayerManager
     public void Setup()
     {
         // TODO - Have user-defined initial number of tanks
+        // If there are multiple tanks, make sure they don't overlap
+        // Rotate them towards the map's center?
         GameObject tank = PhotonNetwork.Instantiate(_tankPrefab.name, _spawnPosition, Quaternion.identity);
         TankInfo tankInfo = tank.GetComponent<TankInfo>();
         tankInfo.SetPlayerNumber(_playerNumber);
@@ -69,6 +72,16 @@ public class PlayerManager
         if (Tanks.Count == 0)
         {
             _gameManager.LocalPlayerLost();
+        }
+    }
+
+    private void OnEscPanelToggled(bool active)
+    {
+        // Let the TankMovement and TankShooting components of every tank in Tanks that the Esc panel is active so controls are not
+        foreach (GameObject tank in Tanks)
+        {
+            tank.GetComponent<TankMovement>().EscPanelIsActive = active;
+            tank.GetComponent<TankShooting>().EscPanelIsActive = active;
         }
     }
 }

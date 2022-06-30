@@ -7,6 +7,7 @@ public class TankShooting : MonoBehaviour
     private PhotonView _photonView;
     private TankInfo _tankInfo;
     private static int s_currentShellId = 0;
+    public bool EscPanelIsActive = false;
     [SerializeField] private Transform _muzzle;
     [SerializeField] private GameObject _shellPrefab;
     [SerializeField] private AudioSource _shotFiredAudioSource;
@@ -18,6 +19,7 @@ public class TankShooting : MonoBehaviour
         if (!_photonView.IsMine)
         {
             enabled = false;
+            return;
         }
         _tankInfo = GetComponent<TankInfo>();
         if (s_currentShellId == 0)
@@ -28,11 +30,14 @@ public class TankShooting : MonoBehaviour
 
     private void Update()
     {
-        if (_tankInfo.IsSelected)
+        if (!EscPanelIsActive)
         {
-            if (Input.GetMouseButtonDown(1))
+            if (_tankInfo.IsSelected)
             {
-                Shoot();
+                if (Input.GetMouseButtonDown(1))
+                {
+                    Shoot();
+                }
             }
         }
     }

@@ -492,6 +492,7 @@ MonoBehaviour:
   _engineAudioSource: {fileID: 6208117420013672364}
   _engineIdleAudioClip: {fileID: 8300000, guid: 4932ab25b84dd7649b80af68a9660ddc, type: 3}
   _engineDrivingAudioClip: {fileID: 8300000, guid: d7ca9fb5aa30155449192b23d7fb3336, type: 3}
+  EscPanelIsActive: 0
   _orientation: {fileID: 1351138691475587989}
   _groundLayerMask:
     serializedVersion: 2
@@ -525,6 +526,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 754300043954dfb48af74d6984e83cc4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  EscPanelIsActive: 0
   _muzzle: {fileID: 1110268858}
   _shellPrefab: {fileID: 3838508987572279607, guid: c0d26d418d4db5e419b72a5b7296ebdd, type: 3}
   _shotFiredAudioSource: {fileID: 6208117420013672361}

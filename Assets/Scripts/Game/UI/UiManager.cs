@@ -1,14 +1,24 @@
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using Photon.Pun;
+using UnityEngine.SceneManagement;
+using System;
 
-public class UiManager : MonoBehaviour
+public class UiManager : MonoBehaviourPunCallbacks
 {
+    private bool _gameUiIsEnabled = true;
+    // TODO - Esc (Options) & Tab panels
+    [SerializeField] private GameObject _escPanel;
+    [SerializeField] private GameObject _leaveConfirmationModal;
+    
     [SerializeField] private GameManager _gameManager;
     [SerializeField] private Text _infoText;
     [SerializeField] private LayerMask _tanksLayerMask;
     private List<GameObject> _selectedAlliedTanks = new List<GameObject>();
     private GameObject _selectedEnemyTank = null;
+
+    public static event Action<bool> EscPanelToggledEvent;
 
 
     private void Awake()
@@ -27,10 +37,37 @@ public class UiManager : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
-            UpdateSelectedTanks();
+            ToggleEscPanel();
         }
+        else if (!_escPanel.activeSelf && _gameUiIsEnabled)
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                UpdateSelectedTanks();
+            }
+        }
+    }
+
+    private void ToggleEscPanel()
+    {
+        if (_escPanel.activeSelf && _leaveConfirmationModal.activeSelf)
+        {
+            _leaveConfirmationModal.SetActive(false);
+        }
+        _escPanel.SetActive(!_escPanel.activeSelf);
+        EscPanelToggledEvent?.Invoke(_escPanel.activeSelf);
+    }
+
+    public void LeaveRoom()
+    {
+        PhotonNetwork.LeaveRoom();
+    }
+
+    public override void OnLeftRoom()
+    {
+        SceneManager.LoadScene("LobbyScene");
     }
 
     private void SetTankSelectionRingEnabled(GameObject tank, bool allied, bool enabled)
@@ -128,12 +165,12 @@ public class UiManager : MonoBehaviour
     private void OnRoundStarting(int round)
     {
         _infoText.text = "ROUND " + round;
-        enabled = false;
+        _gameUiIsEnabled = false;
     }
 
     private void OnRoundPlaying()
     {
-        enabled = true;
+        _gameUiIsEnabled = true;
         _infoText.text = string.Empty;
     }
 
@@ -141,7 +178,7 @@ public class UiManager : MonoBehaviour
     {
         Reset();
         _infoText.text = GetRoundEndText(roundWinner, isGameWinner);
-        enabled = false;
+        _gameUiIsEnabled = false;
     }
 
     private void Reset()

@@ -59,7 +59,7 @@ public class GameManager : MonoBehaviour
     {
         for (int i = 0; i < NumberOfPlayers; ++i)
         {
-            int index = UnityEngine.Random.Range(0, _availablePlayerColors.Count - 1);
+            int index = UnityEngine.Random.Range(0, _availablePlayerColors.Count);
             Color color = _availablePlayerColors[index];
             _availablePlayerColors.RemoveAt(index);
             PlayersInfo.Add(new PlayerInfo(_players[i].ActorNumber, _players[i].NickName, color));
@@ -80,7 +80,7 @@ public class GameManager : MonoBehaviour
     {
         for (int i = 0; i < NumberOfPlayers; ++i)
         {
-            int index = UnityEngine.Random.Range(0, _availablePlayerSpawnPoints.Count - 1);
+            int index = UnityEngine.Random.Range(0, _availablePlayerSpawnPoints.Count);
             Transform spawnPoint = _availablePlayerSpawnPoints[index];
             _availablePlayerSpawnPoints.RemoveAt(index);
             _photonView.RPC("RPC_SetPlayerManager", _players[i], spawnPoint.position);

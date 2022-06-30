@@ -12,6 +12,7 @@ public class TankMovement : MonoBehaviour
     [SerializeField] private AudioClip _engineDrivingAudioClip;
     private float _engineOriginalPitch;
     private const float _enginePitchRange = 0.2f;
+    public bool EscPanelIsActive = false;
     [SerializeField] private Transform _orientation;
     [SerializeField] private LayerMask _groundLayerMask;
     private bool _isMoving = false;
@@ -24,6 +25,7 @@ public class TankMovement : MonoBehaviour
         if (!_photonView.IsMine)
         {
             enabled = false;
+            return;
             // TODO - Sounds should be synced over the network though
             // TODO - Volume based on distance from the camera to the tank
             // TODO - Move audio in another script?
@@ -41,18 +43,24 @@ public class TankMovement : MonoBehaviour
 
     private void Update()
     {
-        if (_tankInfo.IsSelected)
+        if (!EscPanelIsActive)
         {
-            ProcessMovementInput();
+            if (_tankInfo.IsSelected)
+            {
+                ProcessMovementInput();
+            }
         }
         PlayEngineAudio();
     }
 
     private void FixedUpdate()
     {
-        if (_tankInfo.IsSelected)
+        if (!EscPanelIsActive)
         {
-            ApplyMovement();
+            if (_tankInfo.IsSelected)
+            {
+                ApplyMovement();
+            }
         }
     }
 
