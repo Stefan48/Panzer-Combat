@@ -19,7 +19,6 @@ public class TankShooting : MonoBehaviour
         if (!_photonView.IsMine)
         {
             enabled = false;
-            return;
         }
         _tankInfo = GetComponent<TankInfo>();
         if (s_currentShellId == 0)
@@ -53,6 +52,14 @@ public class TankShooting : MonoBehaviour
     {
         // TODO - Object pooling
         GameObject shell = Instantiate(_shellPrefab, _muzzle.position, _muzzle.rotation);
+
+
+        if (shell.GetComponent<ShellMovement>() == null)
+            Debug.Log("ShellMovement is null");
+        if (_tankInfo == null)
+            Debug.Log("_tankInfo is null");
+
+
         shell.GetComponent<ShellMovement>().Init(_tankInfo.ShellSpeed);
         shell.GetComponent<ShellExplosion>().Init(shellId, _tankInfo.Damage, _tankInfo.ShellLifetime);
         _shotFiredAudioSource.Play();

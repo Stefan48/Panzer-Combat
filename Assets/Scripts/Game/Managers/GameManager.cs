@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class GameManager : MonoBehaviour
+public class GameManager : MonoBehaviourPunCallbacks
 {
     private PhotonView _photonView;
     public int ActorNumber { get; private set; }
@@ -27,6 +27,7 @@ public class GameManager : MonoBehaviour
     private readonly WaitForSeconds _potentialDrawWait = new WaitForSeconds(_potentialDrawDelay);
     private int _currentRound = 0;
     private List<int> _playersRemaining = new List<int>();
+    private bool _roundInProgress = false;
 
     public event Action<int> RoundStartingEvent;
     public event Action RoundPlayingEvent;
@@ -104,6 +105,7 @@ public class GameManager : MonoBehaviour
     {
         _currentRound++;
         _playersRemaining = _players.Select(p => p.ActorNumber).ToList();
+        _roundInProgress = true;
         PlayerManager.Reset();
         PlayerManager.Setup();
         PlayerManager.SetControlEnabled(false);
@@ -143,16 +145,17 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator EndRound()
     {
+        _roundInProgress = false;
         PlayerManager.SetControlEnabled(false);
         PlayerInfo roundWinner = _playersRemaining.Count > 0 ? PlayersInfo[_playersRemaining[0] - 1] : null;
+        bool isGameWinner = false;
         if (roundWinner != null)
         {
             roundWinner.WonRound();
+            isGameWinner = (roundWinner.RoundsWon == _totalRoundsToWin);
         }
-        bool isGameWinner = (roundWinner.RoundsWon == _totalRoundsToWin);
         RoundEndingEvent?.Invoke(roundWinner, isGameWinner);
         yield return _endWait;
-
         if (!isGameWinner)
         {
             if (PhotonNetwork.IsMasterClient)
@@ -162,112 +165,17 @@ public class GameManager : MonoBehaviour
         }
     }
 
-
-    // TODO - Callbacks for OnPlayerJoin/Leave => update _players (but not PlayersInfo)
-
-
-
-#if false
-    private void SetupPlayerManagers()
+    public override void OnPlayerLeftRoom(Player player)
     {
-        for (int i = 0; i < NumberOfPlayers; ++i)
-        {            
-            playerManagers[i] = new PlayerManager(i + 1, playerColors[i], playerSpawnPoints[i], tankPrefab);
-            playerManagers[i].Setup();
+        _players = _players.Where(p => p != player).ToArray();
+        if (_players.Length == 1)
+        {
+            // If there's only one player left in the room, end the game
+            RoundEndingEvent?.Invoke(PlayersInfo[_players[0].ActorNumber - 1], true);
+        }
+        else if (_roundInProgress)
+        {
+            RPC_PlayerLost(new PhotonMessageInfo(player, 0, null));
         }
     }
-
-    private IEnumerator GameLoop()
-    {
-        yield return StartCoroutine(RoundStarting());
-        yield return StartCoroutine(RoundPlaying());
-        yield return StartCoroutine(RoundEnding());
-
-        if (matchEnded)
-        {
-            // TODO - Display game end modal
-        }
-        else
-        {
-            // If there isn't a winner yet, restart this coroutine so the loop continues
-            // Note that this coroutine doesn't yield.  This means that the current version of the GameLoop will end
-            StartCoroutine(GameLoop());
-        }
-    }
-
-    private IEnumerator RoundStarting()
-    {
-        currentRound++;
-        RoundStartingEvent?.Invoke(currentRound);
-
-
-        for (int i = 0; i < NumberOfPlayers; ++i)
-        {
-            playerManagers[i].Reset();
-            playerManagers[i].DisableControl();
-        }
-
-        yield return startWait;
-    }
-
-    private IEnumerator RoundPlaying()
-    {
-        RoundPlayingEvent?.Invoke();
-
-        for (int i = 0; i < NumberOfPlayers; ++i)
-        {
-            playerManagers[i].EnableControl();
-        }
-
-        while(RoundInProgress())
-        {
-            yield return null;
-        }
-    }
-
-    private IEnumerator RoundEnding()
-    {
-        PlayerManager roundWinner = null;
-        for (int i = 0; i < NumberOfPlayers; ++i)
-        {
-            playerManagers[i].DisableControl();
-            if (playerManagers[i].Tanks[0].activeSelf)
-            {
-                roundWinner = playerManagers[i];
-                break;
-            }
-        }
-        if (roundWinner != null)
-        {
-            roundWinner.RoundsWon++;
-        }
-
-        if (roundWinner.RoundsWon == TotalRoundsToWin)
-        {
-            matchEnded = true;
-        }
-
-        RoundEndingEvent?.Invoke(roundWinner, matchEnded);
-
-        yield return endWait;
-    }
-
-    private bool RoundInProgress()
-    {
-        int playersRemaining = 0;
-        for (int i = 0; i < NumberOfPlayers; ++i)
-        {
-            if (playerManagers[i].Tanks.Count > 1 || playerManagers[i].Tanks[0].activeSelf)
-            {
-                playersRemaining++;
-                if (playersRemaining > 1)
-                {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-#endif
 }

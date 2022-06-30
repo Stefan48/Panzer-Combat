@@ -25,7 +25,6 @@ public class TankMovement : MonoBehaviour
         if (!_photonView.IsMine)
         {
             enabled = false;
-            return;
             // TODO - Sounds should be synced over the network though
             // TODO - Volume based on distance from the camera to the tank
             // TODO - Move audio in another script?

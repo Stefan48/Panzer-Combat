@@ -18,6 +18,7 @@ public class CameraControl : MonoBehaviour
 
     private readonly Vector3 _cameraUp = Vector3.Normalize(new Vector3(1f, 0f, 0f) * 1.7f + new Vector3(0f, 0f, 1f));
     private readonly Vector3 _cameraRight = Vector3.Normalize(new Vector3(1f, 0f, 0f) - new Vector3(0f, 0f, 1f) * 1.7f);
+    private bool _escPanelIsActive = false;
     private Vector3 _cameraMovementDirection;
     private bool _cameraTeleportationPending = false;
     [SerializeField] private GameObject _level;
@@ -29,6 +30,7 @@ public class CameraControl : MonoBehaviour
         _gameManager.RoundStartingEvent += OnRoundStarting;
         _gameManager.RoundPlayingEvent += OnRoundPlaying;
         _gameManager.RoundEndingEvent += OnRoundEnding;
+        UiManager.EscPanelToggledEvent += OnEscPanelToggled;
     }
 
     private void OnDestroy()
@@ -36,13 +38,17 @@ public class CameraControl : MonoBehaviour
         _gameManager.RoundStartingEvent -= OnRoundStarting;
         _gameManager.RoundPlayingEvent -= OnRoundPlaying;
         _gameManager.RoundEndingEvent -= OnRoundEnding;
+        UiManager.EscPanelToggledEvent -= OnEscPanelToggled;
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (!_escPanelIsActive)
         {
-            _cameraTeleportationPending = true;
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                _cameraTeleportationPending = true;
+            }
         }
     }
 
@@ -54,7 +60,10 @@ public class CameraControl : MonoBehaviour
             _cameraTeleportationPending = false;
             TeleportCamera();
         }
-        GlideCamera();
+        if (!_escPanelIsActive)
+        {
+            GlideCamera();
+        }
     }
 
     private void TeleportCamera()
@@ -159,5 +168,10 @@ public class CameraControl : MonoBehaviour
             }
         }
         enabled = false;
+    }
+
+    private void OnEscPanelToggled(bool active)
+    {
+        _escPanelIsActive = active;
     }
 }

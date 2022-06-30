@@ -8,9 +8,11 @@ using System;
 public class UiManager : MonoBehaviourPunCallbacks
 {
     private bool _gameUiIsEnabled = true;
-    // TODO - Esc (Options) & Tab panels
+    // TODO - Options in the Esc panel; More info in the Tab panel
     [SerializeField] private GameObject _escPanel;
     [SerializeField] private GameObject _leaveConfirmationModal;
+    [SerializeField] private GameObject _tabPanel;
+    // TODO - Console for game events
     
     [SerializeField] private GameManager _gameManager;
     [SerializeField] private Text _infoText;
@@ -41,11 +43,22 @@ public class UiManager : MonoBehaviourPunCallbacks
         {
             ToggleEscPanel();
         }
-        else if (!_escPanel.activeSelf && _gameUiIsEnabled)
+        else if (!_escPanel.activeSelf)
         {
-            if (Input.GetMouseButtonDown(0))
+            if (Input.GetKeyDown(KeyCode.Tab))
             {
-                UpdateSelectedTanks();
+                _tabPanel.SetActive(true);
+            }
+            else if (Input.GetKeyUp(KeyCode.Tab))
+            {
+                _tabPanel.SetActive(false);
+            }
+            if (_gameUiIsEnabled)
+            {
+                if (Input.GetMouseButtonDown(0))
+                {
+                    UpdateSelectedTanks();
+                }
             }
         }
     }
@@ -166,6 +179,7 @@ public class UiManager : MonoBehaviourPunCallbacks
     {
         _infoText.text = "ROUND " + round;
         _gameUiIsEnabled = false;
+        // TODO - Update Tab panel (Just the first time - set it up?)
     }
 
     private void OnRoundPlaying()
@@ -179,6 +193,8 @@ public class UiManager : MonoBehaviourPunCallbacks
         Reset();
         _infoText.text = GetRoundEndText(roundWinner, isGameWinner);
         _gameUiIsEnabled = false;
+        // TODO - Update Tab panel
+        // TODO - If game ended, display additional stats?
     }
 
     private void Reset()
