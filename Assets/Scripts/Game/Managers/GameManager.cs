@@ -28,6 +28,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     private int _currentRound = 0;
     private List<int> _playersRemaining = new List<int>();
     private bool _roundInProgress = false;
+    private bool _gameEnded = false;
 
     public event Action<int> RoundStartingEvent;
     public event Action RoundPlayingEvent;
@@ -148,15 +149,14 @@ public class GameManager : MonoBehaviourPunCallbacks
         _roundInProgress = false;
         PlayerManager.SetControlEnabled(false);
         PlayerInfo roundWinner = _playersRemaining.Count > 0 ? PlayersInfo[_playersRemaining[0] - 1] : null;
-        bool isGameWinner = false;
         if (roundWinner != null)
         {
             roundWinner.WonRound();
-            isGameWinner = (roundWinner.RoundsWon == _totalRoundsToWin);
+            _gameEnded = (roundWinner.RoundsWon == _totalRoundsToWin);
         }
-        RoundEndingEvent?.Invoke(roundWinner, isGameWinner);
+        RoundEndingEvent?.Invoke(roundWinner, _gameEnded);
         yield return _endWait;
-        if (!isGameWinner)
+        if (!_gameEnded)
         {
             if (PhotonNetwork.IsMasterClient)
             {
@@ -170,8 +170,11 @@ public class GameManager : MonoBehaviourPunCallbacks
         _players = _players.Where(p => p != player).ToArray();
         if (_players.Length == 1)
         {
-            // If there's only one player left in the room, end the game
-            RoundEndingEvent?.Invoke(PlayersInfo[_players[0].ActorNumber - 1], true);
+            // If there's only one player left in the room (and the game had not ended already), end the game
+            if (!_gameEnded)
+            {
+                RoundEndingEvent?.Invoke(PlayersInfo[_players[0].ActorNumber - 1], true);
+            }
         }
         else if (_roundInProgress)
         {

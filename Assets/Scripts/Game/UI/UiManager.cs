@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using Photon.Pun;
 using UnityEngine.SceneManagement;
 using System;
+using System.Linq;
 
 public class UiManager : MonoBehaviourPunCallbacks
 {
@@ -12,8 +13,13 @@ public class UiManager : MonoBehaviourPunCallbacks
     [SerializeField] private GameObject _escPanel;
     [SerializeField] private GameObject _leaveConfirmationModal;
     [SerializeField] private GameObject _tabPanel;
+    [SerializeField] private Text _currentRoundText;
+    private bool _tabPanelInitialized = false;
+    [SerializeField] private Transform _playerInfoListingsContent;
+    [SerializeField] private PlayerInfoListing _playerInfoListingPrefab;
+    private List<PlayerInfoListing> _playerInfoListings = new List<PlayerInfoListing>();
     // TODO - Console for game events
-    
+
     [SerializeField] private GameManager _gameManager;
     [SerializeField] private Text _infoText;
     [SerializeField] private LayerMask _tanksLayerMask;
@@ -175,11 +181,35 @@ public class UiManager : MonoBehaviourPunCallbacks
         }
     }
 
+    private void InitializeTabPanel()
+    {
+        foreach (PlayerInfo playerInfo in _gameManager.PlayersInfo)
+        {
+            PlayerInfoListing listing = Instantiate(_playerInfoListingPrefab, _playerInfoListingsContent);
+            listing.SetPlayerInfo(playerInfo);
+            _playerInfoListings.Add(listing);
+        }
+    }
+
+    private void UpdateTabPanel()
+    {
+        List<PlayerInfo> sortedPlayersInfo = _gameManager.PlayersInfo.OrderByDescending(info => info.RoundsWon).ToList();
+        for (int i = 0; i < sortedPlayersInfo.Count; ++i)
+        {
+            _playerInfoListings[i].SetPlayerInfo(sortedPlayersInfo[i]);
+        }
+    }
+
     private void OnRoundStarting(int round)
     {
+        _currentRoundText.text = "Round " + round;
         _infoText.text = "ROUND " + round;
         _gameUiIsEnabled = false;
-        // TODO - Update Tab panel (Just the first time - set it up?)
+        if (!_tabPanelInitialized)
+        {
+            _tabPanelInitialized = true;
+            InitializeTabPanel();
+        }
     }
 
     private void OnRoundPlaying()
@@ -191,9 +221,9 @@ public class UiManager : MonoBehaviourPunCallbacks
     private void OnRoundEnding(PlayerInfo roundWinner, bool isGameWinner)
     {
         Reset();
+        UpdateTabPanel();
         _infoText.text = GetRoundEndText(roundWinner, isGameWinner);
         _gameUiIsEnabled = false;
-        // TODO - Update Tab panel
         // TODO - If game ended, display additional stats?
     }
 
@@ -211,15 +241,16 @@ public class UiManager : MonoBehaviourPunCallbacks
         }
         string text;
         string coloredPlayerText = GetColoredPlayerText(roundWinner);
-        text = coloredPlayerText + (isGameWinner ? " WON THE GAME!" : " WON THE ROUND!") + "\n\n";        
-        for (int i = 0; i < _gameManager.NumberOfPlayers; ++i)
+        text = coloredPlayerText + (isGameWinner ? " WON THE GAME!" : " WON THE ROUND!") + "\n\n";
+        List<PlayerInfo> sortedPlayersInfo = _gameManager.PlayersInfo.OrderByDescending(info => info.RoundsWon).ToList();
+        foreach (PlayerInfo playerInfo in sortedPlayersInfo)
         {
-            text += GetColoredPlayerText(_gameManager.PlayersInfo[i]) + ": " + _gameManager.PlayersInfo[i].RoundsWon + "\n";
+            text += GetColoredPlayerText(playerInfo) + ": " + playerInfo.RoundsWon + "\n";
         }
         return text;
     }
 
-    private string GetColoredPlayerText(PlayerInfo playerInfo)
+    public static string GetColoredPlayerText(PlayerInfo playerInfo)
     {
         return "<color=#" + ColorUtility.ToHtmlStringRGB(playerInfo.Color) + ">" + playerInfo.Username + "</color>";
     }

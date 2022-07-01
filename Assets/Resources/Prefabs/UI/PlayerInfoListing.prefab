@@ -200,8 +200,9 @@ GameObject:
   m_Component:
   - component: {fileID: 713131700863385770}
   - component: {fileID: 713131700863385773}
+  - component: {fileID: 6424898326959181413}
   m_Layer: 5
-  m_Name: PlayerInfo
+  m_Name: PlayerInfoListing
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -248,3 +249,17 @@ MonoBehaviour:
   m_FlexibleWidth: 1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &6424898326959181413
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 713131700863385771}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d08f0f62020cc0442a7abe09dc4dc923, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _usernameText: {fileID: 713131700595439241}
+  _roundsWonText: {fileID: 713131699454972167}
