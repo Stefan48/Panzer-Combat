@@ -181,6 +181,16 @@ public class UiManager : MonoBehaviourPunCallbacks
         }
     }
 
+    private void DisableWinnerUi(int playerNumber)
+    {
+        GameObject[] tanks = GameObject.FindGameObjectsWithTag("Tank") .Where(tank => tank.GetComponent<TankInfo>().PlayerNumber == playerNumber).ToArray();
+        foreach (GameObject tank in tanks)
+        {
+            tank.transform.Find("HealthBar").gameObject.SetActive(false);
+            tank.transform.Find("OwnerText").gameObject.SetActive(false);
+        }
+    }
+
     private void InitializeTabPanel()
     {
         foreach (PlayerInfo playerInfo in _gameManager.PlayersInfo)
@@ -221,6 +231,10 @@ public class UiManager : MonoBehaviourPunCallbacks
     private void OnRoundEnding(PlayerInfo roundWinner, bool isGameWinner)
     {
         Reset();
+        if (roundWinner != null)
+        {
+            DisableWinnerUi(roundWinner.PlayerNumber);
+        }
         UpdateTabPanel();
         _infoText.text = GetRoundEndText(roundWinner, isGameWinner);
         _gameUiIsEnabled = false;

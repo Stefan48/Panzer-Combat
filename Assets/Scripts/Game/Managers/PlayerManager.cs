@@ -7,17 +7,15 @@ using UnityEngine;
 public class PlayerManager
 {
     private readonly GameManager _gameManager;
-    private readonly int _playerNumber;
     private readonly Color _playerColor;
     private readonly Vector3 _spawnPosition;
     private readonly GameObject _tankPrefab;
     public List<GameObject> Tanks { get; private set; } = new List<GameObject>();
-    
 
-    public PlayerManager(GameManager gameManager, int playerNumber, Color playerColor, Vector3 spawnPosition, GameObject tankPrefab)
+
+    public PlayerManager(GameManager gameManager, Color playerColor, Vector3 spawnPosition, GameObject tankPrefab)
     {
         _gameManager = gameManager;
-        _playerNumber = playerNumber;
         _playerColor = playerColor;
         _spawnPosition = spawnPosition;
         _tankPrefab = tankPrefab;
@@ -26,9 +24,10 @@ public class PlayerManager
         UiManager.EscPanelToggledEvent += OnEscPanelToggled;
     }
 
-    ~PlayerManager()
+    public void UnsubscribeFromEvents()
     {
         TankHealth.TankGotDestroyedEvent -= OnTankGotDestroyed;
+        UiManager.EscPanelToggledEvent -= OnEscPanelToggled;
     }
 
     public void Setup()
@@ -38,7 +37,8 @@ public class PlayerManager
         // Rotate them towards the map's center?
         GameObject tank = PhotonNetwork.Instantiate(_tankPrefab.name, _spawnPosition, Quaternion.identity);
         TankInfo tankInfo = tank.GetComponent<TankInfo>();
-        tankInfo.SetPlayerNumber(_playerNumber);
+        tankInfo.SetPlayerNumber(_gameManager.ActorNumber);
+        tankInfo.SetUsername(PhotonNetwork.LocalPlayer.NickName);
         tankInfo.SetColor(_playerColor);
         Tanks.Add(tank);
     }
@@ -50,6 +50,7 @@ public class PlayerManager
             tank.GetComponent<TankMovement>().enabled = enabled;
             tank.GetComponent<TankShooting>().enabled = enabled;
             tank.transform.Find("HealthBar").gameObject.SetActive(enabled);
+            tank.transform.Find("OwnerText").gameObject.SetActive(enabled);
         }
     }
 
@@ -66,9 +67,8 @@ public class PlayerManager
     {
         if (!Tanks.Remove(tank))
         {
-            Debug.LogWarning("Could not remove destroyed tank from Tanks list");
+            Debug.LogWarning("[PlayerManager] Could not remove destroyed tank from the Tanks list");
         }
-
         if (Tanks.Count == 0)
         {
             _gameManager.LocalPlayerLost();
@@ -77,7 +77,7 @@ public class PlayerManager
 
     private void OnEscPanelToggled(bool active)
     {
-        // Let the TankMovement and TankShooting components of every tank in Tanks that the Esc panel is active so controls are not
+        // If Esc panel is active, then controls are not
         foreach (GameObject tank in Tanks)
         {
             tank.GetComponent<TankMovement>().EscPanelIsActive = active;

@@ -18,7 +18,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     [SerializeField] private readonly int _totalRoundsToWin = 2; // TODO - Creator of the room should set this in the UI
     public List<PlayerInfo> PlayersInfo = new List<PlayerInfo>();
     [SerializeField] private GameObject _tankPrefab;
-    public PlayerManager PlayerManager { get; private set; }
+    public PlayerManager PlayerManager { get; private set; } = null;
     private const float _startDelay = 2f;
     private const float _endDelay = 2f;
     private const float _potentialDrawDelay = 0.3f;
@@ -43,6 +43,12 @@ public class GameManager : MonoBehaviourPunCallbacks
         NumberOfPlayers = _players.Length;
     }
 
+    private void OnDestroy()
+    {
+        PlayerManager.UnsubscribeFromEvents();
+        PlayerManager = null;
+    }
+
     private void Start()
     {
         //Physics.defaultMaxDepenetrationVelocity = float.PositiveInfinity;
@@ -53,8 +59,6 @@ public class GameManager : MonoBehaviourPunCallbacks
             InitializePlayersManagers();
             _photonView.RPC("RPC_NewRound", RpcTarget.AllViaServer);
         }
-
-        //_playerManager.Setup(); // This gets called before InitializePlayersManagers finished
     }
 
     private void InitializePlayersInfo()
@@ -86,14 +90,20 @@ public class GameManager : MonoBehaviourPunCallbacks
             Transform spawnPoint = _availablePlayerSpawnPoints[index];
             _availablePlayerSpawnPoints.RemoveAt(index);
             _photonView.RPC("RPC_SetPlayerManager", _players[i], spawnPoint.position);
-            
         }
     }
 
     [PunRPC]
     private void RPC_SetPlayerManager(Vector3 spawnPosition)
     {
-        PlayerManager = new PlayerManager(this, ActorNumber, PlayersInfo[ActorNumber-1].Color, spawnPosition, _tankPrefab);
+        // TODO - Error => Stop using _players[i].ActorNumber?
+        Debug.Log("PlayersInfo.Count=" + PlayersInfo.Count + "; ActorNumber=" + ActorNumber); // Output: 2 3
+
+        // TODO - Also, shooting a tank multiple times quickly results in the RPC_TakeDamage getting called even after the tank has been destroyed
+        // TODO - Also, the tanks may overlap when moving
+        // TODO - Also, the camera should follow the selected tank(s)?
+
+        PlayerManager = new PlayerManager(this, PlayersInfo[ActorNumber-1].Color, spawnPosition, _tankPrefab);
     }
 
     [PunRPC]
@@ -170,7 +180,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         _players = _players.Where(p => p != player).ToArray();
         if (_players.Length == 1)
         {
-            // If there's only one player left in the room (and the game had not ended already), end the game
+            // If there's only 1 player left in the room (and the game had not ended already), end the game
             if (!_gameEnded)
             {
                 RoundEndingEvent?.Invoke(PlayersInfo[_players[0].ActorNumber - 1], true);

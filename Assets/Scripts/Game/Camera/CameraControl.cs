@@ -157,7 +157,7 @@ public class CameraControl : MonoBehaviour
 
     private void OnRoundEnding(PlayerInfo roundWinner, bool isGameWinner)
     {
-        if (roundWinner != null && isGameWinner)
+        if (isGameWinner)
         {
             // Go to the winner's location
             GameObject[] tanks = GameObject.FindGameObjectsWithTag("Tank")
