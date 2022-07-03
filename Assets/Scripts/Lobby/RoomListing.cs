@@ -1,15 +1,18 @@
 using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class RoomListing : MonoBehaviour
+public class RoomListing : MonoBehaviourPunCallbacks
 {
     public RoomInfo RoomInfo { get; private set; }
     [SerializeField] private Text _roomListingText;
     [SerializeField] private GameObject _passwordRequiredImage;
     private GameObject _passwordModal;
     private Text _passwordModalRoomNameText;
+    private bool _joinedRoom = false;
+
 
     private void Start()
     {
@@ -33,7 +36,17 @@ public class RoomListing : MonoBehaviour
         }
         else
         {
+            if (_joinedRoom)
+            {
+                return;
+            }
+            _joinedRoom = true;
             PhotonNetwork.JoinRoom(RoomInfo.Name);
         }
+    }
+
+    public override void OnJoinRoomFailed(short returnCode, string message)
+    {
+        _joinedRoom = false;
     }
 }

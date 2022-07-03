@@ -99,7 +99,6 @@ public class GameManager : MonoBehaviourPunCallbacks
         // TODO - Error => Stop using _players[i].ActorNumber?
         Debug.Log("PlayersInfo.Count=" + PlayersInfo.Count + "; ActorNumber=" + ActorNumber); // Output: 2 3
 
-        // TODO - Also, double clicking some (?) buttons results in errors
         // TODO - Also, the camera should follow the selected tank(s)?
 
         PlayerManager = new PlayerManager(this, PlayersInfo[ActorNumber-1].Color, spawnPosition, _tankPrefab);

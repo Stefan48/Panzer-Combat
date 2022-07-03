@@ -12,6 +12,7 @@ public class UiManager : MonoBehaviourPunCallbacks
     // TODO - Options in the Esc panel; More info in the Tab panel
     [SerializeField] private GameObject _escPanel;
     [SerializeField] private GameObject _leaveConfirmationModal;
+    private bool _leaveYesButtonClicked = false;
     [SerializeField] private GameObject _tabPanel;
     [SerializeField] private Text _currentRoundText;
     private bool _tabPanelInitialized = false;
@@ -81,6 +82,11 @@ public class UiManager : MonoBehaviourPunCallbacks
 
     public void LeaveRoom()
     {
+        if (_leaveYesButtonClicked)
+        {
+            return;
+        }
+        _leaveYesButtonClicked = true;
         PhotonNetwork.LeaveRoom();
     }
 

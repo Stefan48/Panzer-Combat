@@ -9,6 +9,7 @@ public class RoomManager : MonoBehaviourPunCallbacks
 {
     [SerializeField] private Text _roomNameText;
     [SerializeField] private GameObject _startGameButton;
+    private bool _startGameButtonClicked = false;
     private bool _leftRoomIntentionally = false;
     [SerializeField] private GameObject _disconnectedModal;
     [SerializeField] private Text _disconnectedText;
@@ -32,6 +33,10 @@ public class RoomManager : MonoBehaviourPunCallbacks
 
     public void Leave()
     {
+        if (_leftRoomIntentionally)
+        {
+            return;
+        }
         _leftRoomIntentionally = true;
         PhotonNetwork.LeaveRoom();
     }
@@ -63,6 +68,11 @@ public class RoomManager : MonoBehaviourPunCallbacks
 
     public void StartGame()
     {
+        if (_startGameButtonClicked)
+        {
+            return;
+        }
+        _startGameButtonClicked = true;
         // Load the scene at the same time for everyone in the room
         if (PhotonNetwork.IsMasterClient)
         {

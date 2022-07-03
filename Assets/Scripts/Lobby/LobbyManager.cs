@@ -10,6 +10,8 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 {
     private const string _usernamePrefKey = "Username";
     public static string PasswordPropertyKey = "p";
+    private bool _mainMenuButtonClicked = false;
+    private bool _joinedRoom = false;
     [SerializeField] private InputField _usernameInputField;
     [SerializeField] private InputField _roomNameInputField;
     [SerializeField] private InputField _passwordInputField;
@@ -51,6 +53,11 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
     public void LoadMainMenu()
     {
+        if (_mainMenuButtonClicked)
+        {
+            return;
+        }
+        _mainMenuButtonClicked = true;
         if (PhotonNetwork.IsConnected)
         {
             Disconnect();
@@ -84,6 +91,10 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
     public void CreateRoom()
     {
+        if (_joinedRoom)
+        {
+            return;
+        }
         if (string.IsNullOrEmpty(_usernameInputField.text))
         {
             _errorText.text = "Choose a username first";
@@ -95,6 +106,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
             return;
         }
         _errorText.text = string.Empty;
+        _joinedRoom = true;
         RoomOptions options = new RoomOptions { MaxPlayers = _maxPlayersPerRoom };
         if (!string.IsNullOrEmpty(_passwordInputField.text))
         {
@@ -108,10 +120,15 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     {
         Debug.LogWarning("Creating room failed: " + message);
         _errorText.text = "Couldn't create room";
+        _joinedRoom = false;
     }
 
     public void JoinRoom()
     {
+        if (_joinedRoom)
+        {
+            return;
+        }
         if (string.IsNullOrEmpty(_usernameInputField.text))
         {
             _errorText.text = "Choose a username first";
@@ -138,11 +155,16 @@ public class LobbyManager : MonoBehaviourPunCallbacks
             }
         }
         _errorText.text = string.Empty;
+        _joinedRoom = true;
         PhotonNetwork.JoinRoom(info.Name);
     }
 
     public void JoinRoomFromPasswordModal()
     {
+        if (_joinedRoom)
+        {
+            return;
+        }
         int index = _roomListings.FindIndex(listing => listing.RoomInfo.Name == _passwordModalRoomNameText.text);
         if (index == -1)
         {
@@ -157,6 +179,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
             return;
         }
         _passwordModalIncorrectPasswordText.SetActive(false);
+        _joinedRoom = true;
         PhotonNetwork.JoinRoom(_passwordModalRoomNameText.text);
     }
 
@@ -169,13 +192,14 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom()
     {
-        PhotonNetwork.LoadLevel("RoomScene");
+        SceneManager.LoadScene("RoomScene");
     }
 
     public override void OnJoinRoomFailed(short returnCode, string message)
     {
         Debug.LogWarning("Joining room failed: " + message);
         _errorText.text = "Couldn't join room";
+        _joinedRoom = false;
     }
 
     public override void OnRoomListUpdate(List<RoomInfo> roomList)

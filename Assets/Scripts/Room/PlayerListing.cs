@@ -9,6 +9,7 @@ public class PlayerListing : MonoBehaviour
     [SerializeField] private Text _playerListingText;
     [SerializeField] private GameObject _hostImage;
     [SerializeField] private GameObject _kickButton;
+    private bool _kickButtonClicked = false;
 
     public void SetPlayerInfo(Player player)
     {
@@ -20,6 +21,11 @@ public class PlayerListing : MonoBehaviour
 
     public void KickPlayer()
     {
+        if (_kickButtonClicked)
+        {
+            return;
+        }
+        _kickButtonClicked = true;
         if (PhotonNetwork.IsMasterClient && Player != PhotonNetwork.LocalPlayer)
         {
             PhotonNetwork.CloseConnection(Player);

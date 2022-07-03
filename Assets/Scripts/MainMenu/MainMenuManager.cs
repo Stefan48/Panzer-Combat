@@ -3,8 +3,15 @@ using UnityEngine.SceneManagement;
 
 public class MainMenuManager : MonoBehaviour
 {
+    private bool _playButtonClicked = false;
+
     public void Play()
     {
+        if (_playButtonClicked)
+        {
+            return;
+        }
+        _playButtonClicked = true;
         SceneManager.LoadScene("ConnectToServerScene");
     }
 
