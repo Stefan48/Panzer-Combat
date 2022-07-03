@@ -134,7 +134,7 @@ public class UiManager : MonoBehaviourPunCallbacks
         {
             GameObject tank = hit.transform.gameObject;
             TankInfo tankInfo = tank.GetComponent<TankInfo>();
-            if (tankInfo.PlayerNumber == _gameManager.ActorNumber)
+            if (tankInfo.ActorNumber == _gameManager.ActorNumber)
             {
                 // Player selected an allied tank
                 DeselectEnemyTank();
@@ -187,9 +187,9 @@ public class UiManager : MonoBehaviourPunCallbacks
         }
     }
 
-    private void DisableWinnerUi(int playerNumber)
+    private void DisableWinnerUi(int actorNumber)
     {
-        GameObject[] tanks = GameObject.FindGameObjectsWithTag("Tank") .Where(tank => tank.GetComponent<TankInfo>().PlayerNumber == playerNumber).ToArray();
+        GameObject[] tanks = GameObject.FindGameObjectsWithTag("Tank") .Where(tank => tank.GetComponent<TankInfo>().ActorNumber == actorNumber).ToArray();
         foreach (GameObject tank in tanks)
         {
             tank.transform.Find("HealthBar").gameObject.SetActive(false);
@@ -199,7 +199,8 @@ public class UiManager : MonoBehaviourPunCallbacks
 
     private void InitializeTabPanel()
     {
-        foreach (PlayerInfo playerInfo in _gameManager.PlayersInfo)
+        List<PlayerInfo> sortedPlayersInfo = _gameManager.GetSortedPlayersInfo();
+        foreach (PlayerInfo playerInfo in sortedPlayersInfo)
         {
             PlayerInfoListing listing = Instantiate(_playerInfoListingPrefab, _playerInfoListingsContent);
             listing.SetPlayerInfo(playerInfo);
@@ -209,7 +210,7 @@ public class UiManager : MonoBehaviourPunCallbacks
 
     private void UpdateTabPanel()
     {
-        List<PlayerInfo> sortedPlayersInfo = _gameManager.PlayersInfo.OrderByDescending(info => info.RoundsWon).ToList();
+        List<PlayerInfo> sortedPlayersInfo = _gameManager.PlayersInfo.Values.OrderByDescending(info => info.RoundsWon).ToList();
         for (int i = 0; i < sortedPlayersInfo.Count; ++i)
         {
             _playerInfoListings[i].SetPlayerInfo(sortedPlayersInfo[i]);
@@ -239,7 +240,7 @@ public class UiManager : MonoBehaviourPunCallbacks
         Reset();
         if (roundWinner != null)
         {
-            DisableWinnerUi(roundWinner.PlayerNumber);
+            DisableWinnerUi(roundWinner.ActorNumber);
         }
         UpdateTabPanel();
         _infoText.text = GetRoundEndText(roundWinner, isGameWinner);
@@ -262,7 +263,7 @@ public class UiManager : MonoBehaviourPunCallbacks
         string text;
         string coloredPlayerText = GetColoredPlayerText(roundWinner);
         text = coloredPlayerText + (isGameWinner ? " WON THE GAME!" : " WON THE ROUND!") + "\n\n";
-        List<PlayerInfo> sortedPlayersInfo = _gameManager.PlayersInfo.OrderByDescending(info => info.RoundsWon).ToList();
+        List<PlayerInfo> sortedPlayersInfo = _gameManager.PlayersInfo.Values.OrderByDescending(info => info.RoundsWon).ToList();
         foreach (PlayerInfo playerInfo in sortedPlayersInfo)
         {
             text += GetColoredPlayerText(playerInfo) + ": " + playerInfo.RoundsWon + "\n";

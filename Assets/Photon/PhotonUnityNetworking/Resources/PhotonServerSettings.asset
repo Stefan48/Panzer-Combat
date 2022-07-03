@@ -49,6 +49,7 @@ MonoBehaviour:
   - RPC_PlayerLost
   - RPC_RoundEnded
   - RPC_SetUsername
+  - RPC_SetActorNumber
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

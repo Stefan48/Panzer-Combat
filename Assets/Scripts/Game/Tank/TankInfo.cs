@@ -5,7 +5,7 @@ public class TankInfo : MonoBehaviour
 {
     private PhotonView _photonView;
     [SerializeField] private TextMesh _usernameTextMesh;
-    public int PlayerNumber { get; private set; } //= -1;//
+    public int ActorNumber { get; private set; } //= -1;//
     public string Username { get; private set; }
     public bool IsSelected = false;
     public float Speed { get; private set; } = 12f;
@@ -21,18 +21,18 @@ public class TankInfo : MonoBehaviour
         _photonView = GetComponent<PhotonView>();
         Health = MaxHealth;
 
-        //PlayerNumber = Random.Range(0, 100) % 2 == 0 ? 0 : -1;//
+        //ActorNumber = Random.Range(0, 100) % 2 == 0 ? 0 : -1;//
     }
 
-    public void SetPlayerNumber(int playerNumber)
+    public void SetActorNumber(int actorNumber)
     {
-        _photonView.RPC("RPC_SetPlayerNumber", RpcTarget.All, playerNumber);
+        _photonView.RPC("RPC_SetActorNumber", RpcTarget.All, actorNumber);
     }
 
     [PunRPC]
-    private void RPC_SetPlayerNumber(int playerNumber)
+    private void RPC_SetActorNumber(int actorNumber)
     {
-        PlayerNumber = playerNumber;
+        ActorNumber = actorNumber;
     }
 
     public void SetUsername(string username)

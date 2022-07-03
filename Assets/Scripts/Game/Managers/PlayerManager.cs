@@ -37,7 +37,7 @@ public class PlayerManager
         // Rotate them towards the map's center?
         GameObject tank = PhotonNetwork.Instantiate(_tankPrefab.name, _spawnPosition, Quaternion.identity);
         TankInfo tankInfo = tank.GetComponent<TankInfo>();
-        tankInfo.SetPlayerNumber(_gameManager.ActorNumber);
+        tankInfo.SetActorNumber(_gameManager.ActorNumber);
         tankInfo.SetUsername(PhotonNetwork.LocalPlayer.NickName);
         tankInfo.SetColor(_playerColor);
         Tanks.Add(tank);
