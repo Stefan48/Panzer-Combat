@@ -99,8 +99,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         // TODO - Error => Stop using _players[i].ActorNumber?
         Debug.Log("PlayersInfo.Count=" + PlayersInfo.Count + "; ActorNumber=" + ActorNumber); // Output: 2 3
 
-        // TODO - Also, shooting a tank multiple times quickly results in the RPC_TakeDamage getting called even after the tank has been destroyed
-        // TODO - Also, the tanks may overlap when moving
+        // TODO - Also, double clicking some (?) buttons results in errors
         // TODO - Also, the camera should follow the selected tank(s)?
 
         PlayerManager = new PlayerManager(this, PlayersInfo[ActorNumber-1].Color, spawnPosition, _tankPrefab);
@@ -183,6 +182,7 @@ public class GameManager : MonoBehaviourPunCallbacks
             // If there's only 1 player left in the room (and the game had not ended already), end the game
             if (!_gameEnded)
             {
+                _gameEnded = true;
                 RoundEndingEvent?.Invoke(PlayersInfo[_players[0].ActorNumber - 1], true);
             }
         }

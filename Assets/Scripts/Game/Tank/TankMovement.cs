@@ -1,4 +1,5 @@
 using Photon.Pun;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class TankMovement : MonoBehaviour
@@ -17,6 +18,11 @@ public class TankMovement : MonoBehaviour
     [SerializeField] private LayerMask _groundLayerMask;
     private bool _isMoving = false;
     private Vector3 _movementDirection;
+    private int _collisionsLayerMask;
+    [SerializeField] private Transform _movementRaycastDirection;
+    [SerializeField] private Transform _movementRaycastInnerPoint;
+    private const float _movementRaycastAngleStep = 10f;
+    private const float _movementRaycastMagnitude = 1f;
     
 
     private void Awake()
@@ -32,7 +38,7 @@ public class TankMovement : MonoBehaviour
         _tankInfo = GetComponent<TankInfo>();
         _rigidbody = GetComponent<Rigidbody>();
         _sphereCollider = GetComponent<SphereCollider>();
-
+        _collisionsLayerMask = LayerMask.GetMask("Default", "Tanks");
     }
 
     private void Start()
@@ -92,18 +98,25 @@ public class TankMovement : MonoBehaviour
         {
             Vector3 movement = _movementDirection * _tankInfo.Speed * Time.fixedDeltaTime;
             Vector3 desiredPosition = _rigidbody.position + movement;
+            // Check if the tank would hit any colliders
+            // Not using Physics.OverlapSphere since it doesn't work with the objects instantiated with PhotonNetwork.Instantiate
             bool wouldHitColliders = false;
-            // Query ignores triggers (like the Camera Rig, the collider for the level's boundaries or the shells)
-            Collider[] collidersThatWouldBeHit = Physics.OverlapSphere(desiredPosition + _sphereCollider.center, _sphereCollider.radius,
-                Physics.AllLayers, QueryTriggerInteraction.Ignore);
-            for (int i = 0; i < collidersThatWouldBeHit.Length; ++i)
+            Vector3 currentRaycastPosition = _movementRaycastDirection.position;
+            Quaternion currentRaycastRotation = _movementRaycastDirection.rotation;
+            _movementRaycastDirection.position += movement;
+            for (float angle = 0f; angle < 360f; angle += _movementRaycastAngleStep)
             {
-                if (collidersThatWouldBeHit[i].name != transform.name)
+                _movementRaycastDirection.eulerAngles = new Vector3(0f, angle, 0f);
+                // Query ignores triggers (like the CameraRig, the collider for the level's boundaries or the shells)
+                if (Physics.Raycast(_movementRaycastInnerPoint.position, _movementRaycastDirection.forward, out hit, _movementRaycastMagnitude,
+                    _collisionsLayerMask, QueryTriggerInteraction.Ignore))
                 {
                     wouldHitColliders = true;
                     break;
                 }
             }
+            _movementRaycastDirection.position = currentRaycastPosition;
+            _movementRaycastDirection.rotation = currentRaycastRotation;
             if (!wouldHitColliders)
             {
                 _rigidbody.MovePosition(desiredPosition);
