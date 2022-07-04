@@ -119,8 +119,18 @@ public class GameManager : MonoBehaviourPunCallbacks
         PlayerManager.Reset();
         PlayerManager.Setup();
         PlayerManager.SetControlEnabled(false);
+        if (_gameEnded)
+        {
+            // The game ended due to disconnects
+            yield break;
+        }
         RoundStartingEvent?.Invoke(_currentRound);
         yield return _startWait;
+        if (_gameEnded)
+        {
+            // The game ended due to disconnects
+            yield break;
+        }
         RoundPlayingEvent?.Invoke();
         PlayerManager.SetControlEnabled(true);
     }
@@ -158,10 +168,22 @@ public class GameManager : MonoBehaviourPunCallbacks
         _roundInProgress = false;
         PlayerManager.SetControlEnabled(false);
         PlayerInfo roundWinner = _playersRemaining.Count > 0 ? PlayersInfo[_playersRemaining[0]] : null;
+        bool isGameWinner = false;
         if (roundWinner != null)
         {
             roundWinner.WonRound();
-            _gameEnded = (roundWinner.RoundsWon == _totalRoundsToWin);
+            isGameWinner = (roundWinner.RoundsWon == _totalRoundsToWin);
+        }
+        if (_gameEnded)
+        {
+            // The game ended due to disconnects
+            yield break;
+        }
+        // Not assigning _gameEnded = isGameWinner to reduce the chances of race conditions, in case disconnect(s) happened right at this moment
+        // Note that race conditions resulting in RoundStarting/Playing/EndingEvent getting invoked twice are technically still possible
+        if (isGameWinner)
+        {
+            _gameEnded = true;
         }
         RoundEndingEvent?.Invoke(roundWinner, _gameEnded);
         yield return _endWait;

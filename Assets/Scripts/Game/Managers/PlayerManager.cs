@@ -10,6 +10,7 @@ public class PlayerManager
     private readonly Color _playerColor;
     private readonly Vector3 _spawnPosition;
     private readonly GameObject _tankPrefab;
+    // Reinstantiating this would cause errors in the CameraControl script
     public List<GameObject> Tanks { get; private set; } = new List<GameObject>();
 
 

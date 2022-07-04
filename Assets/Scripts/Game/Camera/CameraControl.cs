@@ -1,9 +1,12 @@
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 public class CameraControl : MonoBehaviour
 {
     [SerializeField] private GameManager _gameManager;
+    private bool _playerManagerIsSetUp = false;
+    private List<GameObject> _tanks = null;
     // TODO - Adjust camera speed based on quickest (selected) tank's speed, or in settings (camera should not be slower than the quickest tank)
     private const float _cameraSpeed = 15f;
     /*private readonly float _mouseThresholdTop = Screen.height * 0.95f;
@@ -43,6 +46,10 @@ public class CameraControl : MonoBehaviour
 
     private void Update()
     {
+        if (!_playerManagerIsSetUp)
+        {
+            return;
+        }
         if (!_escPanelIsActive)
         {
             if (Input.GetKeyDown(KeyCode.Space))
@@ -55,6 +62,10 @@ public class CameraControl : MonoBehaviour
     private void FixedUpdate()
     {
         // Use FixedUpdate for the camera movement in order to sync with the players' movement and avoid jittering
+        if (!_playerManagerIsSetUp)
+        {
+            return;
+        }
         if (_cameraTeleportationPending)
         {
             _cameraTeleportationPending = false;
@@ -146,6 +157,12 @@ public class CameraControl : MonoBehaviour
 
     private void OnRoundStarting(int round)
     {
+        if (!_playerManagerIsSetUp)
+        {
+            _playerManagerIsSetUp = true;
+            // The reference to the PlayerManager's Tanks list is only initialized here, so the PlayerManager should avoid reinstantiating the list
+            _tanks = _gameManager.PlayerManager.Tanks;
+        }
         TeleportCamera();
         enabled = false;
     }
