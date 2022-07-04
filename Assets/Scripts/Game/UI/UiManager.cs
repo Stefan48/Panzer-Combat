@@ -19,7 +19,7 @@ public class UiManager : MonoBehaviourPunCallbacks
     [SerializeField] private Transform _playerInfoListingsContent;
     [SerializeField] private PlayerInfoListing _playerInfoListingPrefab;
     private List<PlayerInfoListing> _playerInfoListings = new List<PlayerInfoListing>();
-    // TODO - Console for game events
+    // TODO - Console for logging game events
 
     [SerializeField] private GameManager _gameManager;
     [SerializeField] private Text _infoText;

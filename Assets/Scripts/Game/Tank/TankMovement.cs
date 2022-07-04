@@ -1,5 +1,4 @@
 using Photon.Pun;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class TankMovement : MonoBehaviour
@@ -16,7 +15,7 @@ public class TankMovement : MonoBehaviour
     public bool EscPanelIsActive = false;
     [SerializeField] private Transform _orientation;
     [SerializeField] private LayerMask _groundLayerMask;
-    private bool _isMoving = false;
+    public bool IsMoving { get; private set; } = false;
     private Vector3 _movementDirection;
     private int _collisionsLayerMask;
     [SerializeField] private Transform _movementRaycastDirection;
@@ -71,16 +70,19 @@ public class TankMovement : MonoBehaviour
 
     private void ProcessMovementInput()
     {
-        _isMoving = false;
         if (Input.GetKey(KeyCode.W))
         {
-            _isMoving = true;
+            IsMoving = true;
             _movementDirection = transform.forward;
         }
         else if (Input.GetKey(KeyCode.Q))
         {
-            _isMoving = true;
+            IsMoving = true;
             _movementDirection = -transform.forward;
+        }
+        else
+        {
+            IsMoving = false;
         }
     }
 
@@ -94,7 +96,7 @@ public class TankMovement : MonoBehaviour
             _rigidbody.MoveRotation(_orientation.rotation);
         }
 
-        if (_isMoving)
+        if (IsMoving)
         {
             Vector3 movement = _movementDirection * _tankInfo.Speed * Time.fixedDeltaTime;
             Vector3 desiredPosition = _rigidbody.position + movement;
@@ -126,13 +128,13 @@ public class TankMovement : MonoBehaviour
 
     private void PlayEngineAudio()
     {
-        if (_isMoving && _engineAudioSource.clip == _engineIdleAudioClip)
+        if (IsMoving && _engineAudioSource.clip == _engineIdleAudioClip)
         {
             _engineAudioSource.clip = _engineDrivingAudioClip;
             _engineAudioSource.pitch = Random.Range(_engineOriginalPitch - _enginePitchRange, _engineOriginalPitch + _enginePitchRange);
             _engineAudioSource.Play();
         }
-        else if (!_isMoving && _engineAudioSource.clip == _engineDrivingAudioClip)
+        else if (!IsMoving && _engineAudioSource.clip == _engineDrivingAudioClip)
         {
             _engineAudioSource.clip = _engineIdleAudioClip;
             _engineAudioSource.pitch = Random.Range(_engineOriginalPitch - _enginePitchRange, _engineOriginalPitch + _enginePitchRange);

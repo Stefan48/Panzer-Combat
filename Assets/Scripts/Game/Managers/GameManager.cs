@@ -33,7 +33,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     public event Action RoundPlayingEvent;
     public event Action<PlayerInfo, bool> RoundEndingEvent;
 
-    // TODO - The camera should follow the selected tanks, switching the followed tank when Space is pressed
+    // TODO - Use atomic CAS to set _gameEnded
 
 
     private void Awake()
@@ -45,7 +45,10 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     private void OnDestroy()
     {
-        PlayerManager.UnsubscribeFromEvents();
+        if (PlayerManager != null)
+        {
+            PlayerManager.UnsubscribeFromEvents();
+        }
         PlayerManager = null;
     }
 

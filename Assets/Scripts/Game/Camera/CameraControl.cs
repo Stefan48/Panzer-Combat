@@ -7,7 +7,10 @@ public class CameraControl : MonoBehaviour
     [SerializeField] private GameManager _gameManager;
     private bool _playerManagerIsSetUp = false;
     private List<GameObject> _tanks = null;
-    // TODO - Adjust camera speed based on quickest (selected) tank's speed, or in settings (camera should not be slower than the quickest tank)
+    private GameObject _followedTank = null;
+    private bool _cameraRepositionPending = false;
+    private bool _switchFollowedTankPending = false;
+    // TODO - Adjustable camera speed in settings
     private const float _cameraSpeed = 15f;
     /*private readonly float _mouseThresholdTop = Screen.height * 0.95f;
     private readonly float _mouseThresholdBottom = Screen.height * 0.05f;
@@ -23,7 +26,6 @@ public class CameraControl : MonoBehaviour
     private readonly Vector3 _cameraRight = Vector3.Normalize(new Vector3(1f, 0f, 0f) - new Vector3(0f, 0f, 1f) * 1.7f);
     private bool _escPanelIsActive = false;
     private Vector3 _cameraMovementDirection;
-    private bool _cameraTeleportationPending = false;
     [SerializeField] private GameObject _level;
     private bool _insideLevel = true;
 
@@ -34,6 +36,7 @@ public class CameraControl : MonoBehaviour
         _gameManager.RoundPlayingEvent += OnRoundPlaying;
         _gameManager.RoundEndingEvent += OnRoundEnding;
         UiManager.EscPanelToggledEvent += OnEscPanelToggled;
+        TankHealth.TankGotDestroyedEvent += OnTankGotDestroyed;
     }
 
     private void OnDestroy()
@@ -42,19 +45,25 @@ public class CameraControl : MonoBehaviour
         _gameManager.RoundPlayingEvent -= OnRoundPlaying;
         _gameManager.RoundEndingEvent -= OnRoundEnding;
         UiManager.EscPanelToggledEvent -= OnEscPanelToggled;
+        TankHealth.TankGotDestroyedEvent -= OnTankGotDestroyed;
     }
 
     private void Update()
     {
-        if (!_playerManagerIsSetUp)
+        if (!_playerManagerIsSetUp || _escPanelIsActive)
         {
             return;
         }
-        if (!_escPanelIsActive)
+        if (Input.GetKeyDown(KeyCode.Space))
         {
-            if (Input.GetKeyDown(KeyCode.Space))
+            if (_followedTank == null || (transform.position != _followedTank.transform.position))
             {
-                _cameraTeleportationPending = true;
+                _cameraRepositionPending = true;
+                return;
+            }
+            else
+            {
+                _switchFollowedTankPending = true;
             }
         }
     }
@@ -62,34 +71,122 @@ public class CameraControl : MonoBehaviour
     private void FixedUpdate()
     {
         // Use FixedUpdate for the camera movement in order to sync with the players' movement and avoid jittering
-        if (!_playerManagerIsSetUp)
+        if (!_playerManagerIsSetUp || _escPanelIsActive)
         {
             return;
         }
-        if (_cameraTeleportationPending)
+        if (_cameraRepositionPending)
         {
-            _cameraTeleportationPending = false;
-            TeleportCamera();
+            _cameraRepositionPending = false;
+            RepositionCamera();
+            return;
         }
-        if (!_escPanelIsActive)
+        if (_switchFollowedTankPending)
         {
-            GlideCamera();
+            _switchFollowedTankPending = false;
+            SwitchFollowedTank();
+            return;
+        }
+        if (FollowTanks())
+        {
+            return;
+        }
+        GlideCamera();
+    }
+
+    private void SetCameraInitialPosition()
+    {
+        Vector3 medianPosition = Vector3.zero;
+        foreach (GameObject tank in _tanks)
+        {
+            medianPosition += tank.transform.position;
+        }
+        medianPosition /= _tanks.Count;
+        transform.position = medianPosition;
+    }
+
+    private void RepositionCamera()
+    {
+        if (_followedTank == null)
+        {
+            if (_tanks.Count > 0)
+            {
+                int index = _tanks.FindIndex(tank => tank.transform.position == transform.position);
+                if (index == -1)
+                {
+                    // Reposition to the nearest tank
+                    float minDistance = float.PositiveInfinity;
+                    GameObject tankToRepositionTo = null;
+                    foreach (GameObject tank in _tanks)
+                    {
+                        float distance = Vector3.Distance(transform.position, tank.transform.position);
+                        if (distance < minDistance)
+                        {
+                            minDistance = distance;
+                            tankToRepositionTo = tank;
+                        }
+                    }
+                    transform.position = tankToRepositionTo.transform.position;
+                }
+                else
+                {
+                    // If already at a tank's location when repositioning, switch between tanks even if none of them are selected
+                    transform.position = _tanks[(index + 1) % _tanks.Count].transform.position;
+                }
+            }
+        }
+        else
+        {
+            transform.position = _followedTank.transform.position;
         }
     }
 
-    private void TeleportCamera()
+    private void SwitchFollowedTank()
     {
-        // Teleport to the first selected tank, or the first owned tank if none are selected
-        if (_gameManager.PlayerManager.Tanks.Count == 0)
+        int index = _tanks.FindIndex(tank => tank == _followedTank);
+        for (int i = 1; i < _tanks.Count; ++i)
         {
-            return;
+            GameObject tank = _tanks[(index + i) % _tanks.Count];
+            if (tank.GetComponent<TankInfo>().IsSelected)
+            {
+                _followedTank = tank;
+                break;
+            }
         }
-        GameObject firstTank = _gameManager.PlayerManager.Tanks.Find(tank => tank.GetComponent<TankInfo>().IsSelected);
-        if (firstTank == null)
+        transform.position = _followedTank.transform.position;
+    }
+
+    private bool FollowTanks()
+    {
+        if (_followedTank == null)
         {
-            firstTank = _gameManager.PlayerManager.Tanks[0];
+            foreach (GameObject tank in _tanks)
+            {
+                if (tank.GetComponent<TankInfo>().IsSelected)
+                {
+                    _followedTank = tank;
+                    break;
+                }
+            }
         }
-        transform.position = firstTank.transform.position;
+        else if (!_followedTank.GetComponent<TankInfo>().IsSelected)
+        {
+            _followedTank = null;
+            foreach (GameObject tank in _tanks)
+            {
+                if (tank.GetComponent<TankInfo>().IsSelected)
+                {
+                    _followedTank = tank;
+                    break;
+                }
+            }
+        }
+        if (_followedTank != null && _followedTank.GetComponent<TankMovement>().IsMoving)
+        {
+            transform.position = _followedTank.transform.position;
+            return true;
+        }
+        return false;
     }
 
     private void GlideCamera()
@@ -160,10 +257,11 @@ public class CameraControl : MonoBehaviour
         if (!_playerManagerIsSetUp)
         {
             _playerManagerIsSetUp = true;
-            // The reference to the PlayerManager's Tanks list is only initialized here, so the PlayerManager should avoid reinstantiating the list
+            // This is the only place where the _tanks reference to the PlayerManager's Tanks list is assigned
+            // So the PlayerManager should avoid reinstantiating the list
             _tanks = _gameManager.PlayerManager.Tanks;
         }
-        TeleportCamera();
+        SetCameraInitialPosition();
         enabled = false;
     }
 
@@ -185,6 +283,14 @@ public class CameraControl : MonoBehaviour
             }
         }
         enabled = false;
+    }
+
+    private void OnTankGotDestroyed(GameObject tank)
+    {
+        if (ReferenceEquals(tank, _followedTank))
+        {
+            _followedTank = null;
+        }
     }
 
     private void OnEscPanelToggled(bool active)

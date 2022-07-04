@@ -8,6 +8,7 @@ public class PlayerInfo
     public int RoundsWon { get; private set; }
     // TODO - More statistics (tanks spawned, tanks destroyed, max tanks owned, players defeated, shells shot etc.)
 
+    
     public PlayerInfo(int actorNumber, string username, Color color)
     {
         ActorNumber = actorNumber;

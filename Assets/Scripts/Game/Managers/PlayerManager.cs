@@ -36,12 +36,20 @@ public class PlayerManager
         // TODO - Have user-defined initial number of tanks
         // If there are multiple tanks, make sure they don't overlap
         // Rotate them towards the map's center?
-        GameObject tank = PhotonNetwork.Instantiate(_tankPrefab.name, _spawnPosition, Quaternion.identity);
-        TankInfo tankInfo = tank.GetComponent<TankInfo>();
-        tankInfo.SetActorNumber(_gameManager.ActorNumber);
-        tankInfo.SetUsername(PhotonNetwork.LocalPlayer.NickName);
-        tankInfo.SetColor(_playerColor);
-        Tanks.Add(tank);
+        for (int i = 0; i < 1; ++i)
+        {
+            GameObject tank = PhotonNetwork.Instantiate(_tankPrefab.name, _spawnPosition, Quaternion.identity);
+            TankInfo tankInfo = tank.GetComponent<TankInfo>();
+            tankInfo.SetActorNumber(_gameManager.ActorNumber);
+            tankInfo.SetUsername(PhotonNetwork.LocalPlayer.NickName);
+            tankInfo.SetColor(_playerColor);
+            Tanks.Add(tank);
+
+            /*if (_gameManager.ActorNumber > 1) // this is for testing only
+            {
+                break;
+            }*/
+        }
     }
 
     public void SetControlEnabled(bool enabled)
