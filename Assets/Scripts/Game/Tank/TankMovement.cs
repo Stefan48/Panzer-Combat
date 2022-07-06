@@ -22,17 +22,18 @@ public class TankMovement : MonoBehaviour
     [SerializeField] private Transform _movementRaycastInnerPoint;
     private const float _movementRaycastAngleStep = 10f;
     private const float _movementRaycastMagnitude = 1f;
-    
 
+    // TODO - Disable sounds when game ends
+    // TODO - Sounds should be synced over the network
+    // TODO - Move audio in another script?
+
+    
     private void Awake()
     {
         _photonView = GetComponent<PhotonView>();
         if (!_photonView.IsMine)
         {
             enabled = false;
-            // TODO - Sounds should be synced over the network though
-            // TODO - Volume based on distance from the camera to the tank
-            // TODO - Move audio in another script?
         }
         _tankInfo = GetComponent<TankInfo>();
         _rigidbody = GetComponent<Rigidbody>();
