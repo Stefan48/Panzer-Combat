@@ -272,11 +272,16 @@ public class CameraControl : MonoBehaviour
 
     private void OnRoundEnding(PlayerInfo roundWinner, bool isGameWinner)
     {
+        // TODO - Play round end/game end sounds
+        GameObject[] tanks = GameObject.FindGameObjectsWithTag("Tank");
+        // Disable engine sounds
+        foreach (GameObject tank in tanks)
+        {
+            tank.GetComponent<AudioSource>().enabled = false;
+        }
         if (isGameWinner)
         {
             // Go to the winner's location
-            GameObject[] tanks = GameObject.FindGameObjectsWithTag("Tank")
-                .Where(tank => tank.GetComponent<TankInfo>().ActorNumber == roundWinner.ActorNumber).ToArray();
             if (tanks.Length > 0)
             {
                 transform.position = tanks[0].transform.position;

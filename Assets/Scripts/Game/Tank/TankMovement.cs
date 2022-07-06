@@ -1,7 +1,7 @@
 using Photon.Pun;
 using UnityEngine;
 
-public class TankMovement : MonoBehaviour
+public class TankMovement : MonoBehaviour, IPunObservable
 {
     private PhotonView _photonView;
     private TankInfo _tankInfo;
@@ -23,18 +23,22 @@ public class TankMovement : MonoBehaviour
     private const float _movementRaycastAngleStep = 10f;
     private const float _movementRaycastMagnitude = 1f;
 
-    // TODO - Disable sounds when game ends
-    // TODO - Sounds should be synced over the network
-    // TODO - Move audio in another script?
 
-    
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if (stream.IsWriting)
+        {
+            stream.SendNext(IsMoving);
+        }
+        else if (stream.IsReading)
+        {
+            IsMoving = (bool)stream.ReceiveNext();
+        }
+    }
+
     private void Awake()
     {
         _photonView = GetComponent<PhotonView>();
-        if (!_photonView.IsMine)
-        {
-            enabled = false;
-        }
         _tankInfo = GetComponent<TankInfo>();
         _rigidbody = GetComponent<Rigidbody>();
         _sphereCollider = GetComponent<SphereCollider>();
@@ -48,23 +52,29 @@ public class TankMovement : MonoBehaviour
 
     private void Update()
     {
-        if (!EscPanelIsActive)
+        if (_photonView.IsMine)
         {
-            if (_tankInfo.IsSelected)
+            if (!EscPanelIsActive)
             {
-                ProcessMovementInput();
+                if (_tankInfo.IsSelected)
+                {
+                    ProcessMovementInput();
+                }
             }
-        }
+        }        
         PlayEngineAudio();
     }
 
     private void FixedUpdate()
     {
-        if (!EscPanelIsActive)
+        if (_photonView.IsMine)
         {
-            if (_tankInfo.IsSelected)
+            if (!EscPanelIsActive)
             {
-                ApplyMovement();
+                if (_tankInfo.IsSelected)
+                {
+                    ApplyMovement();
+                }
             }
         }
     }
