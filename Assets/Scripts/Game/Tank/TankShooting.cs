@@ -1,5 +1,4 @@
 using Photon.Pun;
-using System.Threading;
 using UnityEngine;
 
 public class TankShooting : MonoBehaviour
@@ -11,6 +10,8 @@ public class TankShooting : MonoBehaviour
     [SerializeField] private Transform _muzzle;
     [SerializeField] private GameObject _shellPrefab;
     [SerializeField] private AudioSource _shotFiredAudioSource;
+
+    // TODO - Movement prediction for shells for more accurate explosion visual effects?
 
 
     private void Awake()
@@ -43,8 +44,8 @@ public class TankShooting : MonoBehaviour
 
     private void Shoot()
     {
-        _photonView.RPC("RPC_Shoot", RpcTarget.AllViaServer, Interlocked.Increment(ref s_currentShellId));
-        //RPC_Shoot(Interlocked.Increment(ref s_currentShellId)); // this is for testing only
+        _photonView.RPC("RPC_Shoot", RpcTarget.AllViaServer, ++s_currentShellId);
+        //RPC_Shoot(++s_currentShellId); // this is for testing only
     }
 
     [PunRPC]

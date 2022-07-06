@@ -33,8 +33,6 @@ public class GameManager : MonoBehaviourPunCallbacks
     public event Action RoundPlayingEvent;
     public event Action<PlayerInfo, bool> RoundEndingEvent;
 
-    // TODO - Use atomic CAS to set _gameEnded
-
 
     private void Awake()
     {
@@ -111,6 +109,11 @@ public class GameManager : MonoBehaviourPunCallbacks
     [PunRPC]
     private void RPC_NewRound()
     {
+        if (_gameEnded)
+        {
+            // The game ended due to disconnects
+            return;
+        }
         StartCoroutine(StartRound());
     }
 
@@ -122,11 +125,6 @@ public class GameManager : MonoBehaviourPunCallbacks
         PlayerManager.Reset();
         PlayerManager.Setup();
         PlayerManager.SetControlEnabled(false);
-        if (_gameEnded)
-        {
-            // The game ended due to disconnects
-            yield break;
-        }
         RoundStartingEvent?.Invoke(_currentRound);
         yield return _startWait;
         if (_gameEnded)
@@ -163,6 +161,11 @@ public class GameManager : MonoBehaviourPunCallbacks
     [PunRPC]
     private void RPC_RoundEnded()
     {
+        if (_gameEnded)
+        {
+            // The game ended due to disconnects
+            return;
+        }
         StartCoroutine(EndRound());
     }
 
@@ -171,31 +174,16 @@ public class GameManager : MonoBehaviourPunCallbacks
         _roundInProgress = false;
         PlayerManager.SetControlEnabled(false);
         PlayerInfo roundWinner = _playersRemaining.Count > 0 ? PlayersInfo[_playersRemaining[0]] : null;
-        bool isGameWinner = false;
         if (roundWinner != null)
         {
             roundWinner.WonRound();
-            isGameWinner = (roundWinner.RoundsWon == _totalRoundsToWin);
-        }
-        if (_gameEnded)
-        {
-            // The game ended due to disconnects
-            yield break;
-        }
-        // Not assigning _gameEnded = isGameWinner to reduce the chances of race conditions, in case disconnect(s) happened right at this moment
-        // Note that race conditions resulting in RoundStarting/Playing/EndingEvent getting invoked twice are technically still possible
-        if (isGameWinner)
-        {
-            _gameEnded = true;
+            _gameEnded = (roundWinner.RoundsWon == _totalRoundsToWin);
         }
         RoundEndingEvent?.Invoke(roundWinner, _gameEnded);
         yield return _endWait;
-        if (!_gameEnded)
+        if(PhotonNetwork.IsMasterClient)
         {
-            if (PhotonNetwork.IsMasterClient)
-            {
-                _photonView.RPC("RPC_NewRound", RpcTarget.AllViaServer);
-            }
+            _photonView.RPC("RPC_NewRound", RpcTarget.AllViaServer);
         }
     }
 
@@ -208,11 +196,13 @@ public class GameManager : MonoBehaviourPunCallbacks
             if (!_gameEnded)
             {
                 _gameEnded = true;
+                _roundInProgress = false;
                 RoundEndingEvent?.Invoke(PlayersInfo[_players[0]], true);
             }
         }
         else if (_roundInProgress)
         {
+            // Call the RPC only locally, since all clients receive the OnPlayerLeftRoom event anyway
             RPC_PlayerLost(new PhotonMessageInfo(player, 0, null));
         }
     }
