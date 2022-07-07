@@ -4,18 +4,30 @@ using System;
 using Photon.Pun;
 using Photon.Realtime;
 using ExitGames.Client.Photon;
+using System.Collections.Generic;
 
 public class ShellExplosion : MonoBehaviourPunCallbacks
 {
     [SerializeField] private LayerMask _tanksLayerMask;
-    [SerializeField] private LayerMask _noCollisionsLayerMask;
     public int Id; // unique shell identifier
     public float Damage;
     public float Lifetime;
+    [SerializeField] private List<Transform> _raycastOrigins = new List<Transform>();
+    private const float _raycastMagnitude = 1f;
+    private static int s_collisionsLayerMask = 0;
+    private bool _hitSomething = false;
     private bool _explosionPending = false;
 
     private static readonly byte s_shellExplosionEvent = 0;
 
+
+    private void Awake()
+    {
+        if (s_collisionsLayerMask == 0)
+        {
+            s_collisionsLayerMask = LayerMask.GetMask("Default", "Tanks");
+        }
+    }
 
     public override void OnEnable()
     {
@@ -37,22 +49,43 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
         StartCoroutine(Explosion(Lifetime));
     }
 
-    private void OnTriggerEnter(Collider other)
+    private void Update()
     {
         // Shell collisions are checked only by the Master Client
-        if (!PhotonNetwork.IsMasterClient)
+        if (!PhotonNetwork.IsMasterClient || _hitSomething)
         {
             return;
         }
-        if (((1 << other.gameObject.layer) & _tanksLayerMask.value) > 0)
+        CheckForCollision();
+    }
+
+    // Checks for potential collisions using raycasts (instead of implementing OnTriggerEnter) for lag compensation
+    private void CheckForCollision()
+    {
+        bool hitTank = false;
+        GameObject tankHit = null;
+        foreach (Transform origin in _raycastOrigins)
         {
-            // The shell hit a tank
-            other.gameObject.GetComponent<TankHealth>().TakeDamage(Damage);
+            // Query ignores triggers (like the CameraRig, the collider for the level's boundaries or the shells)
+            if (Physics.Raycast(origin.position, origin.forward, out RaycastHit hit, _raycastMagnitude,
+                s_collisionsLayerMask, QueryTriggerInteraction.Ignore))
+            {
+                _hitSomething = true;
+                if (((1 << hit.collider.gameObject.layer) & _tanksLayerMask.value) > 0)
+                {
+                    hitTank = true;
+                    tankHit = hit.collider.gameObject;
+                    break;
+                }
+            }
+        }
+        if (hitTank)
+        {
+            tankHit.GetComponent<TankHealth>().TakeDamage(Damage);
             StartCoroutine(Explosion(0f));
         }
-        else if (((1 << other.gameObject.layer) & _noCollisionsLayerMask.value) == 0)
+        else if (_hitSomething)
         {
-            // The shell hit the environment
             StartCoroutine(Explosion(0f));
         }
     }
