@@ -13,25 +13,41 @@ public class GameManager : MonoBehaviourPunCallbacks
     private Player[] _players;
     [SerializeField] private List<Color> _availablePlayerColors = new List<Color>();
     [SerializeField] private List<Transform> _availablePlayerSpawnPoints = new List<Transform>();
+    [SerializeField] private List<Transform> _crateSpawnPoints = new List<Transform>();
     [SerializeField] private readonly int _initialTankCount = 1; // TODO - Creator of the room should set this in the UI
     [SerializeField] private readonly int _totalRoundsToWin = 2; // TODO - Creator of the room should set this in the UI
     public Dictionary<Player, PlayerInfo> PlayersInfo = new Dictionary<Player, PlayerInfo>();
     [SerializeField] private GameObject _tankPrefab;
+    [SerializeField] private GameObject _crateAbilityPrefab;
+    [SerializeField] private GameObject _crateAmmunitionPrefab;
+    [SerializeField] private GameObject _crateArmorPrefab;
+    [SerializeField] private GameObject _crateDamagePrefab;
+    [SerializeField] private GameObject _crateMaxHpPrefab;
+    [SerializeField] private GameObject _crateRangePrefab;
+    [SerializeField] private GameObject _crateRestoreHpPrefab;
+    [SerializeField] private GameObject _crateSpeedPrefab;
+    [SerializeField] private GameObject _crateTankPrefab;
+    private Dictionary<CrateType, GameObject> _cratePrefabs = new Dictionary<CrateType, GameObject>();
     public PlayerManager PlayerManager { get; private set; } = null;
     private const float _startDelay = 2f;
     private const float _endDelay = 2f;
     private const float _potentialDrawDelay = 0.3f;
+    // TODO - Creator of the room should set the frequency of the crates in the UI
+    private const float _crateSpawnDelay = 10f;
+    private const float _crateLifetime = 7f;
     private readonly WaitForSeconds _startWait = new WaitForSeconds(_startDelay);
     private readonly WaitForSeconds _endWait = new WaitForSeconds(_endDelay);
     private readonly WaitForSeconds _potentialDrawWait = new WaitForSeconds(_potentialDrawDelay);
+    private readonly WaitForSeconds _crateSpawnWait = new WaitForSeconds(_crateSpawnDelay);
+    private IEnumerator _crateSpawnCoroutine = null;
     private int _currentRound = 0;
     private List<Player> _playersRemaining = new List<Player>();
     private bool _roundInProgress = false;
     private bool _gameEnded = false;
 
-    public event Action<int> RoundStartingEvent;
-    public event Action RoundPlayingEvent;
-    public event Action<PlayerInfo, bool> RoundEndingEvent;
+    public static event Action<int> RoundStartingEvent;
+    public static event Action RoundPlayingEvent;
+    public static event Action<PlayerInfo, bool> RoundEndingEvent;
 
 
     private void Awake()
@@ -39,6 +55,16 @@ public class GameManager : MonoBehaviourPunCallbacks
         _photonView = GetComponent<PhotonView>();
         ActorNumber = PhotonNetwork.LocalPlayer.ActorNumber;
         _players = PhotonNetwork.PlayerList;
+
+        _cratePrefabs.Add(CrateType.Ability, _crateAbilityPrefab);
+        _cratePrefabs.Add(CrateType.Ammunition, _crateAmmunitionPrefab);
+        _cratePrefabs.Add(CrateType.Armor, _crateArmorPrefab);
+        _cratePrefabs.Add(CrateType.Damage, _crateDamagePrefab);
+        _cratePrefabs.Add(CrateType.MaxHp, _crateMaxHpPrefab);
+        _cratePrefabs.Add(CrateType.Range, _crateRangePrefab);
+        _cratePrefabs.Add(CrateType.RestoreHp, _crateRestoreHpPrefab);
+        _cratePrefabs.Add(CrateType.Speed, _crateSpeedPrefab);
+        _cratePrefabs.Add(CrateType.Tank, _crateTankPrefab);
     }
 
     private void OnDestroy()
@@ -115,6 +141,7 @@ public class GameManager : MonoBehaviourPunCallbacks
             return;
         }
         StartCoroutine(StartRound());
+        StartSpawningCrates();
     }
 
     private IEnumerator StartRound()
@@ -134,6 +161,21 @@ public class GameManager : MonoBehaviourPunCallbacks
         }
         RoundPlayingEvent?.Invoke();
         PlayerManager.SetControlEnabled(true);
+    }
+
+    private void StartSpawningCrates()
+    {
+        _crateSpawnCoroutine = SpawnCrates();
+        StartCoroutine(_crateSpawnCoroutine);
+    }
+
+    private void StopSpawningCrates()
+    {
+        if (_crateSpawnCoroutine != null)
+        {
+            StopCoroutine(_crateSpawnCoroutine);
+            _crateSpawnCoroutine = null;
+        }
     }
 
     public void LocalPlayerLost()
@@ -167,6 +209,7 @@ public class GameManager : MonoBehaviourPunCallbacks
             return;
         }
         StartCoroutine(EndRound());
+        StopSpawningCrates();
     }
 
     private IEnumerator EndRound()
@@ -187,6 +230,34 @@ public class GameManager : MonoBehaviourPunCallbacks
         }
     }
 
+    private CrateType GetRandomCrateType()
+    {
+        int roll = UnityEngine.Random.Range(0, 100);
+        // TODO - Probabilities
+        if (roll < 100)
+        {
+            return CrateType.RestoreHp;
+        }
+        return CrateType.Tank;
+    }
+
+    private IEnumerator SpawnCrates()
+    {
+        if (PhotonNetwork.IsMasterClient)
+        {
+            // TODO - Pooling? (might require too much overhead since every client would need references to all the pooled crates; also more RPCs)
+            foreach (Transform spawnPoint in _crateSpawnPoints)
+            {
+                GameObject cratePrefab = _cratePrefabs[GetRandomCrateType()];
+                Quaternion crateRotation = Quaternion.Euler(0f, UnityEngine.Random.Range(0f, 360f), 0f);
+                GameObject crate = PhotonNetwork.Instantiate(cratePrefab.name, spawnPoint.position, crateRotation);
+                crate.GetComponent<Crate>().Init(_crateLifetime);
+            }
+        }
+        yield return _crateSpawnWait;
+        StartSpawningCrates();
+    }
+
     public override void OnPlayerLeftRoom(Player player)
     {
         _players = _players.Where(p => p != player).ToArray();
@@ -198,6 +269,7 @@ public class GameManager : MonoBehaviourPunCallbacks
                 _gameEnded = true;
                 _roundInProgress = false;
                 RoundEndingEvent?.Invoke(PlayersInfo[_players[0]], true);
+                StopSpawningCrates();
             }
         }
         else if (_roundInProgress)

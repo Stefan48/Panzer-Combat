@@ -11,8 +11,6 @@ public class TankShooting : MonoBehaviour
     [SerializeField] private GameObject _shellPrefab;
     [SerializeField] private AudioSource _shotFiredAudioSource;
 
-    // TODO - Movement prediction for shells for more accurate explosion visual effects?
-
 
     private void Awake()
     {
@@ -45,7 +43,6 @@ public class TankShooting : MonoBehaviour
     private void Shoot()
     {
         _photonView.RPC("RPC_Shoot", RpcTarget.AllViaServer, ++s_currentShellId);
-        //RPC_Shoot(++s_currentShellId); // this is for testing only
     }
 
     [PunRPC]

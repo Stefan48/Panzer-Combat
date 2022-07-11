@@ -32,16 +32,16 @@ public class UiManager : MonoBehaviourPunCallbacks
 
     private void Awake()
     {
-        _gameManager.RoundStartingEvent += OnRoundStarting;
-        _gameManager.RoundPlayingEvent += OnRoundPlaying;
-        _gameManager.RoundEndingEvent += OnRoundEnding;
+        GameManager.RoundStartingEvent += OnRoundStarting;
+        GameManager.RoundPlayingEvent += OnRoundPlaying;
+        GameManager.RoundEndingEvent += OnRoundEnding;
     }
 
     private void OnDestroy()
     {
-        _gameManager.RoundStartingEvent -= OnRoundStarting;
-        _gameManager.RoundPlayingEvent -= OnRoundPlaying;
-        _gameManager.RoundEndingEvent -= OnRoundEnding;
+        GameManager.RoundStartingEvent -= OnRoundStarting;
+        GameManager.RoundPlayingEvent -= OnRoundPlaying;
+        GameManager.RoundEndingEvent -= OnRoundEnding;
     }
 
     private void Update()

@@ -5,13 +5,13 @@ public class TankInfo : MonoBehaviour
 {
     private PhotonView _photonView;
     [SerializeField] private TextMesh _usernameTextMesh;
-    public int ActorNumber { get; private set; } //= -1;//
+    public int ActorNumber { get; private set; } = -1;//
     public string Username { get; private set; }
     public bool IsSelected = false;
     public float Speed { get; private set; } = 12f;
-    public float MaxHealth { get; private set; } = 100f;
-    public float Health;
-    public float Damage { get; private set; } = 25f;
+    public int MaxHealth { get; private set; } = 100;
+    public int Health;
+    public int Damage { get; private set; } = 20;
     public float ShellSpeed { get; private set; } = 20f;
     public float ShellLifetime { get; private set; } = 10f;
 
@@ -21,7 +21,7 @@ public class TankInfo : MonoBehaviour
         _photonView = GetComponent<PhotonView>();
         Health = MaxHealth;
 
-        //ActorNumber = Random.Range(0, 100) % 2 == 0 ? 0 : -1;//
+        //ActorNumber = Random.Range(0, 100) % 2 == 0 ? 0 : -1; // this is for testing only
     }
 
     public void SetActorNumber(int actorNumber)

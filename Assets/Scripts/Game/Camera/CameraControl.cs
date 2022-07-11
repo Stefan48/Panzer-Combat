@@ -32,18 +32,18 @@ public class CameraControl : MonoBehaviour
 
     private void Awake()
     {
-        _gameManager.RoundStartingEvent += OnRoundStarting;
-        _gameManager.RoundPlayingEvent += OnRoundPlaying;
-        _gameManager.RoundEndingEvent += OnRoundEnding;
+        GameManager.RoundStartingEvent += OnRoundStarting;
+        GameManager.RoundPlayingEvent += OnRoundPlaying;
+        GameManager.RoundEndingEvent += OnRoundEnding;
         UiManager.EscPanelToggledEvent += OnEscPanelToggled;
         TankHealth.TankGotDestroyedEvent += OnTankGotDestroyed;
     }
 
     private void OnDestroy()
     {
-        _gameManager.RoundStartingEvent -= OnRoundStarting;
-        _gameManager.RoundPlayingEvent -= OnRoundPlaying;
-        _gameManager.RoundEndingEvent -= OnRoundEnding;
+        GameManager.RoundStartingEvent -= OnRoundStarting;
+        GameManager.RoundPlayingEvent -= OnRoundPlaying;
+        GameManager.RoundEndingEvent -= OnRoundEnding;
         UiManager.EscPanelToggledEvent -= OnEscPanelToggled;
         TankHealth.TankGotDestroyedEvent -= OnTankGotDestroyed;
     }
@@ -91,7 +91,8 @@ public class CameraControl : MonoBehaviour
         {
             return;
         }
-        GlideCamera();
+        // TODO - If gliding the camera is not available anymore, the code can be simplified
+        //GlideCamera();
     }
 
     private void SetCameraInitialPosition()

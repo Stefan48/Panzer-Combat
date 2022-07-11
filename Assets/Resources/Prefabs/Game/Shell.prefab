@@ -238,17 +238,14 @@ MonoBehaviour:
   _tanksLayerMask:
     serializedVersion: 2
     m_Bits: 64
-  _noCollisionsLayerMask:
-    serializedVersion: 2
-    m_Bits: 128
-  Id: 0
-  Damage: 0
-  Lifetime: 10
   _raycastOrigins:
   - {fileID: 5229842626170783736}
   - {fileID: 4694879877558922052}
   - {fileID: 8422276493618636618}
   - {fileID: 4938613201021222374}
+  _collisionsLayerMask:
+    serializedVersion: 2
+    m_Bits: 65
 --- !u!1 &5064155135254964416
 GameObject:
   m_ObjectHideFlags: 0

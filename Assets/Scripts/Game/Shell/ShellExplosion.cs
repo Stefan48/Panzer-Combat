@@ -8,13 +8,12 @@ using System.Collections.Generic;
 
 public class ShellExplosion : MonoBehaviourPunCallbacks
 {
+    [SerializeField] private LayerMask _collisionsLayerMask;
     [SerializeField] private LayerMask _tanksLayerMask;
-    public int Id; // unique shell identifier
-    public float Damage;
-    public float Lifetime;
+    private int _id; // unique shell identifier
+    private int _damage;
     [SerializeField] private List<Transform> _raycastOrigins = new List<Transform>();
     private const float _raycastMagnitude = 1f;
-    private static int s_collisionsLayerMask = 0;
     private bool _hitSomething = false;
     private bool _explosionPending = false;
 
@@ -23,10 +22,12 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
 
     private void Awake()
     {
-        if (s_collisionsLayerMask == 0)
-        {
-            s_collisionsLayerMask = LayerMask.GetMask("Default", "Tanks");
-        }
+        GameManager.RoundEndingEvent += OnRoundEnding;
+    }
+
+    private void OnDestroy()
+    {
+        GameManager.RoundEndingEvent -= OnRoundEnding;
     }
 
     public override void OnEnable()
@@ -41,12 +42,11 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
         PhotonNetwork.NetworkingClient.EventReceived -= NetworkingClient_EventReceived;
     }
 
-    public void Init(int id, float damage, float lifetime)
+    public void Init(int id, int damage, float lifetime)
     {
-        Id = id;
-        Damage = damage;
-        Lifetime = lifetime;
-        StartCoroutine(Explosion(Lifetime));
+        _id = id;
+        _damage = damage;
+        StartCoroutine(Explosion(lifetime));
     }
 
     private void Update()
@@ -59,7 +59,27 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
         CheckForCollision();
     }
 
-    // Checks for potential collisions using raycasts (instead of implementing OnTriggerEnter) for lag compensation
+    private void OnTriggerEnter(Collider other)
+    {
+        // Shell collisions are checked only by the Master Client
+        if (!PhotonNetwork.IsMasterClient || _hitSomething)
+        {
+            return;
+        }
+        if (((1 << other.gameObject.layer) & _tanksLayerMask.value) > 0)
+        {
+            // The shell hit a tank in short range
+            other.gameObject.GetComponent<TankHealth>().TakeDamage(_damage);
+            StartCoroutine(Explosion(0f));
+        }
+        else if (((1 << other.gameObject.layer) & _collisionsLayerMask.value) > 0)
+        {
+            // The shell hit the environment in short range
+            StartCoroutine(Explosion(0f));
+        }
+    }
+
+    // Most checks for potential collisions are done using raycasts for lag compensation
     private void CheckForCollision()
     {
         bool hitTank = false;
@@ -68,7 +88,7 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
         {
             // Query ignores triggers (like the CameraRig, the collider for the level's boundaries or the shells)
             if (Physics.Raycast(origin.position, origin.forward, out RaycastHit hit, _raycastMagnitude,
-                s_collisionsLayerMask, QueryTriggerInteraction.Ignore))
+                _collisionsLayerMask, QueryTriggerInteraction.Ignore))
             {
                 _hitSomething = true;
                 if (((1 << hit.collider.gameObject.layer) & _tanksLayerMask.value) > 0)
@@ -81,7 +101,7 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
         }
         if (hitTank)
         {
-            tankHit.GetComponent<TankHealth>().TakeDamage(Damage);
+            tankHit.GetComponent<TankHealth>().TakeDamage(_damage);
             StartCoroutine(Explosion(0f));
         }
         else if (_hitSomething)
@@ -99,7 +119,7 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
             {
                 _explosionPending = true;
                 // Using events since shells don't have a PhotonView component (they're not instantiated over the network for optimization reasons)
-                PhotonNetwork.RaiseEvent(s_shellExplosionEvent, Id, new RaiseEventOptions { Receivers = ReceiverGroup.All }, SendOptions.SendReliable);
+                PhotonNetwork.RaiseEvent(s_shellExplosionEvent, _id, new RaiseEventOptions { Receivers = ReceiverGroup.All }, SendOptions.SendReliable);
             }
         }
     }
@@ -108,7 +128,7 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
     {
         if (obj.Code == s_shellExplosionEvent)
         {
-            if ((int)obj.CustomData == Id)
+            if ((int)obj.CustomData == _id)
             {
                 Explode();
             }
@@ -126,5 +146,10 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
         shellExplosionAudioSource.Play();
         Destroy(shellExplosion, Math.Max(shellExplosionParticleSystem.main.duration, shellExplosionAudioSource.clip.length));
         Destroy(gameObject);
+    }
+
+    private void OnRoundEnding(PlayerInfo roundWinner, bool isGameWinner)
+    {
+        StartCoroutine(Explosion(0f));
     }
 }

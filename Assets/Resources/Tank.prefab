@@ -605,6 +605,9 @@ MonoBehaviour:
   _groundLayerMask:
     serializedVersion: 2
     m_Bits: 256
+  _collisionsLayerMask:
+    serializedVersion: 2
+    m_Bits: 65
   _movementRaycastDirection: {fileID: 8209602259724309803}
   _movementRaycastInnerPoint: {fileID: 6451518957019764679}
 --- !u!114 &3359018915896853493
@@ -1216,6 +1219,10 @@ PrefabInstance:
     - target: {fileID: 3258671917683525362, guid: 3872c2d866d82e24a9dda0efb586563c, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3258671918003806384, guid: 3872c2d866d82e24a9dda0efb586563c, type: 3}
+      propertyPath: m_PresetInfoIsWorld
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3258671918003806386, guid: 3872c2d866d82e24a9dda0efb586563c, type: 3}
       propertyPath: m_Name

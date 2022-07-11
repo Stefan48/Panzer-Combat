@@ -50,6 +50,11 @@ MonoBehaviour:
   - RPC_RoundEnded
   - RPC_SetUsername
   - RPC_SetActorNumber
+  - RPC_OnCollect
+  - RPC_Shatter
+  - RPC_Init
+  - RPC_RestoreHealth
+  - RPC_InitWithHealthToRestore
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1
