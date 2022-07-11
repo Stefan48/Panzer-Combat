@@ -125,9 +125,9 @@ public enum CrateType
     Ammunition,
     Armor,
     Damage,
-    MaxHp,
+    MaxHealth,
     Range,
-    RestoreHp,
+    RestoreHealth,
     Speed,
     Tank
 }

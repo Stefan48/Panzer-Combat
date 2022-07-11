@@ -22,9 +22,9 @@ public class GameManager : MonoBehaviourPunCallbacks
     [SerializeField] private GameObject _crateAmmunitionPrefab;
     [SerializeField] private GameObject _crateArmorPrefab;
     [SerializeField] private GameObject _crateDamagePrefab;
-    [SerializeField] private GameObject _crateMaxHpPrefab;
+    [SerializeField] private GameObject _crateMaxHealthPrefab;
     [SerializeField] private GameObject _crateRangePrefab;
-    [SerializeField] private GameObject _crateRestoreHpPrefab;
+    [SerializeField] private GameObject _crateRestoreHealthPrefab;
     [SerializeField] private GameObject _crateSpeedPrefab;
     [SerializeField] private GameObject _crateTankPrefab;
     private Dictionary<CrateType, GameObject> _cratePrefabs = new Dictionary<CrateType, GameObject>();
@@ -60,9 +60,9 @@ public class GameManager : MonoBehaviourPunCallbacks
         _cratePrefabs.Add(CrateType.Ammunition, _crateAmmunitionPrefab);
         _cratePrefabs.Add(CrateType.Armor, _crateArmorPrefab);
         _cratePrefabs.Add(CrateType.Damage, _crateDamagePrefab);
-        _cratePrefabs.Add(CrateType.MaxHp, _crateMaxHpPrefab);
+        _cratePrefabs.Add(CrateType.MaxHealth, _crateMaxHealthPrefab);
         _cratePrefabs.Add(CrateType.Range, _crateRangePrefab);
-        _cratePrefabs.Add(CrateType.RestoreHp, _crateRestoreHpPrefab);
+        _cratePrefabs.Add(CrateType.RestoreHealth, _crateRestoreHealthPrefab);
         _cratePrefabs.Add(CrateType.Speed, _crateSpeedPrefab);
         _cratePrefabs.Add(CrateType.Tank, _crateTankPrefab);
     }
@@ -236,7 +236,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         // TODO - Probabilities
         if (roll < 100)
         {
-            return CrateType.RestoreHp;
+            return CrateType.RestoreHealth;
         }
         return CrateType.Tank;
     }

@@ -2,7 +2,7 @@ using Photon.Pun;
 using System;
 using UnityEngine;
 
-public class CrateRestoreHp : Crate
+public class CrateRestoreHealth : Crate
 {
     private static readonly int s_minHealthToRestore = 50;
     private static readonly int s_maxHealthToRestore = 100;

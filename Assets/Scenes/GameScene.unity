@@ -870,9 +870,9 @@ MonoBehaviour:
   _crateAmmunitionPrefab: {fileID: 7318180458152959340, guid: 608f29d34cef92449be663faad69ae74, type: 3}
   _crateArmorPrefab: {fileID: 4892461454421248933, guid: 4dab8d0ed0fdd1446b823debcf5c54cc, type: 3}
   _crateDamagePrefab: {fileID: 9164206892957264857, guid: 357af7b0effdde24fadc5d5a75f4fd3a, type: 3}
-  _crateMaxHpPrefab: {fileID: 1421716232942652834, guid: 96dfa14ffe56f3d4b8e75e114777b2d6, type: 3}
+  _crateMaxHealthPrefab: {fileID: 1421716232942652834, guid: 96dfa14ffe56f3d4b8e75e114777b2d6, type: 3}
   _crateRangePrefab: {fileID: 1315268265333438919, guid: 71e26d8e6608b0c4bad7ad5623909d02, type: 3}
-  _crateRestoreHpPrefab: {fileID: 4866542356792747545, guid: 5dbf17790dec93443952c727bcc025be, type: 3}
+  _crateRestoreHealthPrefab: {fileID: 4866542356792747545, guid: 5dbf17790dec93443952c727bcc025be, type: 3}
   _crateSpeedPrefab: {fileID: 80504189870928, guid: 146218c9d832fdb4b89f66f8b36db64f, type: 3}
   _crateTankPrefab: {fileID: 3011250683889699955, guid: 29515d8827c6d574eac5a5a40ed551b7, type: 3}
 --- !u!114 &600546198
