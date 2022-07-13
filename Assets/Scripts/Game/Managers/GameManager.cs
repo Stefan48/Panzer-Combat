@@ -19,7 +19,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     public Dictionary<Player, PlayerInfo> PlayersInfo = new Dictionary<Player, PlayerInfo>();
     [SerializeField] private GameObject _tankPrefab;
     [SerializeField] private GameObject _crateAbilityPrefab;
-    [SerializeField] private GameObject _crateAmmunitionPrefab;
+    [SerializeField] private GameObject _crateAmmoPrefab;
     [SerializeField] private GameObject _crateArmorPrefab;
     [SerializeField] private GameObject _crateDamagePrefab;
     [SerializeField] private GameObject _crateMaxHealthPrefab;
@@ -57,7 +57,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         _players = PhotonNetwork.PlayerList;
 
         _cratePrefabs.Add(CrateType.Ability, _crateAbilityPrefab);
-        _cratePrefabs.Add(CrateType.Ammunition, _crateAmmunitionPrefab);
+        _cratePrefabs.Add(CrateType.Ammo, _crateAmmoPrefab);
         _cratePrefabs.Add(CrateType.Armor, _crateArmorPrefab);
         _cratePrefabs.Add(CrateType.Damage, _crateDamagePrefab);
         _cratePrefabs.Add(CrateType.MaxHealth, _crateMaxHealthPrefab);
@@ -236,9 +236,9 @@ public class GameManager : MonoBehaviourPunCallbacks
         // TODO - Probabilities
         if (roll < 100)
         {
-            return CrateType.Speed;
+            return CrateType.Ammo;
         }
-        return CrateType.Damage;
+        return (CrateType)UnityEngine.Random.Range(0, Enum.GetNames(typeof(CrateType)).Length);
     }
 
     private IEnumerator SpawnCrates()

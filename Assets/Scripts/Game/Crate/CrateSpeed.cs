@@ -20,7 +20,7 @@ public class CrateSpeed : Crate
 
     protected override string GetOnCollectText(GameObject tank)
     {
-        return "+ speed";
+        return "+ Speed";
     }
 
     protected override void RewardPlayer(GameObject tank)

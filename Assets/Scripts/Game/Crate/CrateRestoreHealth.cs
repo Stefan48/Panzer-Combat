@@ -29,9 +29,9 @@ public class CrateRestoreHealth : Crate
 
     private void SetRandomHealthToRestore()
     {
-        if (UnityEngine.Random.Range(0, 100) < 10)
+        if (UnityEngine.Random.Range(0, 100) < 20)
         {
-            // 10% chance to restore all the missing health
+            // 20% chance to restore all the missing health
             _healthToRestore = int.MaxValue;
         }
         else
@@ -42,9 +42,14 @@ public class CrateRestoreHealth : Crate
 
     protected override string GetOnCollectText(GameObject tank)
     {
+        string onCollectText = (_healthToRestore == int.MaxValue) ? "Full Health" : string.Empty;
         TankInfo tankInfo = tank.GetComponent<TankInfo>();
         _healthToRestore = Math.Min(_healthToRestore, tankInfo.MaxHealth - tankInfo.Health);
-        return $"+ {_healthToRestore} health";
+        if (onCollectText == string.Empty)
+        {
+            onCollectText = $"+ {_healthToRestore} Health";
+        }
+        return onCollectText;
     }
 
     protected override void RewardPlayer(GameObject tank)

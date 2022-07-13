@@ -30,7 +30,7 @@ public class CrateArmor : Crate
     {
         if (UnityEngine.Random.Range(0, 100) < 10)
         {
-            // 10% chance for double armor
+            // 10% chance for double extra armor
             _armor = UnityEngine.Random.Range(2 * s_minArmor, 2 * s_maxArmor + 1);
         }
         else
@@ -41,7 +41,7 @@ public class CrateArmor : Crate
 
     protected override string GetOnCollectText(GameObject tank)
     {
-        return $"+ {_armor} armor";
+        return $"+ {_armor} Armor";
     }
 
     protected override void RewardPlayer(GameObject tank)

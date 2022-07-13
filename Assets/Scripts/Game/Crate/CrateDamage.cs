@@ -44,9 +44,9 @@ public class CrateDamage : Crate
         if (_damage == int.MaxValue)
         {
             _damage = tank.GetComponent<TankInfo>().Damage;
-            return "2X damage";
+            return "2X Damage";
         }
-        return $"+ {_damage} damage";
+        return $"+ {_damage} Damage";
     }
 
     protected override void RewardPlayer(GameObject tank)

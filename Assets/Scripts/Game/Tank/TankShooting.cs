@@ -12,6 +12,7 @@ public class TankShooting : MonoBehaviour
     [SerializeField] private Transform _muzzle;
     [SerializeField] private GameObject _shellPrefab;
     [SerializeField] private AudioSource _shotFiredAudioSource;
+    [SerializeField] private AudioSource _noAmmoAudioSource;
 
 
     private void Awake()
@@ -60,12 +61,23 @@ public class TankShooting : MonoBehaviour
 
     private void Shoot()
     {
+        if (_tankInfo.Ammo == 0)
+        {
+            _noAmmoAudioSource.Play();
+            return;
+        }
         _photonView.RPC("RPC_Shoot", RpcTarget.AllViaServer, ++s_currentShellId);
     }
 
     [PunRPC]
     private void RPC_Shoot(int shellId)
     {
+        // Due to the latency, the ammo might already be 0
+        if (_tankInfo.Ammo == 0)
+        {
+            return;
+        }
+        _tankInfo.Ammo--;
         // TODO - Object pooling
         GameObject shell = Instantiate(_shellPrefab, _muzzle.position, _muzzle.rotation);
         shell.GetComponent<ShellMovement>().Init(_tankInfo.ShellSpeed);

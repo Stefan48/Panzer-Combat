@@ -13,6 +13,7 @@ public class TankInfo : MonoBehaviour
     public int Health;
     public int Armor { get; private set; } = 0;
     public int Damage { get; private set; } = 20;
+    public int Ammo = 30;
     public float ShellSpeed { get; private set; } = 20f;
     public float ShellLifetime { get; private set; } = 10f;
 
@@ -96,5 +97,16 @@ public class TankInfo : MonoBehaviour
     {
         Speed += extraSpeed;
         ShellSpeed += extraSpeed;
+    }
+
+    public void IncreaseAmmo(int extraAmmo)
+    {
+        _photonView.RPC("RPC_IncreaseAmmo", RpcTarget.AllViaServer, extraAmmo);
+    }
+
+    [PunRPC]
+    private void RPC_IncreaseAmmo(int extraAmmo)
+    {
+        Ammo += extraAmmo;
     }
 }

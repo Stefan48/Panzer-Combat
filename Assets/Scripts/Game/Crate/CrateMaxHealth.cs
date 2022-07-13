@@ -3,8 +3,8 @@ using UnityEngine;
 
 public class CrateMaxHealth : Crate
 {
-    private static readonly int s_minHealthToGain = 50;
-    private static readonly int s_maxHealthToGain = 100;
+    private static readonly int s_minHealthToGain = 25;
+    private static readonly int s_maxHealthToGain = 75;
     private int _healthToGain;
 
 
@@ -28,10 +28,10 @@ public class CrateMaxHealth : Crate
 
     private void SetRandomHealthToGain()
     {
-        if (UnityEngine.Random.Range(0, 100) < 10)
+        if (UnityEngine.Random.Range(0, 100) < 5)
         {
-            // 10% chance to gain double health
-            _healthToGain = UnityEngine.Random.Range(2 * s_minHealthToGain, 2 * s_maxHealthToGain + 1);
+            // 5% chance for doubling the current max health
+            _healthToGain = int.MaxValue;
         }
         else
         {
@@ -41,7 +41,12 @@ public class CrateMaxHealth : Crate
 
     protected override string GetOnCollectText(GameObject tank)
     {
-        return $"+ {_healthToGain} max health";
+        if (_healthToGain == int.MaxValue)
+        {
+            _healthToGain = tank.GetComponent<TankInfo>().MaxHealth;
+            return "2X Max Health";
+        }
+        return $"+ {_healthToGain} Max Health";
     }
 
     protected override void RewardPlayer(GameObject tank)

@@ -114,7 +114,7 @@ public class Crate : MonoBehaviour
 public enum CrateType
 {
     Ability,
-    Ammunition,
+    Ammo,
     Armor,
     Damage,
     MaxHealth,
