@@ -2,8 +2,8 @@ using UnityEngine;
 
 public class ShellMovement : MonoBehaviour
 {
-    public float Speed;
     private Rigidbody _rigidbody;
+    private float _speed = 20f;
 
     private void Awake()
     {
@@ -12,12 +12,12 @@ public class ShellMovement : MonoBehaviour
 
     public void Init(float speed)
     {
-        Speed = speed;
+        _speed = speed;
     }
 
     private void FixedUpdate()
     {
-        Vector3 movement = transform.forward * Speed * Time.fixedDeltaTime;
+        Vector3 movement = transform.forward * _speed * Time.fixedDeltaTime;
         _rigidbody.MovePosition(_rigidbody.position + movement);
     }
 }

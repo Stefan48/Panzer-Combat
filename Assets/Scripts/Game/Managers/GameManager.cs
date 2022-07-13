@@ -33,8 +33,8 @@ public class GameManager : MonoBehaviourPunCallbacks
     private const float _endDelay = 2f;
     private const float _potentialDrawDelay = 0.3f;
     // TODO - Creator of the room should set the frequency of the crates in the UI
-    private const float _crateSpawnDelay = 10f;
-    private const float _crateLifetime = 7f;
+    // The crate spawn delay has to be greater than the crate lifetime and the crate destruction delay combined (which are set in the Crate script)
+    private const float _crateSpawnDelay = 15f;
     private readonly WaitForSeconds _startWait = new WaitForSeconds(_startDelay);
     private readonly WaitForSeconds _endWait = new WaitForSeconds(_endDelay);
     private readonly WaitForSeconds _potentialDrawWait = new WaitForSeconds(_potentialDrawDelay);
@@ -236,9 +236,9 @@ public class GameManager : MonoBehaviourPunCallbacks
         // TODO - Probabilities
         if (roll < 100)
         {
-            return CrateType.RestoreHealth;
+            return CrateType.Speed;
         }
-        return CrateType.Tank;
+        return CrateType.Damage;
     }
 
     private IEnumerator SpawnCrates()
@@ -251,7 +251,6 @@ public class GameManager : MonoBehaviourPunCallbacks
                 GameObject cratePrefab = _cratePrefabs[GetRandomCrateType()];
                 Quaternion crateRotation = Quaternion.Euler(0f, UnityEngine.Random.Range(0f, 360f), 0f);
                 GameObject crate = PhotonNetwork.Instantiate(cratePrefab.name, spawnPoint.position, crateRotation);
-                crate.GetComponent<Crate>().Init(_crateLifetime);
             }
         }
         yield return _crateSpawnWait;

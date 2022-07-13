@@ -17,7 +17,7 @@ public class TankMovement : MonoBehaviour, IPunObservable
     [SerializeField] private LayerMask _groundLayerMask;
     public bool IsMoving { get; private set; } = false;
     private Vector3 _movementDirection;
-    [SerializeField] private LayerMask _collisionsLayerMask;
+    [SerializeField] private LayerMask _defaultAndTanksLayerMask;
     [SerializeField] private Transform _movementRaycastDirection;
     [SerializeField] private Transform _movementRaycastInnerPoint;
     private const float _movementRaycastAngleStep = 10f;
@@ -119,9 +119,8 @@ public class TankMovement : MonoBehaviour, IPunObservable
             for (float angle = 0f; angle < 360f; angle += _movementRaycastAngleStep)
             {
                 _movementRaycastDirection.eulerAngles = new Vector3(0f, angle, 0f);
-                // Query ignores triggers (like the CameraRig, the collider for the level's boundaries or the shells)
                 if (Physics.Raycast(_movementRaycastInnerPoint.position, _movementRaycastDirection.forward, out hit, _movementRaycastMagnitude,
-                    _collisionsLayerMask, QueryTriggerInteraction.Ignore))
+                    _defaultAndTanksLayerMask, QueryTriggerInteraction.Ignore))
                 {
                     wouldHitColliders = true;
                     break;

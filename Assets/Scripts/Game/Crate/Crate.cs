@@ -6,6 +6,8 @@ using UnityEngine;
 public class Crate : MonoBehaviour
 {
     protected PhotonView _photonView;
+    private const float _lifetime = 7f;
+    private const float _destroyDelay = 4f;
     [SerializeField] private MeshRenderer _wholeCrateMeshRenderer;
     [SerializeField] private BoxCollider _boxCollider;
     [SerializeField] private GameObject _fracturedCrate;
@@ -15,29 +17,19 @@ public class Crate : MonoBehaviour
     [SerializeField] private AudioSource _crateAudioSource;
     private readonly Quaternion _onCollectTextRotation = Quaternion.Euler(0f, 60f, 0f);
     private bool _shatterPending = false;
-    private const float _destroyDelay = 1.5f;
 
-    private void Awake()
+
+    protected virtual void Awake()
     {
-        _photonView = GetComponent<PhotonView>();
         GameManager.RoundEndingEvent += OnRoundEnding;
+        _photonView = GetComponent<PhotonView>();
         transform.Find("OnCollectText").rotation = _onCollectTextRotation;
+        StartCoroutine(Shatter(_lifetime));
     }
 
     private void OnDestroy()
     {
         GameManager.RoundEndingEvent -= OnRoundEnding;
-    }
-
-    public virtual void Init(float lifetime)
-    {
-        _photonView.RPC("RPC_Init", RpcTarget.AllViaServer, lifetime);
-    }
-
-    [PunRPC]
-    private void RPC_Init(float lifetime)
-    {
-        StartCoroutine(Shatter(lifetime));
     }
 
     private void OnTriggerEnter(Collider other)

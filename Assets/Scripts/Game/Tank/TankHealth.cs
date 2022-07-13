@@ -52,7 +52,12 @@ public class TankHealth : MonoBehaviour
         {
             return;
         }
-        // TODO - Armor
+        // Armor acts as a flat damage reduction
+        damage -= _tankInfo.Armor;
+        if (damage <= 0)
+        {
+            return;
+        }
         _tankInfo.Health -= damage;
         UpdateHealthBar();
         if (_tankInfo.Health <= 0)
@@ -84,6 +89,20 @@ public class TankHealth : MonoBehaviour
             return;
         }
         _tankInfo.Health += Math.Min(health, _tankInfo.MaxHealth - _tankInfo.Health);
+        UpdateHealthBar();
+    }
+
+    public void GainMaxHealth(int health)
+    {
+        _photonView.RPC("RPC_GainMaxHealth", RpcTarget.AllViaServer, health);
+    }
+
+    [PunRPC]
+    private void RPC_GainMaxHealth(int health)
+    {
+        _tankInfo.MaxHealth += health;
+        _tankInfo.Health += health;
+        _healthBarSlider.maxValue = _tankInfo.MaxHealth;
         UpdateHealthBar();
     }
 

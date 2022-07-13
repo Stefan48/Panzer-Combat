@@ -46,9 +46,9 @@ GameObject:
   - component: {fileID: 3838508988295939452}
   - component: {fileID: 6141757302886777205}
   - component: {fileID: 3838508988295939451}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Shell
-  m_TagString: Shell
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -222,7 +222,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dcf8dcf538ddb214fa11b6f965fedf2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Speed: 0
 --- !u!114 &3838508988295939451
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -235,17 +234,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3801d79b6152b3f4880107ca86676394, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _defaultLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
   _tanksLayerMask:
     serializedVersion: 2
     m_Bits: 64
+  _shellsLayerMask:
+    serializedVersion: 2
+    m_Bits: 512
+  _defaultTanksAndShellsLayerMask:
+    serializedVersion: 2
+    m_Bits: 577
   _raycastOrigins:
   - {fileID: 5229842626170783736}
   - {fileID: 4694879877558922052}
   - {fileID: 8422276493618636618}
   - {fileID: 4938613201021222374}
-  _collisionsLayerMask:
-    serializedVersion: 2
-    m_Bits: 65
 --- !u!1 &5064155135254964416
 GameObject:
   m_ObjectHideFlags: 0

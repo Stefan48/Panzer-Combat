@@ -5,12 +5,13 @@ public class TankInfo : MonoBehaviour
 {
     private PhotonView _photonView;
     [SerializeField] private TextMesh _usernameTextMesh;
-    public int ActorNumber { get; private set; } = -1;//
+    public int ActorNumber { get; private set; } = -1; // initializing is for testing only
     public string Username { get; private set; }
     public bool IsSelected = false;
     public float Speed { get; private set; } = 12f;
-    public int MaxHealth { get; private set; } = 100;
+    public int MaxHealth = 100;
     public int Health;
+    public int Armor { get; private set; } = 0;
     public int Damage { get; private set; } = 20;
     public float ShellSpeed { get; private set; } = 20f;
     public float ShellLifetime { get; private set; } = 10f;
@@ -61,5 +62,39 @@ public class TankInfo : MonoBehaviour
         {
             renderer.material.color = c;
         }
+    }
+
+    public void IncreaseArmor(int extraArmor)
+    {
+        _photonView.RPC("RPC_IncreaseArmor", RpcTarget.AllViaServer, extraArmor);
+    }
+
+    [PunRPC]
+    private void RPC_IncreaseArmor(int extraArmor)
+    {
+        Armor += extraArmor;
+    }
+
+    public void IncreaseDamage(int extraDamage)
+    {
+        _photonView.RPC("RPC_IncreaseDamage", RpcTarget.AllViaServer, extraDamage);
+    }
+
+    [PunRPC]
+    private void RPC_IncreaseDamage(int extraDamage)
+    {
+        Damage += extraDamage;
+    }
+
+    public void IncreaseSpeed(float extraSpeed)
+    {
+        _photonView.RPC("RPC_IncreaseSpeed", RpcTarget.AllViaServer, extraSpeed);
+    }
+
+    [PunRPC]
+    private void RPC_IncreaseSpeed(float extraSpeed)
+    {
+        Speed += extraSpeed;
+        ShellSpeed += extraSpeed;
     }
 }

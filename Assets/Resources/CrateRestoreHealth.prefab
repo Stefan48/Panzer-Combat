@@ -181,7 +181,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: ad94043ba1d38e94ea3009322f77e81a, type: 2}
     - target: {fileID: 9065924571364506927, guid: 8654b98aa3eb31f429efda783ab47db1, type: 3}
       propertyPath: m_Name
-      value: CrateRestoreHp
+      value: CrateRestoreHealth
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 1194006447, guid: 8654b98aa3eb31f429efda783ab47db1, type: 3}

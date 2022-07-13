@@ -8,9 +8,12 @@ using System.Collections.Generic;
 
 public class ShellExplosion : MonoBehaviourPunCallbacks
 {
-    [SerializeField] private LayerMask _collisionsLayerMask;
+    [SerializeField] private LayerMask _defaultLayerMask;
     [SerializeField] private LayerMask _tanksLayerMask;
+    [SerializeField] private LayerMask _shellsLayerMask;
+    [SerializeField] private LayerMask _defaultTanksAndShellsLayerMask;
     private int _id; // unique shell identifier
+    private int _actorNumber;
     private int _damage;
     [SerializeField] private List<Transform> _raycastOrigins = new List<Transform>();
     private const float _raycastMagnitude = 1f;
@@ -45,6 +48,7 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
     public void Init(int id, int damage, float lifetime)
     {
         _id = id;
+        _actorNumber = TankShooting.GetOwnerActorNumberOfShell(_id);
         _damage = damage;
         StartCoroutine(Explosion(lifetime));
     }
@@ -66,48 +70,86 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
         {
             return;
         }
-        if (((1 << other.gameObject.layer) & _tanksLayerMask.value) > 0)
+        GameObject otherGameObject = other.gameObject;
+        if (((1 << otherGameObject.layer) & _tanksLayerMask.value) > 0)
         {
-            // The shell hit a tank in short range
-            other.gameObject.GetComponent<TankHealth>().TakeDamage(_damage);
-            StartCoroutine(Explosion(0f));
+            if (_actorNumber != otherGameObject.GetComponent<TankInfo>().ActorNumber)
+            {
+                // The shell hit an enemy tank in short range
+                OnHitWithoutCheck();
+                otherGameObject.GetComponent<TankHealth>().TakeDamage(_damage);
+            }
+            // Else, the shell would have hit the tank which shot it right after it was shot
         }
-        else if (((1 << other.gameObject.layer) & _collisionsLayerMask.value) > 0)
+        else if (((1 << otherGameObject.layer) & _defaultLayerMask.value) > 0)
         {
             // The shell hit the environment in short range
+            OnHitWithoutCheck();
+        }
+        else if (((1 << otherGameObject.layer) & _shellsLayerMask.value) > 0)
+        {
+            ShellExplosion otherShell = otherGameObject.GetComponent<ShellExplosion>();
+            if (_actorNumber != TankShooting.GetOwnerActorNumberOfShell(otherShell._id))
+            {
+                // The shell hit an enemy shell
+                OnHitWithoutCheck();
+            }
+        }
+    }
+
+    // Checks for potential collisions are done using raycasts for lag compensation
+    private void CheckForCollision()
+    {
+        // Theoretically, a (large enough) shell could hit multiple tanks, but in reality (with its current size) it passes right between them
+        foreach (Transform origin in _raycastOrigins)
+        {
+            if (Physics.Raycast(origin.position, origin.forward, out RaycastHit hit, _raycastMagnitude,
+                _defaultTanksAndShellsLayerMask, QueryTriggerInteraction.Collide))
+            {                
+                GameObject hitGameObject = hit.collider.gameObject;
+                if (((1 << hitGameObject.layer) & _tanksLayerMask.value) > 0)
+                {
+                    // The shell hit a tank
+                    _hitSomething = true;
+                    hitGameObject.GetComponent<TankHealth>().TakeDamage(_damage);
+                    break;
+                }
+                else if (((1 << hitGameObject.layer) & _defaultLayerMask.value) > 0)
+                {
+                    // The shell hit the environment
+                    _hitSomething = true;
+                }
+                else if (((1 << hitGameObject.layer) & _shellsLayerMask.value) > 0)
+                {
+                    ShellExplosion otherShell = hitGameObject.GetComponent<ShellExplosion>();
+                    if (_actorNumber != TankShooting.GetOwnerActorNumberOfShell(otherShell._id))
+                    {
+                        // The shell hit an enemy shell (which did not necessarily detect the collision)
+                        _hitSomething = true;
+                        otherShell.OnHitWithCheck();
+                    }
+                }
+            }
+        }
+        if (_hitSomething)
+        {
             StartCoroutine(Explosion(0f));
         }
     }
 
-    // Most checks for potential collisions are done using raycasts for lag compensation
-    private void CheckForCollision()
+    private void OnHitWithCheck()
     {
-        bool hitTank = false;
-        GameObject tankHit = null;
-        foreach (Transform origin in _raycastOrigins)
+        if (!_hitSomething)
         {
-            // Query ignores triggers (like the CameraRig, the collider for the level's boundaries or the shells)
-            if (Physics.Raycast(origin.position, origin.forward, out RaycastHit hit, _raycastMagnitude,
-                _collisionsLayerMask, QueryTriggerInteraction.Ignore))
-            {
-                _hitSomething = true;
-                if (((1 << hit.collider.gameObject.layer) & _tanksLayerMask.value) > 0)
-                {
-                    hitTank = true;
-                    tankHit = hit.collider.gameObject;
-                    break;
-                }
-            }
-        }
-        if (hitTank)
-        {
-            tankHit.GetComponent<TankHealth>().TakeDamage(_damage);
+            _hitSomething = true;
             StartCoroutine(Explosion(0f));
         }
-        else if (_hitSomething)
-        {
-            StartCoroutine(Explosion(0f));
-        }
+    }
+
+    private void OnHitWithoutCheck()
+    {
+        _hitSomething = true;
+        StartCoroutine(Explosion(0f));
     }
 
     private IEnumerator Explosion(float delay)

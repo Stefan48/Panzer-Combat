@@ -21,26 +21,23 @@ public class CrateRestoreHealth : Crate
         base.RPC_Shatter();
     }
 
-    public override void Init(float lifetime)
+    protected override void Awake()
     {
-        int healthToRestore;
+        base.Awake();
+        SetRandomHealthToRestore();
+    }
+
+    private void SetRandomHealthToRestore()
+    {
         if (UnityEngine.Random.Range(0, 100) < 10)
         {
             // 10% chance to restore all the missing health
-            healthToRestore = int.MaxValue;
+            _healthToRestore = int.MaxValue;
         }
         else
         {
-            healthToRestore = UnityEngine.Random.Range(s_minHealthToRestore, s_maxHealthToRestore + 1);
+            _healthToRestore = UnityEngine.Random.Range(s_minHealthToRestore, s_maxHealthToRestore + 1);
         }
-        _photonView.RPC("RPC_InitWithHealthToRestore", RpcTarget.AllViaServer, lifetime, healthToRestore);
-    }
-
-    [PunRPC]
-    private void RPC_InitWithHealthToRestore(float lifetime, int healthToRestore)
-    {
-        _healthToRestore = healthToRestore;
-        StartCoroutine(Shatter(lifetime));
     }
 
     protected override string GetOnCollectText(GameObject tank)

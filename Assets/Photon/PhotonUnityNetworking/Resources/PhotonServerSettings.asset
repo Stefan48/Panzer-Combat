@@ -55,6 +55,11 @@ MonoBehaviour:
   - RPC_Init
   - RPC_RestoreHealth
   - RPC_InitWithHealthToRestore
+  - RPC_GainMaxHealth
+  - RPC_InitWithHealthToGain
+  - RPC_IncreaseArmor
+  - RPC_IncreaseDamage
+  - RPC_IncreaseSpeed
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

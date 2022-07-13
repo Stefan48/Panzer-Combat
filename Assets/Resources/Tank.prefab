@@ -24,7 +24,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1110268857}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.5, z: 1.35}
+  m_LocalPosition: {x: 0, y: 1.5, z: 1.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 6208117419158659813}
@@ -584,6 +584,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _usernameTextMesh: {fileID: 4150809594542956505}
   IsSelected: 0
+  MaxHealth: 100
   Health: 0
 --- !u!114 &2101444913
 MonoBehaviour:
@@ -605,7 +606,7 @@ MonoBehaviour:
   _groundLayerMask:
     serializedVersion: 2
     m_Bits: 256
-  _collisionsLayerMask:
+  _defaultAndTanksLayerMask:
     serializedVersion: 2
     m_Bits: 65
   _movementRaycastDirection: {fileID: 8209602259724309803}

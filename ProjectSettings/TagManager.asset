@@ -6,7 +6,6 @@ TagManager:
   tags:
   - Level
   - Tank
-  - Shell
   layers:
   - Default
   - TransparentFX
@@ -17,7 +16,7 @@ TagManager:
   - Tanks
   - NoCollisions
   - Ground
-  - 
+  - Shells
   - 
   - 
   - 

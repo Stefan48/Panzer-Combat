@@ -1,10 +1,12 @@
 using Photon.Pun;
+using System.Collections;
 using UnityEngine;
 
 public class TankShooting : MonoBehaviour
 {
     private PhotonView _photonView;
     private TankInfo _tankInfo;
+    private static readonly int s_shellIdMultiplier = 10000000;
     private static int s_currentShellId = 0;
     public bool EscPanelIsActive = false;
     [SerializeField] private Transform _muzzle;
@@ -22,7 +24,7 @@ public class TankShooting : MonoBehaviour
         _tankInfo = GetComponent<TankInfo>();
         if (s_currentShellId == 0)
         {
-            s_currentShellId = PhotonNetwork.LocalPlayer.ActorNumber * 10000000;
+            s_currentShellId = PhotonNetwork.LocalPlayer.ActorNumber * s_shellIdMultiplier;
         }
     }
 
@@ -40,6 +42,22 @@ public class TankShooting : MonoBehaviour
         }
     }
 
+    /*
+    // for testing
+    private void Start()
+    {
+        StartCoroutine(ShootCoroutine());
+    }
+    private IEnumerator ShootCoroutine()
+    {
+        for(;;)
+        {
+            yield return new WaitForSeconds(1f);
+            Shoot();
+        }
+    }
+    */
+
     private void Shoot()
     {
         _photonView.RPC("RPC_Shoot", RpcTarget.AllViaServer, ++s_currentShellId);
@@ -53,5 +71,10 @@ public class TankShooting : MonoBehaviour
         shell.GetComponent<ShellMovement>().Init(_tankInfo.ShellSpeed);
         shell.GetComponent<ShellExplosion>().Init(shellId, _tankInfo.Damage, _tankInfo.ShellLifetime);
         _shotFiredAudioSource.Play();
+    }
+
+    public static int GetOwnerActorNumberOfShell(int shellId)
+    {
+        return shellId / s_shellIdMultiplier;
     }
 }
