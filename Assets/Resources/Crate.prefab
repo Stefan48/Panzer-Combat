@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1579448766}
   - component: {fileID: 1579448765}
   - component: {fileID: 1579448767}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: OnCollectText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -130,7 +130,7 @@ GameObject:
   - component: {fileID: 8972346622805641525}
   - component: {fileID: 4262418605540733613}
   - component: {fileID: 912443392920827395}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Crate
   m_TagString: Untagged
   m_Icon: {fileID: 0}

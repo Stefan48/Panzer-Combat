@@ -45,12 +45,11 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
         PhotonNetwork.NetworkingClient.EventReceived -= NetworkingClient_EventReceived;
     }
 
-    public void Init(int id, int damage, float lifetime)
+    public void Init(int id, int damage)
     {
         _id = id;
         _actorNumber = TankShooting.GetOwnerActorNumberOfShell(_id);
         _damage = damage;
-        StartCoroutine(Explosion(lifetime));
     }
 
     private void Update()
@@ -149,6 +148,11 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
     private void OnHitWithoutCheck()
     {
         _hitSomething = true;
+        StartCoroutine(Explosion(0f));
+    }
+
+    public void OnRangeReached()
+    {
         StartCoroutine(Explosion(0f));
     }
 

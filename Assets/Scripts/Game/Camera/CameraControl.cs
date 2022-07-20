@@ -1,26 +1,37 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 public class CameraControl : MonoBehaviour
 {
+    [SerializeField] private Camera _camera;
     [SerializeField] private GameManager _gameManager;
     private bool _playerManagerIsSetUp = false;
     private List<GameObject> _tanks = null;
-    private GameObject _followedTank = null;
-    private bool _cameraRepositionPending = false;
-    private bool _switchFollowedTankPending = false;
-    // TODO - Adjustable camera speed in settings
+    private GameObject _viewedTank = null;
+    private bool _switchViewedTankPending = false;
+    private const float _defaultCameraSize = 10f;
+    private const float _minCameraSize = 4f;
+    private float _maxCameraSize = 10f;
+    private const float _cameraSizeUpperLimit = 21f;
+    private int _cameraZoomPending = 0;
+    // TODO - Adjustable camera speed in settings (useful only in spectator mode)
     private const float _cameraSpeed = 15f;
-    /*private readonly float _mouseThresholdTop = Screen.height * 0.95f;
-    private readonly float _mouseThresholdBottom = Screen.height * 0.05f;
-    private readonly float _mouseThresholdRight = Screen.width * 0.95f;
-    private readonly float _mouseThresholdLeft = Screen.width * 0.05f;*/
 
-    private readonly float[] _mouseThresholdsTop = { Screen.height * 0.95f, Screen.height * 0.99999f };
+    private int _screenHeight;
+    private int _screenWidth;
+    private const float _mouseThresholdLowerLimit = 0.05f;
+    private const float _mouseThresholdUpperLimit = 0.95f;
+    private float _mouseThresholdTop;
+    private float _mouseThresholdBottom;
+    private float _mouseThresholdRight;
+    private float _mouseThresholdLeft;
+
+    /* private readonly float[] _mouseThresholdsTop = { Screen.height * 0.95f, Screen.height * 0.99999f };
     private readonly float[] _mouseThresholdsBottom = { Screen.height * 0.00001f, Screen.height * 0.05f };
     private readonly float[] _mouseThresholdsRight = { Screen.width * 0.95f, Screen.width * 0.99999f };
-    private readonly float[] _mouseThresholdsLeft = { Screen.width * 0.00001f, Screen.width * 0.05f };
+    private readonly float[] _mouseThresholdsLeft = { Screen.width * 0.00001f, Screen.width * 0.05f }; */
 
     private readonly Vector3 _cameraUp = Vector3.Normalize(new Vector3(1f, 0f, 0f) * 1.7f + new Vector3(0f, 0f, 1f));
     private readonly Vector3 _cameraRight = Vector3.Normalize(new Vector3(1f, 0f, 0f) - new Vector3(0f, 0f, 1f) * 1.7f);
@@ -29,6 +40,11 @@ public class CameraControl : MonoBehaviour
     [SerializeField] private GameObject _level;
     private bool _insideLevel = true;
 
+    [SerializeField] private Camera _fogCamera;
+    [SerializeField] private GameObject _fog;
+    [SerializeField] private RenderTexture _fogRenderTexture;
+    [SerializeField] private GameObject _fogPlane;
+
 
     private void Awake()
     {
@@ -36,7 +52,10 @@ public class CameraControl : MonoBehaviour
         GameManager.RoundPlayingEvent += OnRoundPlaying;
         GameManager.RoundEndingEvent += OnRoundEnding;
         UiManager.EscPanelToggledEvent += OnEscPanelToggled;
-        TankHealth.TankGotDestroyedEvent += OnTankGotDestroyed;
+        PlayerManager.TanksListReducedEvent += OnTankGotDestroyed;
+        TankInfo.TankRangeIncreasedEvent += OnTankRangeIncreased;
+
+        OnScreenResized();
     }
 
     private void OnDestroy()
@@ -45,27 +64,28 @@ public class CameraControl : MonoBehaviour
         GameManager.RoundPlayingEvent -= OnRoundPlaying;
         GameManager.RoundEndingEvent -= OnRoundEnding;
         UiManager.EscPanelToggledEvent -= OnEscPanelToggled;
-        TankHealth.TankGotDestroyedEvent -= OnTankGotDestroyed;
+        PlayerManager.TanksListReducedEvent -= OnTankGotDestroyed;
+        TankInfo.TankRangeIncreasedEvent -= OnTankRangeIncreased;
     }
 
     private void Update()
     {
+        if (_screenHeight != Screen.height || _screenWidth != Screen.width)
+        {
+            OnScreenResized();
+        }
         if (!_playerManagerIsSetUp || _escPanelIsActive)
         {
             return;
         }
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            if (_followedTank == null || (transform.position != _followedTank.transform.position))
+            if (_tanks.Count > 0)
             {
-                _cameraRepositionPending = true;
-                return;
-            }
-            else
-            {
-                _switchFollowedTankPending = true;
+                _switchViewedTankPending = true;
             }
         }
+        ProcessScrollInput();
     }
 
     private void FixedUpdate()
@@ -75,141 +95,138 @@ public class CameraControl : MonoBehaviour
         {
             return;
         }
-        if (_cameraRepositionPending)
+        ApplyZoom();
+        if (_tanks.Count == 0)
         {
-            _cameraRepositionPending = false;
-            RepositionCamera();
+            GlideCamera();
             return;
         }
-        if (_switchFollowedTankPending)
+        if (_switchViewedTankPending)
         {
-            _switchFollowedTankPending = false;
-            SwitchFollowedTank();
+            _switchViewedTankPending = false;
+            SwitchViewedTank();
             return;
         }
-        if (FollowTanks())
-        {
-            return;
-        }
-        // TODO - If gliding the camera is not available anymore, the code can be simplified
-        //GlideCamera();
+        FollowViewedTank();        
     }
 
     private void SetCameraInitialPosition()
     {
-        Vector3 medianPosition = Vector3.zero;
-        foreach (GameObject tank in _tanks)
-        {
-            medianPosition += tank.transform.position;
-        }
-        medianPosition /= _tanks.Count;
-        transform.position = medianPosition;
+        _viewedTank = _tanks[0];
+        transform.position = _viewedTank.transform.position;
     }
 
-    private void RepositionCamera()
+    private void SetCameraInitialSize()
     {
-        if (_followedTank == null)
+        _camera.orthographicSize = _defaultCameraSize;
+        _maxCameraSize = _defaultCameraSize;
+    }
+
+    private void SwitchViewedTank()
+    {
+        if (_viewedTank == null)
         {
-            if (_tanks.Count > 0)
-            {
-                int index = _tanks.FindIndex(tank => tank.transform.position == transform.position);
-                if (index == -1)
-                {
-                    // Reposition to the nearest tank
-                    float minDistance = float.PositiveInfinity;
-                    GameObject tankToRepositionTo = null;
-                    foreach (GameObject tank in _tanks)
-                    {
-                        float distance = Vector3.Distance(transform.position, tank.transform.position);
-                        if (distance < minDistance)
-                        {
-                            minDistance = distance;
-                            tankToRepositionTo = tank;
-                        }
-                    }
-                    transform.position = tankToRepositionTo.transform.position;
-                }
-                else
-                {
-                    // If already at a tank's location when repositioning, switch between tanks even if none of them are selected
-                    transform.position = _tanks[(index + 1) % _tanks.Count].transform.position;
-                }
-            }
+            _viewedTank = _tanks[0];
         }
         else
         {
-            transform.position = _followedTank.transform.position;
-        }
-    }
-
-    private void SwitchFollowedTank()
-    {
-        int index = _tanks.FindIndex(tank => tank == _followedTank);
-        for (int i = 1; i < _tanks.Count; ++i)
-        {
-            GameObject tank = _tanks[(index + i) % _tanks.Count];
-            if (tank.GetComponent<TankInfo>().IsSelected)
+            int index = _tanks.FindIndex(tank => tank == _viewedTank);
+            if (_viewedTank.GetComponent<TankInfo>().IsSelected)
             {
-                _followedTank = tank;
-                break;
-            }
-        }
-        transform.position = _followedTank.transform.position;
-    }
-
-    private bool FollowTanks()
-    {
-        if (_followedTank == null)
-        {
-            foreach (GameObject tank in _tanks)
-            {
-                if (tank.GetComponent<TankInfo>().IsSelected)
+                // View the next selected tank
+                for (int i = 1; i < _tanks.Count; ++i)
                 {
-                    _followedTank = tank;
-                    break;
+                    GameObject tank = _tanks[(index + i) % _tanks.Count];
+                    if (tank.GetComponent<TankInfo>().IsSelected)
+                    {
+                        _viewedTank = tank;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                // View the first selected tank or the next unselected tank if none are selected
+                bool foundSelectedTank = false;
+                foreach (GameObject tank in _tanks)
+                {
+                    if (tank.GetComponent<TankInfo>().IsSelected)
+                    {
+                        foundSelectedTank = true;
+                        _viewedTank = tank;
+                        break;
+                    }
+                }
+                if (!foundSelectedTank)
+                {
+                    _viewedTank = _tanks[(index + 1) % _tanks.Count];
                 }
             }
         }
-        else if (!_followedTank.GetComponent<TankInfo>().IsSelected)
+        transform.position = _viewedTank.transform.position;
+    }
+
+    private void FollowViewedTank()
+    {
+        if (_viewedTank.GetComponent<TankInfo>().IsSelected)
         {
-            _followedTank = null;
-            foreach (GameObject tank in _tanks)
-            {
-                if (tank.GetComponent<TankInfo>().IsSelected)
-                {
-                    _followedTank = tank;
-                    break;
-                }
-            }
+            // Update the position even if (_viewedTank.GetComponent<TankMovement>().IsMoving == false), since
+            // Rigidbody.MovePosition updates the tank's position over multiple frames, so the camera's position might not be up to date
+            transform.position = _viewedTank.transform.position;
         }
-        if (_followedTank != null && _followedTank.GetComponent<TankMovement>().IsMoving)
+    }
+
+    private void ProcessScrollInput()
+    {
+        float mouseScroll = Input.mouseScrollDelta.y;
+        if (mouseScroll > 0f)
         {
-            transform.position = _followedTank.transform.position;
-            return true;
+            _cameraZoomPending++;
         }
-        return false;
+        else if (mouseScroll < 0f)
+        {
+            _cameraZoomPending--;
+        }
+    }
+
+    private void ApplyZoom()
+    {
+        _camera.orthographicSize -= _cameraZoomPending;
+        if (_camera.orthographicSize < _minCameraSize)
+        {
+            _camera.orthographicSize = _minCameraSize;
+        }
+        else if (_camera.orthographicSize > _maxCameraSize)
+        {
+            _camera.orthographicSize = _maxCameraSize;
+        }
+        _fogCamera.orthographicSize = _camera.orthographicSize;
+        _cameraZoomPending = 0;
+        float fogPlaneScaleZ = _camera.orthographicSize * 0.2f;
+        float fogPlanceScaleX = (float)_screenWidth / _screenHeight * fogPlaneScaleZ;
+        _fogPlane.transform.localScale = new Vector3(fogPlanceScaleX, 1f, fogPlaneScaleZ);
     }
 
     private void GlideCamera()
     {
         _cameraMovementDirection = Vector3.zero;
-        //if (Input.mousePosition.y >= _mouseThresholdTop)
-        if (Input.mousePosition.y >= _mouseThresholdsTop[0] && Input.mousePosition.y <= _mouseThresholdsTop[1])
+        if (Input.mousePosition.y >= _mouseThresholdTop)
+        //if (Input.mousePosition.y >= _mouseThresholdsTop[0] && Input.mousePosition.y <= _mouseThresholdsTop[1])
         {
             _cameraMovementDirection += _cameraUp;
         }
-        //else if (Input.mousePosition.y <= _mouseThresholdBottom)
-        if (Input.mousePosition.y >= _mouseThresholdsBottom[0] && Input.mousePosition.y <= _mouseThresholdsBottom[1])
+        else if (Input.mousePosition.y <= _mouseThresholdBottom)
+        //else if (Input.mousePosition.y >= _mouseThresholdsBottom[0] && Input.mousePosition.y <= _mouseThresholdsBottom[1])
         {
             _cameraMovementDirection -= _cameraUp;
         }
-        //if (Input.mousePosition.x >= _mouseThresholdRight)
-        if (Input.mousePosition.x >= _mouseThresholdsRight[0] && Input.mousePosition.x <= _mouseThresholdsRight[1])
+        if (Input.mousePosition.x >= _mouseThresholdRight)
+        //if (Input.mousePosition.x >= _mouseThresholdsRight[0] && Input.mousePosition.x <= _mouseThresholdsRight[1])
         {
             _cameraMovementDirection += _cameraRight;
         }
-        //else if (Input.mousePosition.x <= _mouseThresholdLeft)
-        if (Input.mousePosition.x >= _mouseThresholdsLeft[0] && Input.mousePosition.x <= _mouseThresholdsLeft[1])
+        else if (Input.mousePosition.x <= _mouseThresholdLeft)
+        //else if (Input.mousePosition.x >= _mouseThresholdsLeft[0] && Input.mousePosition.x <= _mouseThresholdsLeft[1])
         {
             _cameraMovementDirection -= _cameraRight;
         }
@@ -262,7 +279,9 @@ public class CameraControl : MonoBehaviour
             // So the PlayerManager should avoid reinstantiating the list
             _tanks = _gameManager.PlayerManager.Tanks;
         }
+        _fog.SetActive(true);
         SetCameraInitialPosition();
+        SetCameraInitialSize();
         enabled = false;
     }
 
@@ -274,6 +293,7 @@ public class CameraControl : MonoBehaviour
     private void OnRoundEnding(PlayerInfo roundWinner, bool isGameWinner)
     {
         // TODO - Play round end/game end sounds
+        _fog.SetActive(false);
         GameObject[] tanks = GameObject.FindGameObjectsWithTag("Tank");
         // Disable engine sounds
         foreach (GameObject tank in tanks)
@@ -293,14 +313,72 @@ public class CameraControl : MonoBehaviour
 
     private void OnTankGotDestroyed(GameObject tank)
     {
-        if (ReferenceEquals(tank, _followedTank))
+        if (_tanks.Count == 0)
         {
-            _followedTank = null;
+            // After losing his last tank, the player is in spectator mode until a new round starts
+            _viewedTank = null;
+            _fog.SetActive(false);
+            _maxCameraSize = _cameraSizeUpperLimit;
+            return;
+        }
+        if (ReferenceEquals(tank, _viewedTank))
+        {
+            // View the first selected tank or the first tank if none are selected
+            bool foundSelectedTank = false;
+            foreach (GameObject t in _tanks)
+            {
+                if (t.GetComponent<TankInfo>().IsSelected)
+                {
+                    foundSelectedTank = true;
+                    _viewedTank = t;
+                    break;
+                }
+            }
+            if (!foundSelectedTank)
+            {
+                _viewedTank = _tanks[0];
+            }
+        }
+        _maxCameraSize = _tanks.Max(t => t.GetComponent<TankInfo>().Range);
+        if (_camera.orthographicSize > _maxCameraSize)
+        {
+            _cameraZoomPending = (int)(_camera.orthographicSize - _maxCameraSize);
+            ApplyZoom();
+        }
+    }
+
+    private void OnTankRangeIncreased(int newRange)
+    {
+        if (newRange > _maxCameraSize)
+        {
+            _maxCameraSize = Math.Min(_cameraSizeUpperLimit, newRange);
         }
     }
 
     private void OnEscPanelToggled(bool active)
     {
         _escPanelIsActive = active;
+    }
+
+    private void OnScreenResized()
+    {
+        _screenHeight = Screen.height;
+        _screenWidth = Screen.width;
+
+        _mouseThresholdTop = _screenHeight * _mouseThresholdUpperLimit;
+        _mouseThresholdBottom = _screenHeight * _mouseThresholdLowerLimit;
+        _mouseThresholdRight = _screenWidth * _mouseThresholdUpperLimit;
+        _mouseThresholdLeft = _screenWidth * _mouseThresholdLowerLimit;
+
+        _fogRenderTexture.Release();
+        _fogRenderTexture.height = _screenHeight;
+        _fogRenderTexture.width = _screenWidth;
+        _fogRenderTexture.Create();
+        float fogPlaneScaleZ = _camera.orthographicSize * 0.2f;
+        float fogPlaneScaleX = (float)_screenWidth / _screenHeight * fogPlaneScaleZ;
+        _fogPlane.transform.localScale = new Vector3(fogPlaneScaleX, 1f, fogPlaneScaleZ);
+        // Resetting the fog GameObject is required for the changes to take place
+        _fog.SetActive(!_fog.activeSelf);
+        _fog.SetActive(!_fog.activeSelf);
     }
 }

@@ -80,8 +80,8 @@ public class TankShooting : MonoBehaviour
         _tankInfo.Ammo--;
         // TODO - Object pooling
         GameObject shell = Instantiate(_shellPrefab, _muzzle.position, _muzzle.rotation);
-        shell.GetComponent<ShellMovement>().Init(_tankInfo.ShellSpeed);
-        shell.GetComponent<ShellExplosion>().Init(shellId, _tankInfo.Damage, _tankInfo.ShellLifetime);
+        shell.GetComponent<ShellMovement>().Init(_tankInfo.ShellSpeed, _tankInfo.Range);
+        shell.GetComponent<ShellExplosion>().Init(shellId, _tankInfo.Damage);
         _shotFiredAudioSource.Play();
     }
 

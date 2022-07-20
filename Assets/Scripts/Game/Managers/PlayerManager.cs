@@ -13,6 +13,8 @@ public class PlayerManager
     // Reinstantiating this would cause errors in the CameraControl script
     public List<GameObject> Tanks { get; private set; } = new List<GameObject>();
 
+    public static event Action<GameObject> TanksListReducedEvent;
+
 
     public PlayerManager(GameManager gameManager, Color playerColor, Vector3 spawnPosition, GameObject tankPrefab)
     {
@@ -43,6 +45,7 @@ public class PlayerManager
             tankInfo.SetActorNumber(_gameManager.ActorNumber);
             tankInfo.SetUsername(PhotonNetwork.LocalPlayer.NickName);
             tankInfo.SetColor(_playerColor);
+            tank.transform.Find("Vision").gameObject.SetActive(true);
             Tanks.Add(tank);
 
             /*if (_gameManager.ActorNumber > 1) // this is for testing only
@@ -78,6 +81,7 @@ public class PlayerManager
         {
             Debug.LogWarning("[PlayerManager] Could not remove destroyed tank from the Tanks list");
         }
+        TanksListReducedEvent?.Invoke(tank);
         if (Tanks.Count == 0)
         {
             _gameManager.LocalPlayerLost();

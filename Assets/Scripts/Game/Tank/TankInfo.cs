@@ -1,4 +1,5 @@
 using Photon.Pun;
+using System;
 using UnityEngine;
 
 public class TankInfo : MonoBehaviour
@@ -15,7 +16,11 @@ public class TankInfo : MonoBehaviour
     public int Damage { get; private set; } = 20;
     public int Ammo = 30;
     public float ShellSpeed { get; private set; } = 20f;
-    public float ShellLifetime { get; private set; } = 10f;
+    public int Range { get; private set; } = 10;
+    [SerializeField] private GameObject _vision;
+    private const float _visionPerRange = 0.065f;
+
+    public static event Action<int> TankRangeIncreasedEvent;
 
 
     private void Awake()
@@ -108,5 +113,23 @@ public class TankInfo : MonoBehaviour
     private void RPC_IncreaseAmmo(int extraAmmo)
     {
         Ammo += extraAmmo;
+    }
+
+    public void IncreaseRange(int extraRange)
+    {
+        _photonView.RPC("RPC_IncreaseRange", RpcTarget.AllViaServer, extraRange);
+    }
+
+    [PunRPC]
+    private void RPC_IncreaseRange(int extraRange)
+    {
+        Range += extraRange;
+        if (_photonView.IsMine)
+        {
+            Vector3 visionCurrentScale = _vision.transform.localScale;
+            _vision.transform.localScale = new Vector3(visionCurrentScale.x + _visionPerRange * extraRange,
+                visionCurrentScale.y + _visionPerRange * extraRange, visionCurrentScale.z);
+            TankRangeIncreasedEvent?.Invoke(Range);
+        }
     }
 }

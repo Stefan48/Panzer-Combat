@@ -20,6 +20,7 @@ public class TankMovement : MonoBehaviour, IPunObservable
     [SerializeField] private LayerMask _defaultAndTanksLayerMask;
     [SerializeField] private Transform _movementRaycastDirection;
     [SerializeField] private Transform _movementRaycastInnerPoint;
+    [SerializeField] private Transform _movementRaycastLowerPoint;
     private const float _movementRaycastAngleStep = 10f;
     private const float _movementRaycastMagnitude = 1f;
 
@@ -116,10 +117,16 @@ public class TankMovement : MonoBehaviour, IPunObservable
             Vector3 currentRaycastPosition = _movementRaycastDirection.position;
             Quaternion currentRaycastRotation = _movementRaycastDirection.rotation;
             _movementRaycastDirection.position += movement;
-            for (float angle = 0f; angle < 360f; angle += _movementRaycastAngleStep)
+            for (float angle = -90f; angle <= 90f; angle += _movementRaycastAngleStep)
             {
-                _movementRaycastDirection.eulerAngles = new Vector3(0f, angle, 0f);
+                _movementRaycastDirection.localEulerAngles = new Vector3(0f, angle, 0f);
                 if (Physics.Raycast(_movementRaycastInnerPoint.position, _movementRaycastDirection.forward, out hit, _movementRaycastMagnitude,
+                    _defaultAndTanksLayerMask, QueryTriggerInteraction.Ignore))
+                {
+                    wouldHitColliders = true;
+                    break;
+                }
+                else if (Physics.Raycast(_movementRaycastLowerPoint.position, _movementRaycastDirection.forward, out hit, _movementRaycastMagnitude,
                     _defaultAndTanksLayerMask, QueryTriggerInteraction.Ignore))
                 {
                     wouldHitColliders = true;

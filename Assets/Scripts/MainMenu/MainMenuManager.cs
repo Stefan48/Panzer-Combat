@@ -21,4 +21,5 @@ public class MainMenuManager : MonoBehaviour
     }
 
     // TODO - Options section for controls (saved in PlayerPrefs)
+    // TODO - Tips (randomly chosen from a pool)
 }

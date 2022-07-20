@@ -155,7 +155,7 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3838508987572279607}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
@@ -382,9 +382,21 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 3838508987572307223}
     m_Modifications:
+    - target: {fileID: 113952, guid: 513fa19b630e30546b2651894362b67b, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
     - target: {fileID: 195792, guid: 513fa19b630e30546b2651894362b67b, type: 3}
       propertyPath: m_Name
       value: ShellExplosion
+      objectReference: {fileID: 0}
+    - target: {fileID: 195792, guid: 513fa19b630e30546b2651894362b67b, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 199372, guid: 513fa19b630e30546b2651894362b67b, type: 3}
+      propertyPath: m_Layer
+      value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 486730, guid: 513fa19b630e30546b2651894362b67b, type: 3}
       propertyPath: m_RootOrder
