@@ -13,7 +13,7 @@ public class TankHealth : MonoBehaviour
     [SerializeField] private Color _minHealthColor = new Color32(255, 0, 0, 180);
     [SerializeField] private GameObject _tankExplosionPrefab;
 
-    public static event Action<GameObject> TankGotDestroyedEvent;
+    public static event Action<GameObject> AlliedTankGotDestroyedEvent;
     
 
     private void Awake()
@@ -67,7 +67,7 @@ public class TankHealth : MonoBehaviour
             if (_photonView.IsMine)
             {
                 PhotonNetwork.Destroy(gameObject);
-                TankGotDestroyedEvent?.Invoke(gameObject);
+                AlliedTankGotDestroyedEvent?.Invoke(gameObject);
             }
         }
     }

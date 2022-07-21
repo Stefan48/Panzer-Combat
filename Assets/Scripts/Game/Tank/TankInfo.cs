@@ -8,6 +8,7 @@ public class TankInfo : MonoBehaviour
     [SerializeField] private TextMesh _usernameTextMesh;
     public int ActorNumber { get; private set; } = -1; // initializing is for testing only
     public string Username { get; private set; }
+    public Color Color { get; private set; }
     public bool IsSelected = false;
     public float Speed { get; private set; } = 12f;
     public int MaxHealth = 100;
@@ -62,11 +63,11 @@ public class TankInfo : MonoBehaviour
     [PunRPC]
     private void RPC_SetColor(Vector3 color)
     {
-        Color c = new Color(color.x, color.y, color.z);
+        Color = new Color(color.x, color.y, color.z);
         MeshRenderer[] renderers = GetComponentsInChildren<MeshRenderer>();
         foreach (MeshRenderer renderer in renderers)
         {
-            renderer.material.color = c;
+            renderer.material.color = Color;
         }
     }
 

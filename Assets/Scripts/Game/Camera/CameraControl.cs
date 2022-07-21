@@ -52,7 +52,7 @@ public class CameraControl : MonoBehaviour
         GameManager.RoundPlayingEvent += OnRoundPlaying;
         GameManager.RoundEndingEvent += OnRoundEnding;
         UiManager.EscPanelToggledEvent += OnEscPanelToggled;
-        PlayerManager.TanksListReducedEvent += OnTankGotDestroyed;
+        PlayerManager.TanksListReducedEvent += OnAlliedTankGotDestroyed;
         TankInfo.TankRangeIncreasedEvent += OnTankRangeIncreased;
 
         OnScreenResized();
@@ -64,7 +64,7 @@ public class CameraControl : MonoBehaviour
         GameManager.RoundPlayingEvent -= OnRoundPlaying;
         GameManager.RoundEndingEvent -= OnRoundEnding;
         UiManager.EscPanelToggledEvent -= OnEscPanelToggled;
-        PlayerManager.TanksListReducedEvent -= OnTankGotDestroyed;
+        PlayerManager.TanksListReducedEvent -= OnAlliedTankGotDestroyed;
         TankInfo.TankRangeIncreasedEvent -= OnTankRangeIncreased;
     }
 
@@ -311,7 +311,7 @@ public class CameraControl : MonoBehaviour
         enabled = false;
     }
 
-    private void OnTankGotDestroyed(GameObject tank)
+    private void OnAlliedTankGotDestroyed(GameObject tank)
     {
         if (_tanks.Count == 0)
         {

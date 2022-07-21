@@ -6,7 +6,7 @@ public class CrateRange : Crate
 {
     private static readonly int s_minRange = 1;
     private static readonly int s_maxRange = 3;
-    private static readonly int s_infiniteRange = 100;
+    public static readonly int InfiniteRange = 100;
     private int _range;
 
 
@@ -33,7 +33,7 @@ public class CrateRange : Crate
         if (UnityEngine.Random.Range(0, 100) < 1)
         {
             // 1% chance for infinite range
-            _range = s_infiniteRange;
+            _range = InfiniteRange;
         }
         else
         {
@@ -44,12 +44,12 @@ public class CrateRange : Crate
     protected override string GetOnCollectText(GameObject tank)
     {
         int currentRange = tank.GetComponent<TankInfo>().Range;
-        if (_range == s_infiniteRange)
+        if (_range == InfiniteRange)
         {
             _range -= currentRange;
             return "Infinite Range";
         }
-        if (currentRange == s_infiniteRange)
+        if (currentRange == InfiniteRange)
         {
             // The tank had previously collected the Infinite Range power-up
             _range = 0;

@@ -5,7 +5,7 @@ public class CrateAmmo : Crate
 {
     private static readonly int s_minAmmo = 20;
     private static readonly int s_maxAmmo = 60;
-    private static readonly int s_infiniteAmmoThreshold = 1000000000;
+    public static readonly int InfiniteAmmoThreshold = 1000000000;
     private int _ammo;
 
 
@@ -49,7 +49,7 @@ public class CrateAmmo : Crate
             _ammo -= currentAmmo;
             return "Infinite Ammo";
         }
-        if (currentAmmo > s_infiniteAmmoThreshold)
+        if (currentAmmo > InfiniteAmmoThreshold)
         {
             // The tank had previously collected the Infinite Ammo power-up
             _ammo = int.MaxValue - currentAmmo;

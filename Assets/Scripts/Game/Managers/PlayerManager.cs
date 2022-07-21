@@ -7,7 +7,7 @@ using UnityEngine;
 public class PlayerManager
 {
     private readonly GameManager _gameManager;
-    private readonly Color _playerColor;
+    public readonly Color PlayerColor;
     private readonly Vector3 _spawnPosition;
     private readonly GameObject _tankPrefab;
     // Reinstantiating this would cause errors in the CameraControl script
@@ -19,17 +19,17 @@ public class PlayerManager
     public PlayerManager(GameManager gameManager, Color playerColor, Vector3 spawnPosition, GameObject tankPrefab)
     {
         _gameManager = gameManager;
-        _playerColor = playerColor;
+        PlayerColor = playerColor;
         _spawnPosition = spawnPosition;
         _tankPrefab = tankPrefab;
 
-        TankHealth.TankGotDestroyedEvent += OnTankGotDestroyed;
+        TankHealth.AlliedTankGotDestroyedEvent += OnAlliedTankGotDestroyed;
         UiManager.EscPanelToggledEvent += OnEscPanelToggled;
     }
 
     public void UnsubscribeFromEvents()
     {
-        TankHealth.TankGotDestroyedEvent -= OnTankGotDestroyed;
+        TankHealth.AlliedTankGotDestroyedEvent -= OnAlliedTankGotDestroyed;
         UiManager.EscPanelToggledEvent -= OnEscPanelToggled;
     }
 
@@ -44,7 +44,7 @@ public class PlayerManager
             TankInfo tankInfo = tank.GetComponent<TankInfo>();
             tankInfo.SetActorNumber(_gameManager.ActorNumber);
             tankInfo.SetUsername(PhotonNetwork.LocalPlayer.NickName);
-            tankInfo.SetColor(_playerColor);
+            tankInfo.SetColor(PlayerColor);
             tank.transform.Find("Vision").gameObject.SetActive(true);
             Tanks.Add(tank);
 
@@ -75,7 +75,7 @@ public class PlayerManager
         Tanks.Clear();
     }
 
-    private void OnTankGotDestroyed(GameObject tank)
+    private void OnAlliedTankGotDestroyed(GameObject tank)
     {
         if (!Tanks.Remove(tank))
         {

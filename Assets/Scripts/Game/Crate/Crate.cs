@@ -16,6 +16,7 @@ public class Crate : MonoBehaviour
     [SerializeField] private Animator _onCollectTextAnimator;
     [SerializeField] private AudioSource _crateAudioSource;
     private readonly Quaternion _onCollectTextRotation = Quaternion.Euler(0f, 60f, 0f);
+    private bool _collected = false;
     private bool _shatterPending = false;
 
 
@@ -35,12 +36,13 @@ public class Crate : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         // Crate collisions are checked only by the Master Client
-        if (!PhotonNetwork.IsMasterClient)
+        if (!PhotonNetwork.IsMasterClient || _collected)
         {
             return;
         }
         if (((1 << other.gameObject.layer) & _tanksLayerMask.value) > 0)
         {
+            _collected = true;
             OnCollect(other.gameObject);
             StartCoroutine(Shatter(0f));
         }
@@ -110,6 +112,7 @@ public class Crate : MonoBehaviour
 }
 
 // TODO - Make a child of the Crate class for each type of crate, overriding Init, GetOnCollectText and RewardPlayer and overloading RPC_Init
+// TODO - Display tank stats (UI)
 
 public enum CrateType
 {

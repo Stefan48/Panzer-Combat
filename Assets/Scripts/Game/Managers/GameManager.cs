@@ -137,11 +137,9 @@ public class GameManager : MonoBehaviourPunCallbacks
     {
         if (_gameEnded)
         {
-            // The game ended due to disconnects
             return;
         }
         StartCoroutine(StartRound());
-        StartSpawningCrates();
     }
 
     private IEnumerator StartRound()
@@ -161,6 +159,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         }
         RoundPlayingEvent?.Invoke();
         PlayerManager.SetControlEnabled(true);
+        StartSpawningCrates();
     }
 
     private void StartSpawningCrates()
