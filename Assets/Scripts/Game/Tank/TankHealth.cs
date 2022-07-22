@@ -13,7 +13,7 @@ public class TankHealth : MonoBehaviour
     [SerializeField] private Color _minHealthColor = new Color32(255, 0, 0, 180);
     [SerializeField] private GameObject _tankExplosionPrefab;
 
-    public static event Action<GameObject> AlliedTankGotDestroyedEvent;
+    public static event Action<GameObject, int> AlliedTankGotDestroyedEvent;
     
 
     private void Awake()
@@ -28,7 +28,7 @@ public class TankHealth : MonoBehaviour
         UpdateHealthBar();
     }
 
-    public void TakeDamage(int damage)
+    public void TakeDamage(int damage, int playerDealingDamageActorNumber)
     {
         // It's possible that the tank's health dropped to 0 but PhotonNetwork.Destroy has not been called yet
         // In this case, avoid calling the RPC
@@ -40,11 +40,11 @@ public class TankHealth : MonoBehaviour
         // if multiple RPC_TakeDamage have already been called but not executed yet
         // So by the time the new RPC call is received, the GameObject/PhotonView might not exist anymore
         // (RPC gets lost and a warning is logged)
-        _photonView.RPC("RPC_TakeDamage", RpcTarget.AllViaServer, damage);
+        _photonView.RPC("RPC_TakeDamage", RpcTarget.AllViaServer, damage, playerDealingDamageActorNumber);
     }
 
     [PunRPC]
-    private void RPC_TakeDamage(int damage)
+    private void RPC_TakeDamage(int damage, int playerDealingDamageActorNumber)
     {
         // Due to the latency, this might get called on a tank whose health has already dropped below 0
         // So make sure to not execute the code below multiple times
@@ -67,7 +67,7 @@ public class TankHealth : MonoBehaviour
             if (_photonView.IsMine)
             {
                 PhotonNetwork.Destroy(gameObject);
-                AlliedTankGotDestroyedEvent?.Invoke(gameObject);
+                AlliedTankGotDestroyedEvent?.Invoke(gameObject, playerDealingDamageActorNumber);
             }
         }
     }

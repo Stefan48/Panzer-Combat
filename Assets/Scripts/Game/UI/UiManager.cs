@@ -5,6 +5,7 @@ using Photon.Pun;
 using UnityEngine.SceneManagement;
 using System;
 using System.Linq;
+using System.Collections;
 
 public class UiManager : MonoBehaviourPunCallbacks
 {
@@ -19,8 +20,6 @@ public class UiManager : MonoBehaviourPunCallbacks
     [SerializeField] private Transform _playerInfoListingsContent;
     [SerializeField] private PlayerInfoListing _playerInfoListingPrefab;
     private List<PlayerInfoListing> _playerInfoListings = new List<PlayerInfoListing>();
-    // TODO - Console for logging game events
-
     [SerializeField] private GameManager _gameManager;
     [SerializeField] private Text _infoText;
     [SerializeField] private LayerMask _tanksLayerMask;
@@ -39,6 +38,12 @@ public class UiManager : MonoBehaviourPunCallbacks
     [SerializeField] private Text _multipleTanksSelectedPanelUsernameText;
     [SerializeField] private Text _numTanksSelectedText;
     [SerializeField] private GameObject _minimapPanel;
+    private const int _maxGameLogs = 4;
+    [SerializeField] private List<Text> _gameLogsTexts = new List<Text>();
+    [SerializeField] private Color _gameLogsColor;
+    private (PlayerInfo, PlayerInfo)[] _gameLogsPlayers = new (PlayerInfo, PlayerInfo)[_maxGameLogs];
+    private const float _gameLogsAlphaDecreaseStep = 0.1f;
+    private IEnumerator _updateGameLogsCoroutine = null;
 
     public static event Action<bool> EscPanelToggledEvent;
 
@@ -49,6 +54,8 @@ public class UiManager : MonoBehaviourPunCallbacks
         GameManager.RoundPlayingEvent += OnRoundPlaying;
         GameManager.RoundEndingEvent += OnRoundEnding;
         TankHealth.AlliedTankGotDestroyedEvent += OnAlliedTankGotDestroyed;
+        GameManager.PlayerGotDefeatedEvent += OnPlayerGotDefeated;
+        GameManager.PlayerDisconnectedEvent += OnPlayerDisconnect;
     }
 
     private void OnDestroy()
@@ -57,6 +64,8 @@ public class UiManager : MonoBehaviourPunCallbacks
         GameManager.RoundPlayingEvent -= OnRoundPlaying;
         GameManager.RoundEndingEvent -= OnRoundEnding;
         TankHealth.AlliedTankGotDestroyedEvent -= OnAlliedTankGotDestroyed;
+        GameManager.PlayerGotDefeatedEvent -= OnPlayerGotDefeated;
+        GameManager.PlayerDisconnectedEvent -= OnPlayerDisconnect;
     }
 
     private void Update()
@@ -356,6 +365,7 @@ public class UiManager : MonoBehaviourPunCallbacks
             InitializeMultipleTanksSelectedPanel();
         }
         _minimapPanel.SetActive(false);
+        ClearGameLogs();
     }
 
     private void OnRoundPlaying()
@@ -379,7 +389,7 @@ public class UiManager : MonoBehaviourPunCallbacks
         // TODO - If game ended, display additional stats?
     }
 
-    private void OnAlliedTankGotDestroyed(GameObject tank)
+    private void OnAlliedTankGotDestroyed(GameObject tank, int defeaterPlayerActorNumber)
     {
         if (tank.GetComponent<TankInfo>().IsSelected)
         {
@@ -388,6 +398,112 @@ public class UiManager : MonoBehaviourPunCallbacks
                 Debug.LogWarning("[UiManager] Could not remove destroyed tank from the _selectedAlliedTanks list");
             }
             UpdateTankInfoPanel(true);
+        }
+    }
+
+    private void OnPlayerGotDefeated(PlayerInfo defeatedPlayer, PlayerInfo defeaterPlayer)
+    {
+        AddGameLog(defeatedPlayer, defeaterPlayer);
+    }
+
+    private void OnPlayerDisconnect(PlayerInfo disconnectedPlayer)
+    {
+        AddGameLog(disconnectedPlayer);
+    }
+
+    private void AddGameLog(PlayerInfo defeatedPlayer, PlayerInfo defeaterPlayer)
+    {
+        ShiftGameLogs();
+        _gameLogsTexts[0].text = GetColoredPlayerText(defeaterPlayer) + " defeated " + GetColoredPlayerText(defeatedPlayer);
+        _gameLogsTexts[0].color = _gameLogsColor;
+        _gameLogsPlayers[0] = (defeaterPlayer, defeatedPlayer);
+        StartUpdatingGameLogs();
+    }
+
+    private void AddGameLog(PlayerInfo disconnectedPlayer)
+    {
+        ShiftGameLogs();
+        _gameLogsTexts[0].text = GetColoredPlayerText(disconnectedPlayer) + " disconnected";
+        _gameLogsTexts[0].color = _gameLogsColor;
+        _gameLogsPlayers[0] = (disconnectedPlayer, null);
+        StartUpdatingGameLogs();
+    }
+
+    private void ShiftGameLogs()
+    {
+        for (int i = _gameLogsTexts.Count - 1; i > 0; --i)
+        {
+            _gameLogsTexts[i].text = _gameLogsTexts[i - 1].text;
+            _gameLogsTexts[i].color = _gameLogsTexts[i - 1].color;
+            _gameLogsPlayers[i] = _gameLogsPlayers[i - 1];
+        }
+    }
+
+    private void StartUpdatingGameLogs()
+    {
+        if (_updateGameLogsCoroutine == null)
+        {
+            _updateGameLogsCoroutine = UpdateGameLogs();
+            StartCoroutine(_updateGameLogsCoroutine);
+        }
+    }
+
+    private IEnumerator UpdateGameLogs()
+    {
+        bool gameLogsExist;
+        while (true)
+        {
+            gameLogsExist = false;
+            for (int i = 0; i < _gameLogsTexts.Count; ++i)
+            {
+                if (_gameLogsTexts[i].text != string.Empty)
+                {
+                    gameLogsExist = true;
+                    Color color = _gameLogsTexts[i].color;
+                    float newAlpha = color.a - _gameLogsAlphaDecreaseStep * Time.deltaTime;
+                    if (newAlpha <= 0f)
+                    {
+                        _gameLogsTexts[i].text = string.Empty;
+                        _gameLogsPlayers[i] = (null, null);
+                    }
+                    else
+                    {
+                        if (_gameLogsPlayers[i].Item2 == null)
+                        {
+                            _gameLogsTexts[i].text = GetColoredPlayerTextWithTransparency(_gameLogsPlayers[i].Item1, newAlpha) + " disconnected";
+                        }
+                        else
+                        {
+                            _gameLogsTexts[i].text = GetColoredPlayerTextWithTransparency(_gameLogsPlayers[i].Item1, newAlpha)
+                                + " defeated " + GetColoredPlayerTextWithTransparency(_gameLogsPlayers[i].Item2, newAlpha);
+                        }
+                        _gameLogsTexts[i].color = new Color(color.r, color.g, color.b, newAlpha);
+                    }
+                }
+            }
+            if (gameLogsExist)
+            {
+                yield return null;
+            }
+            else
+            {
+                break;
+            }
+        }
+        _updateGameLogsCoroutine = null;
+    }
+
+    private void ClearGameLogs()
+    {
+        if (_updateGameLogsCoroutine != null)
+        {
+            StopCoroutine(_updateGameLogsCoroutine);
+            _updateGameLogsCoroutine = null;
+        }
+        for (int i = 0; i < _gameLogsTexts.Count; ++i)
+        {
+            _gameLogsTexts[i].text = string.Empty;
+            _gameLogsPlayers[i] = (null, null);
         }
     }
 
@@ -418,6 +534,12 @@ public class UiManager : MonoBehaviourPunCallbacks
     public static string GetColoredPlayerText(PlayerInfo playerInfo)
     {
         return "<color=#" + ColorUtility.ToHtmlStringRGB(playerInfo.Color) + ">" + playerInfo.Username + "</color>";
+    }
+
+    private string GetColoredPlayerTextWithTransparency(PlayerInfo playerInfo, float alpha)
+    {
+        Color color = new Color(playerInfo.Color.r, playerInfo.Color.g, playerInfo.Color.b, alpha);
+        return "<color=#" + ColorUtility.ToHtmlStringRGBA(color) + ">" + playerInfo.Username + "</color>";
     }
 
     private string GetColoredText(string text, Color color)

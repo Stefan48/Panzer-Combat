@@ -76,7 +76,7 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
             {
                 // The shell hit an enemy tank in short range
                 OnHitWithoutCheck();
-                otherGameObject.GetComponent<TankHealth>().TakeDamage(_damage);
+                otherGameObject.GetComponent<TankHealth>().TakeDamage(_damage, _actorNumber);
             }
             // Else, the shell would have hit the tank which shot it right after it was shot
         }
@@ -110,7 +110,7 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
                 {
                     // The shell hit a tank
                     _hitSomething = true;
-                    hitGameObject.GetComponent<TankHealth>().TakeDamage(_damage);
+                    hitGameObject.GetComponent<TankHealth>().TakeDamage(_damage, _actorNumber);
                     break;
                 }
                 else if (((1 << hitGameObject.layer) & _defaultLayerMask.value) > 0)

@@ -48,6 +48,8 @@ public class GameManager : MonoBehaviourPunCallbacks
     public static event Action<int> RoundStartingEvent;
     public static event Action RoundPlayingEvent;
     public static event Action<PlayerInfo, bool> RoundEndingEvent;
+    public static event Action<PlayerInfo, PlayerInfo> PlayerGotDefeatedEvent;
+    public static event Action<PlayerInfo> PlayerDisconnectedEvent;
 
 
     private void Awake()
@@ -177,14 +179,19 @@ public class GameManager : MonoBehaviourPunCallbacks
         }
     }
 
-    public void LocalPlayerLost()
+    public void LocalPlayerLost(int defeaterPlayerActorNumber)
     {
-        _photonView.RPC("RPC_PlayerLost", RpcTarget.AllViaServer);
+        _photonView.RPC("RPC_PlayerLost", RpcTarget.AllViaServer, defeaterPlayerActorNumber);
     }
 
     [PunRPC]
-    private void RPC_PlayerLost(PhotonMessageInfo info)
+    private void RPC_PlayerLost(int defeaterPlayerActorNumber, PhotonMessageInfo info)
     {
+        if (defeaterPlayerActorNumber > 0)
+        {
+            PlayerInfo defeaterPlayer = PlayersInfo.Values.First(playerInfo => playerInfo.ActorNumber == defeaterPlayerActorNumber);
+            PlayerGotDefeatedEvent?.Invoke(PlayersInfo[info.Sender], defeaterPlayer);
+        }
         _playersRemaining.Remove(info.Sender);
         // There should be exactly 1 player remaining so we don't start the coroutine more than once
         if (PhotonNetwork.IsMasterClient && _playersRemaining.Count == 1)
@@ -259,6 +266,7 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     public override void OnPlayerLeftRoom(Player player)
     {
+        PlayerDisconnectedEvent?.Invoke(PlayersInfo[player]);
         _players = _players.Where(p => p != player).ToArray();
         if (_players.Length == 1)
         {
@@ -274,7 +282,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         else if (_roundInProgress)
         {
             // Call the RPC only locally, since all clients receive the OnPlayerLeftRoom event anyway
-            RPC_PlayerLost(new PhotonMessageInfo(player, 0, null));
+            RPC_PlayerLost(-1, new PhotonMessageInfo(player, 0, null));
         }
     }
 }

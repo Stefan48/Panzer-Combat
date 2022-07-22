@@ -75,7 +75,7 @@ public class PlayerManager
         Tanks.Clear();
     }
 
-    private void OnAlliedTankGotDestroyed(GameObject tank)
+    private void OnAlliedTankGotDestroyed(GameObject tank, int defeaterPlayerActorNumber)
     {
         if (!Tanks.Remove(tank))
         {
@@ -84,7 +84,7 @@ public class PlayerManager
         TanksListReducedEvent?.Invoke(tank);
         if (Tanks.Count == 0)
         {
-            _gameManager.LocalPlayerLost();
+            _gameManager.LocalPlayerLost(defeaterPlayerActorNumber);
         }
     }
 
