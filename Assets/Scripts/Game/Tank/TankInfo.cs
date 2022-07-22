@@ -6,6 +6,7 @@ public class TankInfo : MonoBehaviour
 {
     private PhotonView _photonView;
     [SerializeField] private TextMesh _usernameTextMesh;
+    [SerializeField] private SpriteRenderer _minimapIconSpriteRenderer;
     public int ActorNumber { get; private set; } = -1; // initializing is for testing only
     public string Username { get; private set; }
     public Color Color { get; private set; }
@@ -69,6 +70,7 @@ public class TankInfo : MonoBehaviour
         {
             renderer.material.color = Color;
         }
+        _minimapIconSpriteRenderer.color = Color;
     }
 
     public void IncreaseArmor(int extraArmor)

@@ -38,6 +38,7 @@ public class UiManager : MonoBehaviourPunCallbacks
     [SerializeField] private GameObject _multipleTanksSelectedPanel;
     [SerializeField] private Text _multipleTanksSelectedPanelUsernameText;
     [SerializeField] private Text _numTanksSelectedText;
+    [SerializeField] private GameObject _minimapPanel;
 
     public static event Action<bool> EscPanelToggledEvent;
 
@@ -137,8 +138,11 @@ public class UiManager : MonoBehaviourPunCallbacks
     {
         for (int i = _selectedAlliedTanks.Count - 1; i >= 0; --i)
         {
-            SetTankSelectionRingEnabled(_selectedAlliedTanks[i], true, false);
-            _selectedAlliedTanks[i].GetComponent<TankInfo>().IsSelected = false;
+            if (_selectedAlliedTanks[i] != null)
+            {
+                SetTankSelectionRingEnabled(_selectedAlliedTanks[i], true, false);
+                _selectedAlliedTanks[i].GetComponent<TankInfo>().IsSelected = false;
+            }
         }
         _selectedAlliedTanks.Clear();
     }
@@ -225,7 +229,15 @@ public class UiManager : MonoBehaviourPunCallbacks
         {
             if (_selectedAlliedTanks.Count == 1)
             {
-                SetTankInfoPanelTexts(_selectedAlliedTanks[0].GetComponent<TankInfo>());
+                if (_selectedAlliedTanks[0] == null)
+                {
+                    _selectedAlliedTanks.Clear();
+                    _tankInfoPanel.SetActive(false);
+                }
+                else
+                {
+                    SetTankInfoPanelTexts(_selectedAlliedTanks[0].GetComponent<TankInfo>());
+                }
             }
             else if (!ReferenceEquals(_selectedEnemyTank, null))
             {
@@ -343,12 +355,14 @@ public class UiManager : MonoBehaviourPunCallbacks
             InitializeTabPanel();
             InitializeMultipleTanksSelectedPanel();
         }
+        _minimapPanel.SetActive(false);
     }
 
     private void OnRoundPlaying()
     {
         _gameUiIsEnabled = true;
         _infoText.text = string.Empty;
+        _minimapPanel.SetActive(true);
     }
 
     private void OnRoundEnding(PlayerInfo roundWinner, bool isGameWinner)
@@ -361,6 +375,7 @@ public class UiManager : MonoBehaviourPunCallbacks
         UpdateTabPanel();
         _infoText.text = GetRoundEndText(roundWinner, isGameWinner);
         _gameUiIsEnabled = false;
+        _minimapPanel.SetActive(false);
         // TODO - If game ended, display additional stats?
     }
 

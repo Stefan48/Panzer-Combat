@@ -11,6 +11,7 @@ public class Crate : MonoBehaviour
     [SerializeField] private MeshRenderer _wholeCrateMeshRenderer;
     [SerializeField] private BoxCollider _boxCollider;
     [SerializeField] private GameObject _fracturedCrate;
+    [SerializeField] private GameObject _minimapIcon;
     [SerializeField] private LayerMask _tanksLayerMask;
     [SerializeField] protected TextMesh _onCollectText;
     [SerializeField] private Animator _onCollectTextAnimator;
@@ -92,6 +93,7 @@ public class Crate : MonoBehaviour
         _wholeCrateMeshRenderer.enabled = false;
         _boxCollider.enabled = false;
         _fracturedCrate.SetActive(true);
+        _minimapIcon.SetActive(false);
         // PhotonNetwork.Destroy does not have an overload for destroying the GameObject after a delay
         StartCoroutine(DestroyCrate());
     }

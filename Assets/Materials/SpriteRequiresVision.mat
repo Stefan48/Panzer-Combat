@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: RequiresVision
+  m_Name: SpriteRequiresVision
   m_Shader: {fileID: 4800000, guid: a49c6ac1561431b459c1a65ed5279b77, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4

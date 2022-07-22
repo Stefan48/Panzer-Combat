@@ -339,6 +339,7 @@ public class CameraControl : MonoBehaviour
                 _viewedTank = _tanks[0];
             }
         }
+        transform.position = _viewedTank.transform.position;
         _maxCameraSize = _tanks.Max(t => t.GetComponent<TankInfo>().Range);
         if (_camera.orthographicSize > _maxCameraSize)
         {

@@ -55,6 +55,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2277800954281870032, guid: 8654b98aa3eb31f429efda783ab47db1, type: 3}
+      propertyPath: m_Color.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2277800954281870032, guid: 8654b98aa3eb31f429efda783ab47db1, type: 3}
+      propertyPath: m_Color.g
+      value: 0.8980392
+      objectReference: {fileID: 0}
+    - target: {fileID: 2277800954281870032, guid: 8654b98aa3eb31f429efda783ab47db1, type: 3}
+      propertyPath: m_Color.r
+      value: 0.99215686
+      objectReference: {fileID: 0}
     - target: {fileID: 4262418605540733613, guid: 8654b98aa3eb31f429efda783ab47db1, type: 3}
       propertyPath: m_Volume
       value: 0.1
@@ -221,6 +233,11 @@ Animator:
   m_CorrespondingSourceObject: {fileID: 1579448767, guid: 8654b98aa3eb31f429efda783ab47db1, type: 3}
   m_PrefabInstance: {fileID: 1756337914960355395}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &306753967041113282 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2026069099937680513, guid: 8654b98aa3eb31f429efda783ab47db1, type: 3}
+  m_PrefabInstance: {fileID: 1756337914960355395}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &2000581315921821377
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -236,6 +253,7 @@ MonoBehaviour:
   _wholeCrateMeshRenderer: {fileID: 7267659367707748726}
   _boxCollider: {fileID: 861227260357499217}
   _fracturedCrate: {fileID: 4791490718875782631}
+  _minimapIcon: {fileID: 306753967041113282}
   _tanksLayerMask:
     serializedVersion: 2
     m_Bits: 64
