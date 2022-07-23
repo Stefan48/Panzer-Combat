@@ -106,6 +106,14 @@ public class TankHealth : MonoBehaviour
         UpdateHealthBar();
     }
 
+    public void SetHealthAndMaxHealth(int health, int maxHealth)
+    {
+        _tankInfo.Health = health;
+        _tankInfo.MaxHealth = maxHealth;
+        _healthBarSlider.maxValue = _tankInfo.MaxHealth;
+        UpdateHealthBar();
+    }
+
     private void UpdateHealthBar()
     {
         _healthBarSlider.value = _tankInfo.Health;

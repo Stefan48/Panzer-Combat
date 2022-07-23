@@ -195,5 +195,68 @@ PrefabInstance:
       propertyPath: m_Name
       value: CrateTank
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 1194006447, guid: 8654b98aa3eb31f429efda783ab47db1, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 8654b98aa3eb31f429efda783ab47db1, type: 3}
+--- !u!1 &3011250683889699955 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 9065924571364506927, guid: 8654b98aa3eb31f429efda783ab47db1, type: 3}
+  m_PrefabInstance: {fileID: 6060366082065002844}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &5167541311883020366 stripped
+BoxCollider:
+  m_CorrespondingSourceObject: {fileID: 1417637340330785042, guid: 8654b98aa3eb31f429efda783ab47db1, type: 3}
+  m_PrefabInstance: {fileID: 6060366082065002844}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &2926938852328142953 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 8972346622805641525, guid: 8654b98aa3eb31f429efda783ab47db1, type: 3}
+  m_PrefabInstance: {fileID: 6060366082065002844}
+  m_PrefabAsset: {fileID: 0}
+--- !u!82 &8015732188681733105 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 4262418605540733613, guid: 8654b98aa3eb31f429efda783ab47db1, type: 3}
+  m_PrefabInstance: {fileID: 6060366082065002844}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1025608764383845624 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6494489090248879524, guid: 8654b98aa3eb31f429efda783ab47db1, type: 3}
+  m_PrefabInstance: {fileID: 6060366082065002844}
+  m_PrefabAsset: {fileID: 0}
+--- !u!102 &6060366083308325089 stripped
+TextMesh:
+  m_CorrespondingSourceObject: {fileID: 1579448765, guid: 8654b98aa3eb31f429efda783ab47db1, type: 3}
+  m_PrefabInstance: {fileID: 6060366082065002844}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &6060366083308325091 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 1579448767, guid: 8654b98aa3eb31f429efda783ab47db1, type: 3}
+  m_PrefabInstance: {fileID: 6060366082065002844}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &5189472554294787549 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2026069099937680513, guid: 8654b98aa3eb31f429efda783ab47db1, type: 3}
+  m_PrefabInstance: {fileID: 6060366082065002844}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6024698639176806441
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3011250683889699955}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ab5aa7e3d05645478ec524c7f627cdb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _wholeCrateMeshRenderer: {fileID: 2926938852328142953}
+  _boxCollider: {fileID: 5167541311883020366}
+  _fracturedCrate: {fileID: 1025608764383845624}
+  _minimapIcon: {fileID: 5189472554294787549}
+  _tanksLayerMask:
+    serializedVersion: 2
+    m_Bits: 64
+  _onCollectText: {fileID: 6060366083308325089}
+  _onCollectTextAnimator: {fileID: 6060366083308325091}
+  _crateAudioSource: {fileID: 8015732188681733105}

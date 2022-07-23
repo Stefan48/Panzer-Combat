@@ -11,14 +11,16 @@ public class TankInfo : MonoBehaviour
     public string Username { get; private set; }
     public Color Color { get; private set; }
     public bool IsSelected = false;
-    public float Speed { get; private set; } = 12f;
+    public int Speed { get; private set; } = 12;
+    public int ShellSpeed { get; private set; } = 20;
     public int MaxHealth = 100;
     public int Health;
     public int Armor { get; private set; } = 0;
     public int Damage { get; private set; } = 20;
     public int Ammo = 30;
-    public float ShellSpeed { get; private set; } = 20f;
     public int Range { get; private set; } = 10;
+    private static readonly int s_speedShellSpeedDifference = 8;
+    private static readonly int s_defaultRange = 10;
     [SerializeField] private GameObject _vision;
     private const float _visionPerRange = 0.065f;
 
@@ -33,37 +35,18 @@ public class TankInfo : MonoBehaviour
         //ActorNumber = Random.Range(0, 100) % 2 == 0 ? 0 : -1; // this is for testing only
     }
 
-    public void SetActorNumber(int actorNumber)
+    public void SetInitialInfo(int actorNumber, Color color)
     {
-        _photonView.RPC("RPC_SetActorNumber", RpcTarget.All, actorNumber);
+        _photonView.RPC("RPC_SetInitialInfo", RpcTarget.All, actorNumber, new Vector3(color.r, color.g, color.b));
     }
 
     [PunRPC]
-    private void RPC_SetActorNumber(int actorNumber)
+    private void RPC_SetInitialInfo(int actorNumber, Vector3 color)
     {
         ActorNumber = actorNumber;
-    }
+        Username = PhotonNetwork.CurrentRoom.GetPlayer(actorNumber).NickName;
+        _usernameTextMesh.text = Username;
 
-    public void SetUsername(string username)
-    {
-        _photonView.RPC("RPC_SetUsername", RpcTarget.All, username);
-    }
-
-    [PunRPC]
-    private void RPC_SetUsername(string username)
-    {
-        Username = username;
-        _usernameTextMesh.text = username;
-    }
-
-    public void SetColor(Color color)
-    {
-        _photonView.RPC("RPC_SetColor", RpcTarget.All, new Vector3(color.r, color.g, color.b));
-    }
-
-    [PunRPC]
-    private void RPC_SetColor(Vector3 color)
-    {
         Color = new Color(color.x, color.y, color.z);
         MeshRenderer[] renderers = GetComponentsInChildren<MeshRenderer>();
         foreach (MeshRenderer renderer in renderers)
@@ -71,6 +54,27 @@ public class TankInfo : MonoBehaviour
             renderer.material.color = Color;
         }
         _minimapIconSpriteRenderer.color = Color;
+    }
+
+    public void SetStats(int health, int maxHealth, int ammo, int damage, int armor, int speed, int range)
+    {
+        _photonView.RPC("RPC_SetStats", RpcTarget.AllViaServer, health, maxHealth, ammo, damage, armor, speed, range);
+    }
+
+    [PunRPC]
+    private void RPC_SetStats(int health, int maxHealth, int ammo, int damage, int armor, int speed, int range)
+    {
+        GetComponent<TankHealth>().SetHealthAndMaxHealth(health, maxHealth);
+        Ammo = ammo;
+        Damage = damage;
+        Armor = armor;
+        Speed = speed;
+        ShellSpeed = Speed + s_speedShellSpeedDifference;
+        int extraRange = range - s_defaultRange;
+        if (extraRange > 0)
+        {
+            RPC_IncreaseRange(extraRange);
+        }
     }
 
     public void IncreaseArmor(int extraArmor)
@@ -95,13 +99,13 @@ public class TankInfo : MonoBehaviour
         Damage += extraDamage;
     }
 
-    public void IncreaseSpeed(float extraSpeed)
+    public void IncreaseSpeed(int extraSpeed)
     {
         _photonView.RPC("RPC_IncreaseSpeed", RpcTarget.AllViaServer, extraSpeed);
     }
 
     [PunRPC]
-    private void RPC_IncreaseSpeed(float extraSpeed)
+    private void RPC_IncreaseSpeed(int extraSpeed)
     {
         Speed += extraSpeed;
         ShellSpeed += extraSpeed;

@@ -1,3 +1,4 @@
+using ExitGames.Client.Photon;
 using Photon.Pun;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ public class PlayerManager
     public List<GameObject> Tanks { get; private set; } = new List<GameObject>();
 
     public static event Action<GameObject> TanksListReducedEvent;
+    public static readonly byte TankCrateCollectedNetworkEvent = 1;
 
 
     public PlayerManager(GameManager gameManager, Color playerColor, Vector3 spawnPosition, GameObject tankPrefab)
@@ -25,12 +27,14 @@ public class PlayerManager
 
         TankHealth.AlliedTankGotDestroyedEvent += OnAlliedTankGotDestroyed;
         UiManager.EscPanelToggledEvent += OnEscPanelToggled;
+        PhotonNetwork.NetworkingClient.EventReceived += NetworkingClient_EventReceived;
     }
 
     public void UnsubscribeFromEvents()
     {
         TankHealth.AlliedTankGotDestroyedEvent -= OnAlliedTankGotDestroyed;
         UiManager.EscPanelToggledEvent -= OnEscPanelToggled;
+        PhotonNetwork.NetworkingClient.EventReceived -= NetworkingClient_EventReceived;
     }
 
     public void Setup()
@@ -40,19 +44,23 @@ public class PlayerManager
         // Rotate them towards the map's center?
         for (int i = 0; i < 1; ++i)
         {
-            GameObject tank = PhotonNetwork.Instantiate(_tankPrefab.name, _spawnPosition, Quaternion.identity);
-            TankInfo tankInfo = tank.GetComponent<TankInfo>();
-            tankInfo.SetActorNumber(_gameManager.ActorNumber);
-            tankInfo.SetUsername(PhotonNetwork.LocalPlayer.NickName);
-            tankInfo.SetColor(PlayerColor);
-            tank.transform.Find("Vision").gameObject.SetActive(true);
-            Tanks.Add(tank);
+            InstantiateDefaultTank(_spawnPosition);
 
             /*if (_gameManager.ActorNumber > 1) // this is for testing only
             {
                 break;
             }*/
         }
+    }
+
+    private GameObject InstantiateDefaultTank(Vector3 position)
+    {
+        GameObject tank = PhotonNetwork.Instantiate(_tankPrefab.name, position, Quaternion.identity);
+        TankInfo tankInfo = tank.GetComponent<TankInfo>();
+        tankInfo.SetInitialInfo(_gameManager.ActorNumber, PlayerColor);
+        tank.transform.Find("Vision").gameObject.SetActive(true);
+        Tanks.Add(tank);
+        return tank;
     }
 
     public void SetControlEnabled(bool enabled)
@@ -95,6 +103,27 @@ public class PlayerManager
         {
             tank.GetComponent<TankMovement>().EscPanelIsActive = active;
             tank.GetComponent<TankShooting>().EscPanelIsActive = active;
+        }
+    }
+
+    private void NetworkingClient_EventReceived(EventData obj)
+    {
+        if (obj.Code == TankCrateCollectedNetworkEvent)
+        {
+            float[] eventData = (float[])obj.CustomData;
+            Vector3 position = new Vector3(eventData[0], 0f, eventData[1]);
+            GameObject tank = InstantiateDefaultTank(position);
+            if (eventData[2] == 0f)
+            {
+                int health = (int)eventData[3];
+                int maxHealth = (int)eventData[4];
+                int ammo = (int)eventData[5];
+                int damage = (int)eventData[6];
+                int armor = (int)eventData[7];
+                int speed = (int)eventData[8];
+                int range = (int)eventData[9];
+                tank.GetComponent<TankInfo>().SetStats(health, maxHealth, ammo, damage, armor, speed, range);
+            }
         }
     }
 }

@@ -6,6 +6,7 @@ public class CrateRange : Crate
 {
     private static readonly int s_minRange = 1;
     private static readonly int s_maxRange = 3;
+    private static readonly int s_infiniteRangeChance = 1;
     public static readonly int InfiniteRange = 100;
     private int _range;
 
@@ -30,9 +31,8 @@ public class CrateRange : Crate
 
     private void SetRandomRange()
     {
-        if (UnityEngine.Random.Range(0, 100) < 1)
+        if (UnityEngine.Random.Range(0, 100) < s_infiniteRangeChance)
         {
-            // 1% chance for infinite range
             _range = InfiniteRange;
         }
         else

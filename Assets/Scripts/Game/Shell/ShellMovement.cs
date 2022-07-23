@@ -4,7 +4,7 @@ public class ShellMovement : MonoBehaviour
 {
     private Rigidbody _rigidbody;
     private ShellExplosion _shellExplosion;
-    private float _speed = 20f;
+    private int _speed = 20;
     private int _range = 10;
     private float _distanceTraveled = 0f;
     
@@ -15,7 +15,7 @@ public class ShellMovement : MonoBehaviour
         _shellExplosion = GetComponent<ShellExplosion>();
     }
 
-    public void Init(float speed, int range)
+    public void Init(int speed, int range)
     {
         _speed = speed;
         _range = range;

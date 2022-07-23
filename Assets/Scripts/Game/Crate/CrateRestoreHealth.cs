@@ -6,6 +6,7 @@ public class CrateRestoreHealth : Crate
 {
     private static readonly int s_minHealthToRestore = 50;
     private static readonly int s_maxHealthToRestore = 100;
+    private static readonly int s_restoreAllHealthChance = 20;
     private int _healthToRestore;
 
 
@@ -29,9 +30,8 @@ public class CrateRestoreHealth : Crate
 
     private void SetRandomHealthToRestore()
     {
-        if (UnityEngine.Random.Range(0, 100) < 20)
+        if (UnityEngine.Random.Range(0, 100) < s_restoreAllHealthChance)
         {
-            // 20% chance to restore all the missing health
             _healthToRestore = int.MaxValue;
         }
         else

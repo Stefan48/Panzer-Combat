@@ -5,6 +5,7 @@ public class CrateMaxHealth : Crate
 {
     private static readonly int s_minHealthToGain = 25;
     private static readonly int s_maxHealthToGain = 75;
+    private static readonly int s_doubleMaxHealthChance = 5;
     private int _healthToGain;
 
 
@@ -28,9 +29,8 @@ public class CrateMaxHealth : Crate
 
     private void SetRandomHealthToGain()
     {
-        if (UnityEngine.Random.Range(0, 100) < 5)
+        if (UnityEngine.Random.Range(0, 100) < s_doubleMaxHealthChance)
         {
-            // 5% chance for doubling the current max health
             _healthToGain = int.MaxValue;
         }
         else

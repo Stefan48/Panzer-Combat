@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class CrateSpeed : Crate
 {
-    private static readonly float s_speed = 1f;
+    private static readonly int s_speed = 1;
 
 
     [PunRPC]
@@ -20,7 +20,7 @@ public class CrateSpeed : Crate
 
     protected override string GetOnCollectText(GameObject tank)
     {
-        return "+ Speed";
+        return $"+ {s_speed} Speed";
     }
 
     protected override void RewardPlayer(GameObject tank)

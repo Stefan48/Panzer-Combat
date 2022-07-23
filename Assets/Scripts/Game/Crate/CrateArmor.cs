@@ -5,6 +5,7 @@ public class CrateArmor : Crate
 {
     private static readonly int s_minArmor = 1;
     private static readonly int s_maxArmor = 10;
+    private static readonly int s_doubleExtraArmorChance = 10;
     private int _armor;
 
 
@@ -28,9 +29,8 @@ public class CrateArmor : Crate
 
     private void SetRandomArmor()
     {
-        if (UnityEngine.Random.Range(0, 100) < 10)
+        if (UnityEngine.Random.Range(0, 100) < s_doubleExtraArmorChance)
         {
-            // 10% chance for double extra armor
             _armor = UnityEngine.Random.Range(2 * s_minArmor, 2 * s_maxArmor + 1);
         }
         else

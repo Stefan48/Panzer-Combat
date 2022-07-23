@@ -20,7 +20,7 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
     private bool _hitSomething = false;
     private bool _explosionPending = false;
 
-    private static readonly byte s_shellExplosionEvent = 0;
+    private static readonly byte s_shellExplosionNetworkEvent = 0;
 
 
     private void Awake()
@@ -165,14 +165,14 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
             {
                 _explosionPending = true;
                 // Using events since shells don't have a PhotonView component (they're not instantiated over the network for optimization reasons)
-                PhotonNetwork.RaiseEvent(s_shellExplosionEvent, _id, new RaiseEventOptions { Receivers = ReceiverGroup.All }, SendOptions.SendReliable);
+                PhotonNetwork.RaiseEvent(s_shellExplosionNetworkEvent, _id, new RaiseEventOptions { Receivers = ReceiverGroup.All }, SendOptions.SendReliable);
             }
         }
     }
 
     private void NetworkingClient_EventReceived(EventData obj)
     {
-        if (obj.Code == s_shellExplosionEvent)
+        if (obj.Code == s_shellExplosionNetworkEvent)
         {
             if ((int)obj.CustomData == _id)
             {

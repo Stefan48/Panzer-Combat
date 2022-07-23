@@ -5,6 +5,7 @@ public class CrateAmmo : Crate
 {
     private static readonly int s_minAmmo = 20;
     private static readonly int s_maxAmmo = 60;
+    private static readonly int s_infiniteAmmoChance = 1;
     public static readonly int InfiniteAmmoThreshold = 1000000000;
     private int _ammo;
 
@@ -29,9 +30,8 @@ public class CrateAmmo : Crate
 
     private void SetRandomAmmo()
     {
-        if (UnityEngine.Random.Range(0, 100) < 1)
+        if (UnityEngine.Random.Range(0, 100) < s_infiniteAmmoChance)
         {
-            // 1% chance for infinite ammo
             _ammo = int.MaxValue;
         }
         else

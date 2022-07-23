@@ -5,6 +5,7 @@ public class CrateDamage : Crate
 {
     private static readonly int s_minDamage = 1;
     private static readonly int s_maxDamage = 10;
+    private static readonly int s_doubleDamageChance = 5;
     private int _damage;
 
 
@@ -28,9 +29,8 @@ public class CrateDamage : Crate
 
     private void SetRandomDamage()
     {
-        if (UnityEngine.Random.Range(0, 100) < 5)
+        if (UnityEngine.Random.Range(0, 100) < s_doubleDamageChance)
         {
-            // 5% chance for doubling the current damage
             _damage = int.MaxValue;
         }
         else
