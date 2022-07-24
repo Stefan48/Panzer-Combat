@@ -191,5 +191,68 @@ PrefabInstance:
       propertyPath: m_Name
       value: CrateAbility
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 1194006447, guid: 8654b98aa3eb31f429efda783ab47db1, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 8654b98aa3eb31f429efda783ab47db1, type: 3}
+--- !u!1 &3599473844365942800 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 9065924571364506927, guid: 8654b98aa3eb31f429efda783ab47db1, type: 3}
+  m_PrefabInstance: {fileID: 5486303807284927807}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &6885776887695123501 stripped
+BoxCollider:
+  m_CorrespondingSourceObject: {fileID: 1417637340330785042, guid: 8654b98aa3eb31f429efda783ab47db1, type: 3}
+  m_PrefabInstance: {fileID: 5486303807284927807}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &3505886876308788234 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 8972346622805641525, guid: 8654b98aa3eb31f429efda783ab47db1, type: 3}
+  m_PrefabInstance: {fileID: 5486303807284927807}
+  m_PrefabAsset: {fileID: 0}
+--- !u!82 &8576088569986297746 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 4262418605540733613, guid: 8654b98aa3eb31f429efda783ab47db1, type: 3}
+  m_PrefabInstance: {fileID: 5486303807284927807}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1585912850167656603 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6494489090248879524, guid: 8654b98aa3eb31f429efda783ab47db1, type: 3}
+  m_PrefabInstance: {fileID: 5486303807284927807}
+  m_PrefabAsset: {fileID: 0}
+--- !u!102 &5486303807991391362 stripped
+TextMesh:
+  m_CorrespondingSourceObject: {fileID: 1579448765, guid: 8654b98aa3eb31f429efda783ab47db1, type: 3}
+  m_PrefabInstance: {fileID: 5486303807284927807}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &5486303807991391360 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 1579448767, guid: 8654b98aa3eb31f429efda783ab47db1, type: 3}
+  m_PrefabInstance: {fileID: 5486303807284927807}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &5781864504517792190 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2026069099937680513, guid: 8654b98aa3eb31f429efda783ab47db1, type: 3}
+  m_PrefabInstance: {fileID: 5486303807284927807}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6259392350344940767
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3599473844365942800}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2aad84d11ceea5e4da4a92f71b72e2ef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _wholeCrateMeshRenderer: {fileID: 3505886876308788234}
+  _boxCollider: {fileID: 6885776887695123501}
+  _fracturedCrate: {fileID: 1585912850167656603}
+  _minimapIcon: {fileID: 5781864504517792190}
+  _tanksLayerMask:
+    serializedVersion: 2
+    m_Bits: 64
+  _onCollectText: {fileID: 5486303807991391362}
+  _onCollectTextAnimator: {fileID: 5486303807991391360}
+  _crateAudioSource: {fileID: 8576088569986297746}

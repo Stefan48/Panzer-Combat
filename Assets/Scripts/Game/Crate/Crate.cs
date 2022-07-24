@@ -113,7 +113,6 @@ public class Crate : MonoBehaviour
     }
 }
 
-// TODO - Make a child of the Crate class for each type of crate, overriding Init, GetOnCollectText and RewardPlayer and overloading RPC_Init
 
 public enum CrateType
 {

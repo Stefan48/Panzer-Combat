@@ -42,7 +42,7 @@ public class PlayerManager
         // TODO - Have user-defined initial number of tanks
         // If there are multiple tanks, make sure they don't overlap
         // Rotate them towards the map's center?
-        for (int i = 0; i < 1; ++i)
+        for (int i = 0; i < 2; ++i)
         {
             InstantiateDefaultTank(_spawnPosition);
 
@@ -103,6 +103,7 @@ public class PlayerManager
         {
             tank.GetComponent<TankMovement>().EscPanelIsActive = active;
             tank.GetComponent<TankShooting>().EscPanelIsActive = active;
+            tank.GetComponent<TankAbilities>().EscPanelIsActive = active;
         }
     }
 
@@ -113,6 +114,7 @@ public class PlayerManager
             float[] eventData = (float[])obj.CustomData;
             Vector3 position = new Vector3(eventData[0], 0f, eventData[1]);
             GameObject tank = InstantiateDefaultTank(position);
+            // The third float tells if the tank should be a default one or if it has duplicated stats instead
             if (eventData[2] == 0f)
             {
                 int health = (int)eventData[3];

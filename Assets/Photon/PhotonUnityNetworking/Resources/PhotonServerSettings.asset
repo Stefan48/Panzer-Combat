@@ -64,6 +64,8 @@ MonoBehaviour:
   - RPC_IncreaseRange
   - RPC_SetInitialInfo
   - RPC_SetStats
+  - RPC_NewAbility
+  - RPC_SetTripleShellsAbilityActive
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

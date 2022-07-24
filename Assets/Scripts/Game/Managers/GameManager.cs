@@ -240,9 +240,9 @@ public class GameManager : MonoBehaviourPunCallbacks
     {
         int roll = UnityEngine.Random.Range(0, 100);
         // TODO - Probabilities
-        if (roll < 60)
+        if (roll < 80)
         {
-            return CrateType.Tank;
+            return CrateType.Ability;
         }
         return CrateType.Ammo;
         //return (CrateType)UnityEngine.Random.Range(0, Enum.GetNames(typeof(CrateType)).Length);

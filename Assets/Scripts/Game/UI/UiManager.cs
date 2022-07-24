@@ -39,11 +39,19 @@ public class UiManager : MonoBehaviourPunCallbacks
     [SerializeField] private Text _numTanksSelectedText;
     [SerializeField] private GameObject _minimapPanel;
     private const int _maxGameLogs = 4;
-    [SerializeField] private List<Text> _gameLogsTexts = new List<Text>();
+    [SerializeField] private Text[] _gameLogsTexts = new Text[_maxGameLogs];
     [SerializeField] private Color _gameLogsColor;
     private (PlayerInfo, PlayerInfo)[] _gameLogsPlayers = new (PlayerInfo, PlayerInfo)[_maxGameLogs];
     private const float _gameLogsAlphaDecreaseStep = 0.1f;
     private IEnumerator _updateGameLogsCoroutine = null;
+    [SerializeField] private GameObject[] _placeholderAbilityPanels = new GameObject[TankAbilities.MaxAbilities];
+    [SerializeField] private GameObject[] _activeAbilityPanels = new GameObject[TankAbilities.MaxAbilities];
+    [SerializeField] private RawImage[] _abilityIcons = new RawImage[TankAbilities.MaxAbilities];
+    [SerializeField] private Texture _tripleShellsAbilityIcon;
+    private Dictionary<AbilityType, Texture> _abilityIconsTextures = new Dictionary<AbilityType, Texture>();
+    [SerializeField] private Color _abilityNotActiveColor;
+    [SerializeField] private Color _abilityActiveColor;
+    public static readonly float AbilityPanelShrinkTime = 1f;
 
     public static event Action<bool> EscPanelToggledEvent;
 
@@ -56,6 +64,8 @@ public class UiManager : MonoBehaviourPunCallbacks
         TankHealth.AlliedTankGotDestroyedEvent += OnAlliedTankGotDestroyed;
         GameManager.PlayerGotDefeatedEvent += OnPlayerGotDefeated;
         GameManager.PlayerDisconnectedEvent += OnPlayerDisconnect;
+
+        _abilityIconsTextures.Add(AbilityType.TripleShells, _tripleShellsAbilityIcon);
     }
 
     private void OnDestroy()
@@ -94,6 +104,7 @@ public class UiManager : MonoBehaviourPunCallbacks
             }
         }
         UpdateTankInfoPanel(false);
+        UpdateAbilityPanels(false);
     }
 
     private void ToggleEscPanel()
@@ -159,7 +170,6 @@ public class UiManager : MonoBehaviourPunCallbacks
     private void UpdateSelectedTanks()
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        // TODO - No hit if user clicked on UI?
         if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, _tanksLayerMask, QueryTriggerInteraction.Ignore))
         {
             GameObject tank = hit.transform.gameObject;
@@ -230,6 +240,7 @@ public class UiManager : MonoBehaviourPunCallbacks
             DeselectEnemyTank();
         }
         UpdateTankInfoPanel(true);
+        UpdateAbilityPanels(true);
     }
 
     private void UpdateTankInfoPanel(bool tankSelectionUpdated)
@@ -266,7 +277,6 @@ public class UiManager : MonoBehaviourPunCallbacks
         {
             _tankInfoPanel.SetActive(false);
             _multipleTanksSelectedPanel.SetActive(true);
-            TankInfo tankInfo = _selectedAlliedTanks[0].GetComponent<TankInfo>();
             _numTanksSelectedText.text = $"{_selectedAlliedTanks.Count} tanks selected";
         }
         else
@@ -315,6 +325,63 @@ public class UiManager : MonoBehaviourPunCallbacks
         {
             _tankInfoPanelRangeText.text = $"{tankInfo.Range}";
             _tankInfoPanelRangeText.fontStyle = FontStyle.Normal;
+        }
+    }
+
+    private void UpdateAbilityPanels(bool tankSelectionUpdated)
+    {
+        if (!tankSelectionUpdated)
+        {
+            if (_selectedAlliedTanks.Count == 1)
+            {
+                if (_selectedAlliedTanks[0] == null)
+                {
+                    _selectedAlliedTanks.Clear();
+                    DisableAbilityPanels();
+                }
+                else
+                {
+                    UpdateSelectedTankAbilityPanels(_selectedAlliedTanks[0].GetComponent<TankAbilities>());
+                }
+            }
+            return;
+        }
+        if (_selectedAlliedTanks.Count != 1)
+        {
+            DisableAbilityPanels();
+            return;
+        }
+        UpdateSelectedTankAbilityPanels(_selectedAlliedTanks[0].GetComponent<TankAbilities>());
+    }
+
+    private void UpdateSelectedTankAbilityPanels(TankAbilities tank)
+    {
+        for (int i = 0; i < TankAbilities.MaxAbilities; ++i)
+        {
+            _placeholderAbilityPanels[i].SetActive(true);
+            Ability ability = tank.Abilities[i];
+            if (ability != null)
+            {
+                _activeAbilityPanels[i].SetActive(true);
+                _activeAbilityPanels[i].GetComponent<Image>().color = ability.IsActive ? _abilityActiveColor : _abilityNotActiveColor;
+                float scaleReduction = ability.IsActive ?
+                    Math.Min(1f, Math.Max(0f, (AbilityPanelShrinkTime - ability.Duration + ability.Timer)) / AbilityPanelShrinkTime) : 0f;
+                float scale = 1f - scaleReduction;
+                _activeAbilityPanels[i].transform.localScale = new Vector3(scale, scale, 1f);
+                _abilityIcons[i].texture = _abilityIconsTextures[ability.Type];
+            }
+            else
+            {
+                _activeAbilityPanels[i].SetActive(false);
+            }
+        }
+    }
+
+    private void DisableAbilityPanels()
+    {
+        foreach (GameObject panel in _placeholderAbilityPanels)
+        {
+            panel.SetActive(false);
         }
     }
 
@@ -398,6 +465,7 @@ public class UiManager : MonoBehaviourPunCallbacks
                 Debug.LogWarning("[UiManager] Could not remove destroyed tank from the _selectedAlliedTanks list");
             }
             UpdateTankInfoPanel(true);
+            UpdateAbilityPanels(true);
         }
     }
 
@@ -431,7 +499,7 @@ public class UiManager : MonoBehaviourPunCallbacks
 
     private void ShiftGameLogs()
     {
-        for (int i = _gameLogsTexts.Count - 1; i > 0; --i)
+        for (int i = _maxGameLogs - 1; i > 0; --i)
         {
             _gameLogsTexts[i].text = _gameLogsTexts[i - 1].text;
             _gameLogsTexts[i].color = _gameLogsTexts[i - 1].color;
@@ -454,7 +522,7 @@ public class UiManager : MonoBehaviourPunCallbacks
         while (true)
         {
             gameLogsExist = false;
-            for (int i = 0; i < _gameLogsTexts.Count; ++i)
+            for (int i = 0; i < _maxGameLogs; ++i)
             {
                 if (_gameLogsTexts[i].text != string.Empty)
                 {
@@ -500,7 +568,7 @@ public class UiManager : MonoBehaviourPunCallbacks
             StopCoroutine(_updateGameLogsCoroutine);
             _updateGameLogsCoroutine = null;
         }
-        for (int i = 0; i < _gameLogsTexts.Count; ++i)
+        for (int i = 0; i < _maxGameLogs; ++i)
         {
             _gameLogsTexts[i].text = string.Empty;
             _gameLogsPlayers[i] = (null, null);
@@ -512,6 +580,7 @@ public class UiManager : MonoBehaviourPunCallbacks
         DeselectAlliedTanks();
         DeselectEnemyTank();
         UpdateTankInfoPanel(true);
+        UpdateAbilityPanels(true);
     }
 
     private string GetRoundEndText(PlayerInfo roundWinner, bool isGameWinner)
