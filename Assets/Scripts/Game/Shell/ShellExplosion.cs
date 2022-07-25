@@ -19,8 +19,14 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
     private const float _raycastMagnitude = 1f;
     private bool _hitSomething = false;
     private bool _explosionPending = false;
+    private const float _maxDeflectionRotation = 30f;
+    private bool _deflectionPending = false;
+    [SerializeField] private AudioSource _shellExplosionAudioSource;
+    [SerializeField] private AudioClip _shellDeflectionAudioClip;
+    private const float _shellDeflectionAudioVolume = 0.6f;
 
     private static readonly byte s_shellExplosionNetworkEvent = 0;
+    private static readonly byte s_shellDeflectionNetworkEvent = 2;
 
 
     private void Awake()
@@ -75,10 +81,18 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
             if (_actorNumber != otherGameObject.GetComponent<TankInfo>().ActorNumber)
             {
                 // The shell hit an enemy tank in short range
-                OnHitWithoutCheck();
-                otherGameObject.GetComponent<TankHealth>().TakeDamage(_damage, _actorNumber);
+                if (otherGameObject.GetComponent<TankAbilities>().DeflectShellsAbilityActive)
+                {
+                    OnShellGotDeflected();
+                }
+                else
+                {
+                    OnHitWithoutCheck();
+                    otherGameObject.GetComponent<TankHealth>().TakeDamage(_damage, _actorNumber);
+                }
             }
-            // Else, the shell would have hit the tank which shot it right after it was shot
+            // Else, the shell could have hit the tank which shot it right after it was shot (or another allied tank in short range)
+            // TODO - Unique identifiers for tanks, stored in the shell script as well for extra checks
         }
         else if (((1 << otherGameObject.layer) & _defaultLayerMask.value) > 0)
         {
@@ -109,8 +123,18 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
                 if (((1 << hitGameObject.layer) & _tanksLayerMask.value) > 0)
                 {
                     // The shell hit a tank
-                    _hitSomething = true;
-                    hitGameObject.GetComponent<TankHealth>().TakeDamage(_damage, _actorNumber);
+                    if (hitGameObject.GetComponent<TankAbilities>().DeflectShellsAbilityActive)
+                    {
+                        if (!_hitSomething)
+                        {
+                            OnShellGotDeflected();
+                        }
+                    }
+                    else
+                    {
+                        _hitSomething = true;
+                        hitGameObject.GetComponent<TankHealth>().TakeDamage(_damage, _actorNumber);
+                    }
                     break;
                 }
                 else if (((1 << hitGameObject.layer) & _defaultLayerMask.value) > 0)
@@ -134,6 +158,18 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
         {
             StartCoroutine(Explosion(0f));
         }
+    }
+
+    private void OnShellGotDeflected()
+    {
+        if (_deflectionPending)
+        {
+            return;
+        }
+        _deflectionPending = true;
+        float rotation = UnityEngine.Random.Range(-_maxDeflectionRotation, _maxDeflectionRotation);
+        PhotonNetwork.RaiseEvent(s_shellDeflectionNetworkEvent, new float[] { _id, rotation },
+            new RaiseEventOptions { Receivers = ReceiverGroup.All }, SendOptions.SendReliable);
     }
 
     private void OnHitWithCheck()
@@ -179,18 +215,29 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
                 Explode();
             }
         }
+        else if (obj.Code == s_shellDeflectionNetworkEvent)
+        {
+            float[] customData = (float[])obj.CustomData;
+            if (customData[0] == _id)
+            {
+                _deflectionPending = false;
+                float newRotation = transform.eulerAngles.y + 180f + customData[1];
+                transform.eulerAngles = new Vector3(0f, newRotation, 0f);
+                // Play the deflection sound using the shell explosion AudioSource so that it can't get canceled by the explosion sound
+                _shellExplosionAudioSource.PlayOneShot(_shellDeflectionAudioClip, _shellDeflectionAudioVolume);
+            }
+        }
     }
 
     private void Explode()
     {
         GameObject shellExplosion = transform.Find("ShellExplosion").gameObject;
         ParticleSystem shellExplosionParticleSystem = shellExplosion.GetComponent<ParticleSystem>();
-        AudioSource shellExplosionAudioSource = shellExplosion.GetComponent<AudioSource>();
         // Detach shellExplosion from the shell GameObject
         shellExplosion.transform.parent = null;
         shellExplosionParticleSystem.Play();
-        shellExplosionAudioSource.Play();
-        Destroy(shellExplosion, Math.Max(shellExplosionParticleSystem.main.duration, shellExplosionAudioSource.clip.length));
+        _shellExplosionAudioSource.PlayOneShot(_shellExplosionAudioSource.clip);
+        Destroy(shellExplosion, Math.Max(shellExplosionParticleSystem.main.duration, _shellExplosionAudioSource.clip.length));
         Destroy(gameObject);
     }
 

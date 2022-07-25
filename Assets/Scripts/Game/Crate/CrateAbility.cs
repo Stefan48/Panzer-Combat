@@ -28,9 +28,9 @@ public class CrateAbility : Crate
     {
         int roll = UnityEngine.Random.Range(0, 100);
         // TODO - Probabilities
-        if (roll < 100)
+        if (roll < 65)
         {
-            _abilityType = AbilityType.TripleShells;
+            _abilityType = AbilityType.DeflectShells;
         }
         else
         {

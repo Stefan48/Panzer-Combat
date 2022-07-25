@@ -98,6 +98,8 @@ public class CameraControl : MonoBehaviour
         ApplyZoom();
         if (_tanks.Count == 0)
         {
+            // TODO - Being able to select tanks in spectator mode (currently the fog gets disable but there's still no Vision)
+            // TODO - Camera auto-follow in spectator mode?
             GlideCamera();
             return;
         }

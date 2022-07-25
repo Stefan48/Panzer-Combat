@@ -11,6 +11,7 @@ public class TankAbilities : MonoBehaviour
     public static readonly int MaxAbilities = 5;
     public Ability[] Abilities = new Ability[MaxAbilities];
     public bool TripleShellsAbilityActive { get; private set; } = false;
+    public bool DeflectShellsAbilityActive { get; private set; } = false;
 
 
     private void Awake()
@@ -31,31 +32,32 @@ public class TankAbilities : MonoBehaviour
             {
                 if (Input.GetKeyDown(KeyCode.Alpha1))
                 {
-                    UseAbility(Abilities[0]);
+                    UseAbility(0);
                 }
                 if (Input.GetKeyDown(KeyCode.Alpha2))
                 {
-                    UseAbility(Abilities[1]);
+                    UseAbility(1);
                 }
                 if (Input.GetKeyDown(KeyCode.Alpha3))
                 {
-                    UseAbility(Abilities[2]);
+                    UseAbility(2);
                 }
                 if (Input.GetKeyDown(KeyCode.Alpha4))
                 {
-                    UseAbility(Abilities[3]);
+                    UseAbility(3);
                 }
                 if (Input.GetKeyDown(KeyCode.Alpha5))
                 {
-                    UseAbility(Abilities[4]);
+                    UseAbility(4);
                 }
             }
         }
         AdvanceAbilityTimers();
     }
 
-    private void UseAbility(Ability ability)
+    private void UseAbility(int index)
     {
+        Ability ability = Abilities[index];
         if (ability == null || ability.IsActive)
         {
             return;
@@ -63,12 +65,18 @@ public class TankAbilities : MonoBehaviour
         ability.IsActive = true;
         if (ability.Type == AbilityType.TripleShells)
         {
-            if (!TripleShellsAbilityActive)
+            if (!ActiveAbilitiesOfTypeBesidesIndex(AbilityType.TripleShells, index))
             {
                 SetTripleShellsAbilityActive(true);
             }
         }
-        // TODO - If AbilityType.DeflectShells, set DeflectingShells status (via RPC)
+        else if (ability.Type == AbilityType.DeflectShells)
+        {
+            if (!ActiveAbilitiesOfTypeBesidesIndex(AbilityType.DeflectShells, index))
+            {
+                SetDeflectShellsAbilityActive(true);
+            }
+        }
         // TODO - If AbilityType.LaserBeam, activate laser (if not already active)
         // TODO - If AbilityType.Mine, place mine
     }
@@ -90,7 +98,13 @@ public class TankAbilities : MonoBehaviour
                             SetTripleShellsAbilityActive(false);
                         }
                     }
-                    // TODO - If AbilityType.DeflectShells, set DeflectingShells status to false (via RPC) (if there aren't other instances of the same ability active)
+                    else if (ability.Type == AbilityType.DeflectShells)
+                    {
+                        if (!ActiveAbilitiesOfTypeBesidesIndex(AbilityType.DeflectShells, i))
+                        {
+                            SetDeflectShellsAbilityActive(false);
+                        }
+                    }
                     // TODO - If AbilityType.LaserBeam, deactivate laser (if there aren't any other LaserBeam abilities still active)
                     Abilities[i] = null;
                 }
@@ -127,7 +141,15 @@ public class TankAbilities : MonoBehaviour
             if (Abilities[i] == null)
             {
                 Abilities[i] = new Ability(abilityType);
-                break;
+                return;
+            }
+        }
+        for (int i = 0; i < MaxAbilities; ++i)
+        {
+            if (Abilities[i].Type == AbilityType.Mine && Abilities[i].IsActive)
+            {
+                Abilities[i] = new Ability(abilityType);
+                return;
             }
         }
     }
@@ -141,5 +163,16 @@ public class TankAbilities : MonoBehaviour
     private void RPC_SetTripleShellsAbilityActive(bool active)
     {
         TripleShellsAbilityActive = active;
+    }
+
+    private void SetDeflectShellsAbilityActive(bool active)
+    {
+        _photonView.RPC("RPC_SetDeflectShellsAbilityActive", RpcTarget.AllViaServer, active);
+    }
+
+    [PunRPC]
+    private void RPC_SetDeflectShellsAbilityActive(bool active)
+    {
+        DeflectShellsAbilityActive = active;
     }
 }

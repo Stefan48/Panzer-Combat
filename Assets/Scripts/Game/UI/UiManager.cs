@@ -48,6 +48,7 @@ public class UiManager : MonoBehaviourPunCallbacks
     [SerializeField] private GameObject[] _activeAbilityPanels = new GameObject[TankAbilities.MaxAbilities];
     [SerializeField] private RawImage[] _abilityIcons = new RawImage[TankAbilities.MaxAbilities];
     [SerializeField] private Texture _tripleShellsAbilityIcon;
+    [SerializeField] private Texture _deflectShellsAbilityIcon;
     private Dictionary<AbilityType, Texture> _abilityIconsTextures = new Dictionary<AbilityType, Texture>();
     [SerializeField] private Color _abilityNotActiveColor;
     [SerializeField] private Color _abilityActiveColor;
@@ -66,6 +67,7 @@ public class UiManager : MonoBehaviourPunCallbacks
         GameManager.PlayerDisconnectedEvent += OnPlayerDisconnect;
 
         _abilityIconsTextures.Add(AbilityType.TripleShells, _tripleShellsAbilityIcon);
+        _abilityIconsTextures.Add(AbilityType.DeflectShells, _deflectShellsAbilityIcon);
     }
 
     private void OnDestroy()

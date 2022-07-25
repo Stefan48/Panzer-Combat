@@ -66,6 +66,7 @@ MonoBehaviour:
   - RPC_SetStats
   - RPC_NewAbility
   - RPC_SetTripleShellsAbilityActive
+  - RPC_SetDeflectShellsAbilityActive
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1
