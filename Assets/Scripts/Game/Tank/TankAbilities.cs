@@ -12,6 +12,8 @@ public class TankAbilities : MonoBehaviour
     public Ability[] Abilities = new Ability[MaxAbilities];
     public bool TripleShellsAbilityActive { get; private set; } = false;
     public bool DeflectShellsAbilityActive { get; private set; } = false;
+    public bool LaserBeamAbilityActive { get; private set; } = false;
+    [SerializeField] private LaserBeam _laserBeam;
 
 
     private void Awake()
@@ -77,7 +79,13 @@ public class TankAbilities : MonoBehaviour
                 SetDeflectShellsAbilityActive(true);
             }
         }
-        // TODO - If AbilityType.LaserBeam, activate laser (if not already active)
+        else if (ability.Type == AbilityType.LaserBeam)
+        {
+            if (!ActiveAbilitiesOfTypeBesidesIndex(AbilityType.LaserBeam, index))
+            {
+                SetLaserBeamAbilityActive(true);
+            }
+        }
         // TODO - If AbilityType.Mine, place mine
     }
 
@@ -105,7 +113,13 @@ public class TankAbilities : MonoBehaviour
                             SetDeflectShellsAbilityActive(false);
                         }
                     }
-                    // TODO - If AbilityType.LaserBeam, deactivate laser (if there aren't any other LaserBeam abilities still active)
+                    else if (ability.Type == AbilityType.LaserBeam)
+                    {
+                        if (!ActiveAbilitiesOfTypeBesidesIndex(AbilityType.LaserBeam, i))
+                        {
+                            SetLaserBeamAbilityActive(false);
+                        }
+                    }
                     Abilities[i] = null;
                 }
             }
@@ -174,5 +188,24 @@ public class TankAbilities : MonoBehaviour
     private void RPC_SetDeflectShellsAbilityActive(bool active)
     {
         DeflectShellsAbilityActive = active;
+    }
+
+    private void SetLaserBeamAbilityActive(bool active)
+    {
+        _photonView.RPC("RPC_SetLaserBeamAbilityActive", RpcTarget.AllViaServer, active);
+    }
+
+    [PunRPC]
+    private void RPC_SetLaserBeamAbilityActive(bool active)
+    {
+        LaserBeamAbilityActive = active;
+        if (active)
+        {
+            _laserBeam.Activate();
+        }
+        else
+        {
+            _laserBeam.Deactivate();
+        }
     }
 }

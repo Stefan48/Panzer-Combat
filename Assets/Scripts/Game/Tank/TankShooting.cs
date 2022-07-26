@@ -65,6 +65,10 @@ public class TankShooting : MonoBehaviour
 
     private void Shoot()
     {
+        if (_tankAbilities.LaserBeamAbilityActive)
+        {
+            return;
+        }
         if (_tankInfo.Ammo == 0)
         {
             _noAmmoAudioSource.Play();

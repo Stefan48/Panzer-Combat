@@ -28,7 +28,7 @@ public class TankHealth : MonoBehaviour
         UpdateHealthBar();
     }
 
-    public void TakeDamage(int damage, int playerDealingDamageActorNumber)
+    public void TakeDamage(int damage, bool trueDamage, int playerDealingDamageActorNumber)
     {
         // It's possible that the tank's health dropped to 0 but PhotonNetwork.Destroy has not been called yet
         // In this case, avoid calling the RPC
@@ -40,11 +40,11 @@ public class TankHealth : MonoBehaviour
         // if multiple RPC_TakeDamage have already been called but not executed yet
         // So by the time the new RPC call is received, the GameObject/PhotonView might not exist anymore
         // (RPC gets lost and a warning is logged)
-        _photonView.RPC("RPC_TakeDamage", RpcTarget.AllViaServer, damage, playerDealingDamageActorNumber);
+        _photonView.RPC("RPC_TakeDamage", RpcTarget.AllViaServer, damage, trueDamage, playerDealingDamageActorNumber);
     }
 
     [PunRPC]
-    private void RPC_TakeDamage(int damage, int playerDealingDamageActorNumber)
+    private void RPC_TakeDamage(int damage, bool trueDamage, int playerDealingDamageActorNumber)
     {
         // Due to the latency, this might get called on a tank whose health has already dropped below 0
         // So make sure to not execute the code below multiple times
@@ -52,11 +52,14 @@ public class TankHealth : MonoBehaviour
         {
             return;
         }
-        // Armor acts as a flat damage reduction
-        damage -= _tankInfo.Armor;
-        if (damage <= 0)
+        if (!trueDamage)
         {
-            return;
+            // Armor acts as a flat damage reduction
+            damage -= _tankInfo.Armor;
+            if (damage <= 0)
+            {
+                return;
+            }
         }
         _tankInfo.Health -= damage;
         UpdateHealthBar();

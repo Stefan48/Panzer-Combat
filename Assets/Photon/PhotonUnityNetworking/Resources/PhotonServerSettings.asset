@@ -67,6 +67,7 @@ MonoBehaviour:
   - RPC_NewAbility
   - RPC_SetTripleShellsAbilityActive
   - RPC_SetDeflectShellsAbilityActive
+  - RPC_SetLaserBeamAbilityActive
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

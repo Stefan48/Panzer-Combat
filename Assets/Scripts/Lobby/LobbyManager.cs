@@ -123,6 +123,8 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         _joinedRoom = false;
     }
 
+    // TODO - Check if username is already taken by someone else in the room
+
     public void JoinRoom()
     {
         if (_joinedRoom)

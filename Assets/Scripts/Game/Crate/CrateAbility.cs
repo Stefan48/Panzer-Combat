@@ -28,7 +28,11 @@ public class CrateAbility : Crate
     {
         int roll = UnityEngine.Random.Range(0, 100);
         // TODO - Probabilities
-        if (roll < 65)
+        if (roll < 70)
+        {
+            _abilityType = AbilityType.LaserBeam;
+        }
+        else if (roll < 90)
         {
             _abilityType = AbilityType.DeflectShells;
         }
