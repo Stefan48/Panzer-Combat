@@ -14,6 +14,7 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
     [SerializeField] private LayerMask _defaultTanksAndShellsLayerMask;
     private int _id; // unique shell identifier
     private int _actorNumber;
+    private int _tankNumber;
     private int _damage;
     [SerializeField] private List<Transform> _raycastOrigins = new List<Transform>();
     private const float _raycastMagnitude = 1f;
@@ -51,10 +52,11 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
         PhotonNetwork.NetworkingClient.EventReceived -= NetworkingClient_EventReceived;
     }
 
-    public void Init(int id, int damage)
+    public void Init(int id, int actorNumber, int tankNumber, int damage)
     {
         _id = id;
-        _actorNumber = TankShooting.GetOwnerActorNumberOfShell(_id);
+        _actorNumber = actorNumber;
+        _tankNumber = tankNumber;
         _damage = damage;
     }
 
@@ -78,9 +80,9 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
         GameObject otherGameObject = other.gameObject;
         if (((1 << otherGameObject.layer) & _tanksLayerMask.value) > 0)
         {
-            if (_actorNumber != otherGameObject.GetComponent<TankInfo>().ActorNumber)
+            if (_tankNumber != otherGameObject.GetComponent<TankInfo>().TankNumber)
             {
-                // The shell hit an enemy tank in short range
+                // The shell hit a tank (different from the one which shot it) in short range
                 if (otherGameObject.GetComponent<TankAbilities>().DeflectShellsAbilityActive)
                 {
                     OnShellGotDeflected();
@@ -91,8 +93,8 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
                     otherGameObject.GetComponent<TankHealth>().TakeDamage(_damage, false, _actorNumber);
                 }
             }
-            // Else, the shell could have hit the tank which shot it right after it was shot (or another allied tank in short range)
-            // TODO - Unique identifiers for tanks, stored in the shell script as well for extra checks
+            // Else, the shell could have hit the tank which shot it right after it was shot due to the speed difference
+            // But it also could have been deflected off another tank which was close enough
         }
         else if (((1 << otherGameObject.layer) & _defaultLayerMask.value) > 0)
         {
@@ -102,7 +104,7 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
         else if (((1 << otherGameObject.layer) & _shellsLayerMask.value) > 0)
         {
             ShellExplosion otherShell = otherGameObject.GetComponent<ShellExplosion>();
-            if (_actorNumber != TankShooting.GetOwnerActorNumberOfShell(otherShell._id))
+            if (_actorNumber != otherShell._actorNumber)
             {
                 // The shell hit an enemy shell
                 OnHitWithoutCheck();
@@ -145,7 +147,7 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
                 else if (((1 << hitGameObject.layer) & _shellsLayerMask.value) > 0)
                 {
                     ShellExplosion otherShell = hitGameObject.GetComponent<ShellExplosion>();
-                    if (_actorNumber != TankShooting.GetOwnerActorNumberOfShell(otherShell._id))
+                    if (_actorNumber != otherShell._actorNumber)
                     {
                         // The shell hit an enemy shell (which did not necessarily detect the collision)
                         _hitSomething = true;

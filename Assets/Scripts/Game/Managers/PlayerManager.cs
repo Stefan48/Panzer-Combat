@@ -57,7 +57,7 @@ public class PlayerManager
     {
         GameObject tank = PhotonNetwork.Instantiate(_tankPrefab.name, position, Quaternion.identity);
         TankInfo tankInfo = tank.GetComponent<TankInfo>();
-        tankInfo.SetInitialInfo(_gameManager.ActorNumber, PlayerColor);
+        tankInfo.SetInitialInfo(_gameManager.ActorNumber * TankInfo.TankNumberMultiplier + Tanks.Count, PlayerColor);
         tank.transform.Find("Vision").gameObject.SetActive(true);
         Tanks.Add(tank);
         return tank;

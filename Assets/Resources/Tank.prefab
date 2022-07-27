@@ -921,6 +921,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   EscPanelIsActive: 0
+  CurrentShellId: -1
   _muzzleCenter: {fileID: 1110268858}
   _muzzleLeft: {fileID: 857558313454813711}
   _muzzleRight: {fileID: 153578981098393054}

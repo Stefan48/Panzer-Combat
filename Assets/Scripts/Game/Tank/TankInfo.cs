@@ -7,7 +7,12 @@ public class TankInfo : MonoBehaviour
     private PhotonView _photonView;
     [SerializeField] private TextMesh _usernameTextMesh;
     [SerializeField] private SpriteRenderer _minimapIconSpriteRenderer;
+    private TankShooting _tankShooting;
     public int ActorNumber { get; private set; } = -1; // initializing is for testing only
+    public static readonly int TankNumberMultiplier = 100;
+    // Unique identifier for tanks, equal to ActorNumber * TankNumberMultiplier + the index in the Tanks list of the PlayerManager
+    // (could get reused after the tank gets destroyed)
+    public int TankNumber { get; private set; }
     public string Username { get; private set; }
     public Color Color { get; private set; }
     public bool IsSelected = false;
@@ -30,21 +35,24 @@ public class TankInfo : MonoBehaviour
     private void Awake()
     {
         _photonView = GetComponent<PhotonView>();
+        _tankShooting = GetComponent<TankShooting>();
         Health = MaxHealth;
 
         //ActorNumber = Random.Range(0, 100) % 2 == 0 ? 0 : -1; // this is for testing only
     }
 
-    public void SetInitialInfo(int actorNumber, Color color)
+    public void SetInitialInfo(int tankNumber, Color color)
     {
-        _photonView.RPC("RPC_SetInitialInfo", RpcTarget.All, actorNumber, new Vector3(color.r, color.g, color.b));
+        _photonView.RPC("RPC_SetInitialInfo", RpcTarget.All, tankNumber, new Vector3(color.r, color.g, color.b));
     }
 
     [PunRPC]
-    private void RPC_SetInitialInfo(int actorNumber, Vector3 color)
+    private void RPC_SetInitialInfo(int tankNumber, Vector3 color)
     {
-        ActorNumber = actorNumber;
-        Username = PhotonNetwork.CurrentRoom.GetPlayer(actorNumber).NickName;
+        ActorNumber = tankNumber / TankNumberMultiplier;
+        TankNumber = tankNumber;
+        GetComponent<TankShooting>().CurrentShellId = TankNumber * TankShooting.ShellIdMultiplier;
+        Username = PhotonNetwork.CurrentRoom.GetPlayer(ActorNumber).NickName;
         _usernameTextMesh.text = Username;
 
         Color = new Color(color.x, color.y, color.z);

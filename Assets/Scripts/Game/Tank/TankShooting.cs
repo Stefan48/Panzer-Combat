@@ -7,9 +7,9 @@ public class TankShooting : MonoBehaviour
     private TankInfo _tankInfo;
     private TankAbilities _tankAbilities;
     public bool EscPanelIsActive = false;
-    private static readonly int s_shellIdMultiplier = 10000000;
-    private static int s_currentShellId = 0;
-    private static readonly int s_shellsShotWhileTripleShellsAbilityActive = 3;
+    public static readonly int ShellIdMultiplier = 1000000;
+    public int CurrentShellId = -1; // this gets set in the TankInfo script
+    private static readonly int s_maxShellsShotAtOnce = 3;
     [SerializeField] private Transform _muzzleCenter;
     [SerializeField] private Transform _muzzleLeft;
     [SerializeField] private Transform _muzzleRight;
@@ -27,10 +27,6 @@ public class TankShooting : MonoBehaviour
         }
         _tankInfo = GetComponent<TankInfo>();
         _tankAbilities = GetComponent<TankAbilities>();
-        if (s_currentShellId == 0)
-        {
-            s_currentShellId = PhotonNetwork.LocalPlayer.ActorNumber * s_shellIdMultiplier;
-        }
     }
 
     private void Update()
@@ -74,8 +70,8 @@ public class TankShooting : MonoBehaviour
             _noAmmoAudioSource.Play();
             return;
         }
-        _photonView.RPC("RPC_Shoot", RpcTarget.AllViaServer, s_currentShellId);
-        s_currentShellId += s_shellsShotWhileTripleShellsAbilityActive;
+        _photonView.RPC("RPC_Shoot", RpcTarget.AllViaServer, CurrentShellId);
+        CurrentShellId += s_maxShellsShotAtOnce;
     }
 
     [PunRPC]
@@ -90,21 +86,16 @@ public class TankShooting : MonoBehaviour
         // TODO - Object pooling
         GameObject shell = Instantiate(_shellPrefab, _muzzleCenter.position, _muzzleCenter.rotation);
         shell.GetComponent<ShellMovement>().Init(_tankInfo.ShellSpeed, _tankInfo.Range);
-        shell.GetComponent<ShellExplosion>().Init(shellId, _tankInfo.Damage);
+        shell.GetComponent<ShellExplosion>().Init(shellId, _tankInfo.ActorNumber, _tankInfo.TankNumber, _tankInfo.Damage);
         if (_tankAbilities.TripleShellsAbilityActive)
         {
             shell = Instantiate(_shellPrefab, _muzzleLeft.position, _muzzleLeft.rotation);
             shell.GetComponent<ShellMovement>().Init(_tankInfo.ShellSpeed, _tankInfo.Range);
-            shell.GetComponent<ShellExplosion>().Init(shellId + 1, _tankInfo.Damage);
+            shell.GetComponent<ShellExplosion>().Init(shellId + 1, _tankInfo.ActorNumber, _tankInfo.TankNumber, _tankInfo.Damage);
             shell = Instantiate(_shellPrefab, _muzzleRight.position, _muzzleRight.rotation);
             shell.GetComponent<ShellMovement>().Init(_tankInfo.ShellSpeed, _tankInfo.Range);
-            shell.GetComponent<ShellExplosion>().Init(shellId + 2, _tankInfo.Damage);
+            shell.GetComponent<ShellExplosion>().Init(shellId + 2, _tankInfo.ActorNumber, _tankInfo.TankNumber, _tankInfo.Damage);
         }
         _shotFiredAudioSource.Play();
-    }
-
-    public static int GetOwnerActorNumberOfShell(int shellId)
-    {
-        return shellId / s_shellIdMultiplier;
     }
 }
