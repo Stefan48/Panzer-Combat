@@ -30,15 +30,19 @@ public class CrateAbility : Crate
         // TODO - Probabilities
         if (roll < 70)
         {
-            _abilityType = AbilityType.LaserBeam;
+            _abilityType = AbilityType.Mine;
         }
-        else if (roll < 90)
+        else if (roll < 80)
         {
             _abilityType = AbilityType.DeflectShells;
         }
-        else
+        else if (roll < 90)
         {
             _abilityType = AbilityType.TripleShells;
+        }
+        else
+        {
+            _abilityType = AbilityType.LaserBeam;
         }
     }
 

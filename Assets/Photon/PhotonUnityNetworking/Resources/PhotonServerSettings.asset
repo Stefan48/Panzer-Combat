@@ -68,6 +68,8 @@ MonoBehaviour:
   - RPC_SetTripleShellsAbilityActive
   - RPC_SetDeflectShellsAbilityActive
   - RPC_SetLaserBeamAbilityActive
+  - RPC_Detonate
+  - RPC_PlaceMine
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

@@ -95,10 +95,10 @@ public class Crate : MonoBehaviour
         _fracturedCrate.SetActive(true);
         _minimapIcon.SetActive(false);
         // PhotonNetwork.Destroy does not have an overload for destroying the GameObject after a delay
-        StartCoroutine(DestroyCrate());
+        StartCoroutine(DestroyAfterDelay());
     }
 
-    private IEnumerator DestroyCrate()
+    private IEnumerator DestroyAfterDelay()
     {
         yield return new WaitForSeconds(_destroyDelay);
         if (PhotonNetwork.IsMasterClient)

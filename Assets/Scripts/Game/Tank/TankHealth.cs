@@ -61,11 +61,10 @@ public class TankHealth : MonoBehaviour
                 return;
             }
         }
-        _tankInfo.Health -= damage;
+        _tankInfo.Health = Math.Max(0, _tankInfo.Health - damage);
         UpdateHealthBar();
-        if (_tankInfo.Health <= 0)
+        if (_tankInfo.Health == 0)
         {
-            _tankInfo.Health = 0;
             PlayDeathEffects();
             if (_photonView.IsMine)
             {
@@ -125,7 +124,8 @@ public class TankHealth : MonoBehaviour
 
     private void PlayDeathEffects()
     {
-        GameObject tankExplosion = Instantiate(_tankExplosionPrefab, transform.position, transform.rotation);
+        Quaternion tankExplosionRotation = Quaternion.Euler(transform.eulerAngles + _tankExplosionPrefab.transform.eulerAngles);
+        GameObject tankExplosion = Instantiate(_tankExplosionPrefab, transform.position, tankExplosionRotation);
         ParticleSystem tankExplosionParticleSystem = tankExplosion.GetComponent<ParticleSystem>();
         AudioSource tankExplosionAudioSource = tankExplosion.GetComponent<AudioSource>();
         tankExplosionParticleSystem.Play();

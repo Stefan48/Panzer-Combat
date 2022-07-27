@@ -941,6 +941,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   EscPanelIsActive: 0
   _laserBeam: {fileID: 3405190032011472232}
+  _minePrefab: {fileID: 129334, guid: 02d77a2176f3e5d4491182ed65f90851, type: 3}
 --- !u!114 &-2153250219920769582
 MonoBehaviour:
   m_ObjectHideFlags: 0

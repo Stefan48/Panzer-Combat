@@ -14,6 +14,7 @@ public class TankAbilities : MonoBehaviour
     public bool DeflectShellsAbilityActive { get; private set; } = false;
     public bool LaserBeamAbilityActive { get; private set; } = false;
     [SerializeField] private LaserBeam _laserBeam;
+    [SerializeField] private GameObject _minePrefab;
 
 
     private void Awake()
@@ -86,7 +87,10 @@ public class TankAbilities : MonoBehaviour
                 SetLaserBeamAbilityActive(true);
             }
         }
-        // TODO - If AbilityType.Mine, place mine
+        else if (ability.Type == AbilityType.Mine)
+        {
+            PlaceMine();
+        }
     }
 
     private void AdvanceAbilityTimers()
@@ -207,5 +211,19 @@ public class TankAbilities : MonoBehaviour
         {
             _laserBeam.Deactivate();
         }
+    }
+
+    private void PlaceMine()
+    {
+        // Only the Master Client can use PhotonNetwork.InstantiateRoomObject (necessary so that the mines don't get destroyed if the player leaves)
+        _photonView.RPC("RPC_PlaceMine", RpcTarget.MasterClient);
+    }
+
+    [PunRPC]
+    private void RPC_PlaceMine()
+    {
+        GameObject mine = PhotonNetwork.InstantiateRoomObject(_minePrefab.name, transform.position + _minePrefab.transform.position, transform.rotation);
+        // TODO - Use instantiate data (also in other scripts where PhotonNetwork.Instantiate is used?)
+        mine.GetComponent<Mine>().SetActorNumber(_tankInfo.ActorNumber);
     }
 }

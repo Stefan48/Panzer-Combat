@@ -240,9 +240,13 @@ public class GameManager : MonoBehaviourPunCallbacks
     {
         int roll = UnityEngine.Random.Range(0, 100);
         // TODO - Probabilities
-        if (roll < 80)
+        if (roll < 70)
         {
             return CrateType.Ability;
+        }
+        if (roll < 85)
+        {
+            return CrateType.Armor;
         }
         return CrateType.Ammo;
         //return (CrateType)UnityEngine.Random.Range(0, Enum.GetNames(typeof(CrateType)).Length);
@@ -257,7 +261,8 @@ public class GameManager : MonoBehaviourPunCallbacks
             {
                 GameObject cratePrefab = _cratePrefabs[GetRandomCrateType()];
                 Quaternion crateRotation = Quaternion.Euler(0f, UnityEngine.Random.Range(0f, 360f), 0f);
-                GameObject crate = PhotonNetwork.Instantiate(cratePrefab.name, spawnPoint.position, crateRotation);
+                // Using PhotonNetwork.InstantiateRoomObject so that the crates don't get destroyed if the Master Client leaves
+                GameObject crate = PhotonNetwork.InstantiateRoomObject(cratePrefab.name, spawnPoint.position, crateRotation);
             }
         }
         yield return _crateSpawnWait;

@@ -50,12 +50,15 @@ public class UiManager : MonoBehaviourPunCallbacks
     [SerializeField] private Texture _tripleShellsAbilityIcon;
     [SerializeField] private Texture _deflectShellsAbilityIcon;
     [SerializeField] private Texture _laserBeamAbilityIcon;
+    [SerializeField] private Texture _mineAbilityIcon;
     private Dictionary<AbilityType, Texture> _abilityIconsTextures = new Dictionary<AbilityType, Texture>();
     [SerializeField] private Color _abilityNotActiveColor;
     [SerializeField] private Color _abilityActiveColor;
     public static readonly float AbilityPanelShrinkTime = 1f;
 
     public static event Action<bool> EscPanelToggledEvent;
+
+    // TODO - Have a set of predefined screen resolutions; make sure ability panels don't overlap with the tank info panel or the minimap
 
 
     private void Awake()
@@ -70,6 +73,7 @@ public class UiManager : MonoBehaviourPunCallbacks
         _abilityIconsTextures.Add(AbilityType.TripleShells, _tripleShellsAbilityIcon);
         _abilityIconsTextures.Add(AbilityType.DeflectShells, _deflectShellsAbilityIcon);
         _abilityIconsTextures.Add(AbilityType.LaserBeam, _laserBeamAbilityIcon);
+        _abilityIconsTextures.Add(AbilityType.Mine, _mineAbilityIcon);
     }
 
     private void OnDestroy()
