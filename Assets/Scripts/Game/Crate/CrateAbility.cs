@@ -34,11 +34,11 @@ public class CrateAbility : Crate
         }
         else if (roll < 80)
         {
-            _abilityType = AbilityType.DeflectShells;
+            _abilityType = AbilityType.TripleShells;
         }
         else if (roll < 90)
         {
-            _abilityType = AbilityType.TripleShells;
+            _abilityType = AbilityType.DeflectShells;
         }
         else
         {

@@ -15,9 +15,9 @@ public class TankMovement : MonoBehaviour, IPunObservable
     public bool EscPanelIsActive = false;
     [SerializeField] private Transform _orientation;
     [SerializeField] private LayerMask _groundLayerMask;
-    public bool IsMoving { get; private set; } = false;
-    private Vector3 _movementDirection;
-    [SerializeField] private LayerMask _defaultAndTanksLayerMask;
+    private bool _isMoving = false;
+    private bool _movingForward;
+    [SerializeField] private LayerMask _defaultTanksAndTurretsLayerMask;
     [SerializeField] private Transform _movementRaycastDirection;
     [SerializeField] private Transform _movementRaycastInnerPoint;
     [SerializeField] private Transform _movementRaycastLowerPoint;
@@ -29,11 +29,11 @@ public class TankMovement : MonoBehaviour, IPunObservable
     {
         if (stream.IsWriting)
         {
-            stream.SendNext(IsMoving);
+            stream.SendNext(_isMoving);
         }
         else if (stream.IsReading)
         {
-            IsMoving = (bool)stream.ReceiveNext();
+            _isMoving = (bool)stream.ReceiveNext();
         }
     }
 
@@ -83,17 +83,17 @@ public class TankMovement : MonoBehaviour, IPunObservable
     {
         if (Input.GetKey(KeyCode.W))
         {
-            IsMoving = true;
-            _movementDirection = transform.forward;
+            _isMoving = true;
+            _movingForward = true;
         }
         else if (Input.GetKey(KeyCode.Q))
         {
-            IsMoving = true;
-            _movementDirection = -transform.forward;
+            _isMoving = true;
+            _movingForward = false;
         }
         else
         {
-            IsMoving = false;
+            _isMoving = false;
         }
     }
 
@@ -107,27 +107,28 @@ public class TankMovement : MonoBehaviour, IPunObservable
             _rigidbody.MoveRotation(_orientation.rotation);
         }
 
-        if (IsMoving)
+        if (_isMoving)
         {
-            Vector3 movement = _movementDirection * _tankInfo.Speed * Time.fixedDeltaTime;
-            Vector3 desiredPosition = _rigidbody.position + movement;
+            Vector3 movement = (_movingForward ?  transform.forward : -transform.forward) * _tankInfo.Speed * Time.fixedDeltaTime;
             // Check if the tank would hit any colliders
             // Not using Physics.OverlapSphere since it doesn't work with the objects instantiated with PhotonNetwork.Instantiate
             bool wouldHitColliders = false;
             Vector3 currentRaycastPosition = _movementRaycastDirection.position;
             Quaternion currentRaycastRotation = _movementRaycastDirection.rotation;
             _movementRaycastDirection.position += movement;
-            for (float angle = -90f; angle <= 90f; angle += _movementRaycastAngleStep)
+            float angleStart = _movingForward ? -90f : 90f;
+            float angleStop = angleStart + 180f;
+            for (float angle = angleStart; angle <= angleStop; angle += _movementRaycastAngleStep)
             {
                 _movementRaycastDirection.localEulerAngles = new Vector3(0f, angle, 0f);
                 if (Physics.Raycast(_movementRaycastInnerPoint.position, _movementRaycastDirection.forward, out hit, _movementRaycastMagnitude,
-                    _defaultAndTanksLayerMask, QueryTriggerInteraction.Ignore))
+                    _defaultTanksAndTurretsLayerMask, QueryTriggerInteraction.Ignore))
                 {
                     wouldHitColliders = true;
                     break;
                 }
                 else if (Physics.Raycast(_movementRaycastLowerPoint.position, _movementRaycastDirection.forward, out hit, _movementRaycastMagnitude,
-                    _defaultAndTanksLayerMask, QueryTriggerInteraction.Ignore))
+                    _defaultTanksAndTurretsLayerMask, QueryTriggerInteraction.Ignore))
                 {
                     wouldHitColliders = true;
                     break;
@@ -137,6 +138,7 @@ public class TankMovement : MonoBehaviour, IPunObservable
             _movementRaycastDirection.rotation = currentRaycastRotation;
             if (!wouldHitColliders)
             {
+                Vector3 desiredPosition = _rigidbody.position + movement;
                 _rigidbody.MovePosition(desiredPosition);
             }
         }
@@ -144,13 +146,13 @@ public class TankMovement : MonoBehaviour, IPunObservable
 
     private void PlayEngineAudio()
     {
-        if (IsMoving && _engineAudioSource.clip == _engineIdleAudioClip)
+        if (_isMoving && _engineAudioSource.clip == _engineIdleAudioClip)
         {
             _engineAudioSource.clip = _engineDrivingAudioClip;
             _engineAudioSource.pitch = Random.Range(_engineOriginalPitch - _enginePitchRange, _engineOriginalPitch + _enginePitchRange);
             _engineAudioSource.Play();
         }
-        else if (!IsMoving && _engineAudioSource.clip == _engineDrivingAudioClip)
+        else if (!_isMoving && _engineAudioSource.clip == _engineDrivingAudioClip)
         {
             _engineAudioSource.clip = _engineIdleAudioClip;
             _engineAudioSource.pitch = Random.Range(_engineOriginalPitch - _enginePitchRange, _engineOriginalPitch + _enginePitchRange);

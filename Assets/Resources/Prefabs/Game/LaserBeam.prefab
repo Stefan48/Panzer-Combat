@@ -229,10 +229,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b38c59bc685e53449fe7bb50b6bb2d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _defaultTanksAndShellsLayerMask:
+  _defaultTanksShellsAndTurretsLayerMask:
     serializedVersion: 2
-    m_Bits: 577
+    m_Bits: 33345
   _tanksLayerMask:
     serializedVersion: 2
     m_Bits: 64
+  _turretsLayerMask:
+    serializedVersion: 2
+    m_Bits: 32768
   _audioSource: {fileID: 1850562141373170338}

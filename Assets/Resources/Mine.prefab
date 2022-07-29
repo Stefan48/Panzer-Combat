@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 3305414}
   - component: {fileID: 2344310}
   - component: {fileID: 6243429421128185387}
+  - component: {fileID: 5815166092299754191}
   - component: {fileID: 4669958253267354253}
   - component: {fileID: 6053487898360729771}
   - component: {fileID: 4241337351507939817}
@@ -99,6 +100,22 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 0.32638672, y: 0.09443942, z: 0.36818713}
   m_Center: {x: 0, y: 0.0012164991, z: -0.011116214}
+--- !u!54 &5815166092299754191
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 129334}
+  serializedVersion: 2
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 126
+  m_CollisionDetection: 0
 --- !u!82 &4669958253267354253
 AudioSource:
   m_ObjectHideFlags: 0
@@ -250,6 +267,9 @@ MonoBehaviour:
   _tanksLayerMask:
     serializedVersion: 2
     m_Bits: 64
+  _turretsLayerMask:
+    serializedVersion: 2
+    m_Bits: 32768
   _mineExplosionAudioClips:
   - {fileID: 8300000, guid: c8cda79fa0e57bf4885ea6509c7feb3f, type: 3}
   - {fileID: 8300000, guid: b1c7d5124f859554db14c1184a3265c8, type: 3}

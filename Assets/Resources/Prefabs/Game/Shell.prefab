@@ -243,9 +243,12 @@ MonoBehaviour:
   _shellsLayerMask:
     serializedVersion: 2
     m_Bits: 512
-  _defaultTanksAndShellsLayerMask:
+  _turretsLayerMask:
     serializedVersion: 2
-    m_Bits: 577
+    m_Bits: 32768
+  _defaultTanksShellsAndTurretsLayerMask:
+    serializedVersion: 2
+    m_Bits: 33345
   _raycastOrigins:
   - {fileID: 5229842626170783736}
   - {fileID: 4694879877558922052}

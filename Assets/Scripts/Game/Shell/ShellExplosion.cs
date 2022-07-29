@@ -11,7 +11,8 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
     [SerializeField] private LayerMask _defaultLayerMask;
     [SerializeField] private LayerMask _tanksLayerMask;
     [SerializeField] private LayerMask _shellsLayerMask;
-    [SerializeField] private LayerMask _defaultTanksAndShellsLayerMask;
+    [SerializeField] private LayerMask _turretsLayerMask;
+    [SerializeField] private LayerMask _defaultTanksShellsAndTurretsLayerMask;
     private int _id; // unique shell identifier
     private int _actorNumber;
     private int _tankNumber;
@@ -24,7 +25,7 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
     private bool _deflectionPending = false;
     [SerializeField] private AudioSource _shellExplosionAudioSource;
     [SerializeField] private AudioClip _shellDeflectionAudioClip;
-    private const float _shellDeflectionAudioVolume = 0.6f;
+    private const float _shellDeflectionAudioVolumeScale = 0.6f;
 
     private static readonly byte s_shellExplosionNetworkEvent = 0;
     private static readonly byte s_shellDeflectionNetworkEvent = 2;
@@ -93,7 +94,7 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
                     otherGameObject.GetComponent<TankHealth>().TakeDamage(_damage, false, _actorNumber);
                 }
             }
-            // Else, the shell could have hit the tank which shot it right after it was shot due to the speed difference
+            // Else, the shell could have hit the tank which shot it right after it was shot
             // But it also could have been deflected off another tank which was close enough
         }
         else if (((1 << otherGameObject.layer) & _defaultLayerMask.value) > 0)
@@ -110,6 +111,12 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
                 OnHitWithoutCheck();
             }
         }
+        else if (((1 << otherGameObject.layer) & _turretsLayerMask.value) > 0)
+        {
+            // The shell hit a turret in short range
+            OnHitWithoutCheck();
+            otherGameObject.GetComponent<TurretLifetime>().TakeDamage(_damage, false);
+        }
     }
 
     // Checks for potential collisions are done using raycasts for lag compensation
@@ -119,7 +126,7 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
         foreach (Transform origin in _raycastOrigins)
         {
             if (Physics.Raycast(origin.position, origin.forward, out RaycastHit hit, _raycastMagnitude,
-                _defaultTanksAndShellsLayerMask, QueryTriggerInteraction.Collide))
+                _defaultTanksShellsAndTurretsLayerMask, QueryTriggerInteraction.Collide))
             {                
                 GameObject hitGameObject = hit.collider.gameObject;
                 if (((1 << hitGameObject.layer) & _tanksLayerMask.value) > 0)
@@ -137,6 +144,7 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
                         _hitSomething = true;
                         hitGameObject.GetComponent<TankHealth>().TakeDamage(_damage, false, _actorNumber);
                     }
+                    // Breaking so the tank doesn't take more damage if more raycasts hit
                     break;
                 }
                 else if (((1 << hitGameObject.layer) & _defaultLayerMask.value) > 0)
@@ -153,6 +161,13 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
                         _hitSomething = true;
                         otherShell.OnHitWithCheck();
                     }
+                }
+                else if (((1 << hitGameObject.layer) & _turretsLayerMask.value) > 0)
+                {
+                    // The shell hit a turret
+                    _hitSomething = true;
+                    hitGameObject.GetComponent<TurretLifetime>().TakeDamage(_damage, false);
+                    break;
                 }
             }
         }
@@ -226,7 +241,7 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
                 float newRotation = transform.eulerAngles.y + 180f + customData[1];
                 transform.eulerAngles = new Vector3(0f, newRotation, 0f);
                 // Play the deflection sound using the shell explosion AudioSource so that it can't get canceled by the explosion sound
-                _shellExplosionAudioSource.PlayOneShot(_shellDeflectionAudioClip, _shellDeflectionAudioVolume);
+                _shellExplosionAudioSource.PlayOneShot(_shellDeflectionAudioClip, _shellDeflectionAudioVolumeScale);
             }
         }
     }

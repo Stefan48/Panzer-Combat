@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Level
   - Tank
+  - Enemy
   layers:
   - Default
   - TransparentFX
@@ -22,7 +23,7 @@ TagManager:
   - Vision
   - Minimap
   - Mines
-  - 
+  - Turrets
   - 
   - 
   - 

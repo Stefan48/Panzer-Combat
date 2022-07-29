@@ -858,6 +858,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c69913c3539271041a94252b7bb58aa0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _coloredMeshRenderers:
+  - {fileID: 6208117419160428661}
+  - {fileID: 6208117419160428659}
+  - {fileID: 6208117419160428669}
+  - {fileID: 6208117419160428663}
   _usernameTextMesh: {fileID: 4150809594542956505}
   _minimapIconSpriteRenderer: {fileID: 3115678824143175564}
   IsSelected: 0
@@ -885,9 +890,9 @@ MonoBehaviour:
   _groundLayerMask:
     serializedVersion: 2
     m_Bits: 256
-  _defaultAndTanksLayerMask:
+  _defaultTanksAndTurretsLayerMask:
     serializedVersion: 2
-    m_Bits: 65
+    m_Bits: 32833
   _movementRaycastDirection: {fileID: 8209602259724309803}
   _movementRaycastInnerPoint: {fileID: 6451518957019764679}
   _movementRaycastLowerPoint: {fileID: 8268329493792876591}

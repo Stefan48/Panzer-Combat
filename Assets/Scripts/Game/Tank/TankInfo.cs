@@ -5,6 +5,7 @@ using UnityEngine;
 public class TankInfo : MonoBehaviour
 {
     private PhotonView _photonView;
+    [SerializeField] private MeshRenderer[] _coloredMeshRenderers;
     [SerializeField] private TextMesh _usernameTextMesh;
     [SerializeField] private SpriteRenderer _minimapIconSpriteRenderer;
     private TankShooting _tankShooting;
@@ -43,7 +44,7 @@ public class TankInfo : MonoBehaviour
 
     public void SetInitialInfo(int tankNumber, Color color)
     {
-        _photonView.RPC("RPC_SetInitialInfo", RpcTarget.All, tankNumber, new Vector3(color.r, color.g, color.b));
+        _photonView.RPC("RPC_SetInitialInfo", RpcTarget.AllViaServer, tankNumber, new Vector3(color.r, color.g, color.b));
     }
 
     [PunRPC]
@@ -51,16 +52,16 @@ public class TankInfo : MonoBehaviour
     {
         ActorNumber = tankNumber / TankNumberMultiplier;
         TankNumber = tankNumber;
-        GetComponent<TankShooting>().CurrentShellId = TankNumber * TankShooting.ShellIdMultiplier;
+        _tankShooting.CurrentShellId = TankNumber * TankShooting.ShellIdMultiplier;
         Username = PhotonNetwork.CurrentRoom.GetPlayer(ActorNumber).NickName;
         _usernameTextMesh.text = Username;
 
         Color = new Color(color.x, color.y, color.z);
-        MeshRenderer[] renderers = GetComponentsInChildren<MeshRenderer>();
-        foreach (MeshRenderer renderer in renderers)
+        foreach (MeshRenderer renderer in _coloredMeshRenderers)
         {
             renderer.material.color = Color;
         }
+        _usernameTextMesh.color = Color;
         _minimapIconSpriteRenderer.color = Color;
     }
 
