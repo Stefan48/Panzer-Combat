@@ -5,9 +5,20 @@ using UnityEngine;
 public class TankAbilities : MonoBehaviour
 {
     private PhotonView _photonView;
+    private GameManager _gameManager;
     private Player _owner = null;
     private TankInfo _tankInfo;
     public bool EscPanelIsActive = false;
+    [SerializeField] private LayerMask _groundLayerMask;
+    [SerializeField] private LayerMask _defaultTanksAndTurretsLayerMask;
+    private const float _tankColliderRadius = 1f;
+    private const float _turretColliderRadius = 0.8f;
+    private const float _turretPlacementOffset = _tankColliderRadius + _turretColliderRadius + 1f;
+    private readonly Vector3 _turretColliderPoint0 = Vector3.zero;
+    private readonly Vector3 _turretColliderPoint1 = new Vector3(0f, 2f, 0f);
+    [SerializeField] private AudioSource _warningAudioSource;
+    [SerializeField] private AudioClip _cannotUseAbilityAudioClip;
+    private const float _cannotUseAbilityAudioClipVolumeScale = 0.3f;
     public static readonly int MaxAbilities = 5;
     public Ability[] Abilities = new Ability[MaxAbilities];
     public bool TripleShellsAbilityActive { get; private set; } = false;
@@ -15,6 +26,7 @@ public class TankAbilities : MonoBehaviour
     public bool LaserBeamAbilityActive { get; private set; } = false;
     [SerializeField] private LaserBeam _laserBeam;
     [SerializeField] private GameObject _minePrefab;
+    [SerializeField] private GameObject[] _turretPrefabs;
 
 
     private void Awake()
@@ -24,6 +36,7 @@ public class TankAbilities : MonoBehaviour
         {
             enabled = false;
         }
+        _gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         _tankInfo = GetComponent<TankInfo>();
     }
 
@@ -65,6 +78,11 @@ public class TankAbilities : MonoBehaviour
         {
             return;
         }
+        if (!CanUseAbility(ability.Type))
+        {
+            _warningAudioSource.PlayOneShot(_cannotUseAbilityAudioClip, _cannotUseAbilityAudioClipVolumeScale);
+            return;
+        }
         ability.IsActive = true;
         if (ability.Type == AbilityType.TripleShells)
         {
@@ -90,6 +108,28 @@ public class TankAbilities : MonoBehaviour
         else if (ability.Type == AbilityType.Mine)
         {
             PlaceMine();
+        }
+        else if (ability.Type == AbilityType.Turret)
+        {
+            PlaceTurret();
+        }
+    }
+
+    private bool CanUseAbility(AbilityType type)
+    {
+        switch (type)
+        {
+            case AbilityType.TripleShells:
+            case AbilityType.DeflectShells:
+            case AbilityType.LaserBeam:
+            case AbilityType.Mine:
+                return true;
+            case AbilityType.Turret:
+                Vector3 placementPosition = transform.position + transform.forward * _turretPlacementOffset;
+                return Physics.OverlapCapsule(_turretColliderPoint0 + placementPosition, _turretColliderPoint1 + placementPosition,
+                    _turretColliderRadius, _defaultTanksAndTurretsLayerMask, QueryTriggerInteraction.Ignore).Length == 0;
+            default:
+                return false;
         }
     }
 
@@ -164,7 +204,7 @@ public class TankAbilities : MonoBehaviour
         }
         for (int i = 0; i < MaxAbilities; ++i)
         {
-            if (Abilities[i].Type == AbilityType.Mine && Abilities[i].IsActive)
+            if ((Abilities[i].Type == AbilityType.Mine || Abilities[i].Type == AbilityType.Turret) && Abilities[i].IsActive)
             {
                 Abilities[i] = new Ability(abilityType);
                 return;
@@ -225,5 +265,21 @@ public class TankAbilities : MonoBehaviour
         GameObject mine = PhotonNetwork.InstantiateRoomObject(_minePrefab.name, transform.position + _minePrefab.transform.position, transform.rotation);
         // TODO - Use instantiate data (also in other scripts where PhotonNetwork.Instantiate is used?)
         mine.GetComponent<Mine>().SetActorNumber(_tankInfo.ActorNumber);
+    }
+
+    private void PlaceTurret()
+    {
+        // Only the Master Client can use PhotonNetwork.InstantiateRoomObject (necessary so that the turrets don't get destroyed if the player leaves)
+        _photonView.RPC("RPC_PlaceTurret", RpcTarget.MasterClient);
+    }
+
+    [PunRPC]
+    private void RPC_PlaceTurret()
+    {
+        int index = _gameManager.AvailablePlayerColors.FindIndex(color => color == _tankInfo.Color);
+        Vector3 position = transform.position + transform.forward * _turretPlacementOffset;
+        int turretShellSpeed = _tankInfo.ShellSpeed + TurretInfo.TurretShellsExtraSpeed;
+        GameObject turret = PhotonNetwork.InstantiateRoomObject(_turretPrefabs[index].name, position, transform.rotation, 0,
+            new object[] { _tankInfo.ActorNumber, _tankInfo.Damage, _tankInfo.Armor, turretShellSpeed, _tankInfo.Range });
     }
 }

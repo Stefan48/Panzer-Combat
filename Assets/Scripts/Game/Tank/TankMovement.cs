@@ -6,7 +6,6 @@ public class TankMovement : MonoBehaviour, IPunObservable
     private PhotonView _photonView;
     private TankInfo _tankInfo;
     private Rigidbody _rigidbody;
-    private SphereCollider _sphereCollider;
     [SerializeField] private AudioSource _engineAudioSource;
     [SerializeField] private AudioClip _engineIdleAudioClip;
     [SerializeField] private AudioClip _engineDrivingAudioClip;
@@ -42,7 +41,6 @@ public class TankMovement : MonoBehaviour, IPunObservable
         _photonView = GetComponent<PhotonView>();
         _tankInfo = GetComponent<TankInfo>();
         _rigidbody = GetComponent<Rigidbody>();
-        _sphereCollider = GetComponent<SphereCollider>();
     }
 
     private void Start()
@@ -146,6 +144,10 @@ public class TankMovement : MonoBehaviour, IPunObservable
 
     private void PlayEngineAudio()
     {
+        if (!_engineAudioSource.enabled)
+        {
+            return;
+        }
         if (_isMoving && _engineAudioSource.clip == _engineIdleAudioClip)
         {
             _engineAudioSource.clip = _engineDrivingAudioClip;

@@ -296,7 +296,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3258671918003806386, guid: 3872c2d866d82e24a9dda0efb586563c, type: 3}
       propertyPath: m_Name
-      value: HealthAndTimeBars Variant
+      value: HealthAndTimeBars
       objectReference: {fileID: 0}
     - target: {fileID: 3258671918003806398, guid: 3872c2d866d82e24a9dda0efb586563c, type: 3}
       propertyPath: m_Pivot.x
@@ -394,7 +394,8 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0.2
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3258671918003806397, guid: 3872c2d866d82e24a9dda0efb586563c, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 3872c2d866d82e24a9dda0efb586563c, type: 3}
 --- !u!224 &8044020128661785894 stripped
 RectTransform:

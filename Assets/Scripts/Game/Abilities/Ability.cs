@@ -6,6 +6,7 @@ public class Ability
     private static readonly float s_deflectShellsDuration = 5f;
     private static readonly float s_laserBeamDuration = 2.5f;
     private static readonly float s_mineDuration = UiManager.AbilityPanelShrinkTime;
+    private static readonly float s_turretDuration = UiManager.AbilityPanelShrinkTime;
     public bool IsActive = false;
     public float Timer = 0f;
 
@@ -28,6 +29,8 @@ public class Ability
                 return s_laserBeamDuration;
             case AbilityType.Mine:
                 return s_mineDuration;
+            case AbilityType.Turret:
+                return s_turretDuration;
             default:
                 return 0f;
         }
@@ -40,5 +43,6 @@ public enum AbilityType
     TripleShells,
     DeflectShells,
     LaserBeam,
-    Mine
+    Mine,
+    Turret
 }

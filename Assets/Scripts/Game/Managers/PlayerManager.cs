@@ -55,9 +55,9 @@ public class PlayerManager
 
     private GameObject InstantiateDefaultTank(Vector3 position)
     {
-        GameObject tank = PhotonNetwork.Instantiate(_tankPrefab.name, position, Quaternion.identity);
-        TankInfo tankInfo = tank.GetComponent<TankInfo>();
-        tankInfo.SetInitialInfo(_gameManager.ActorNumber * TankInfo.TankNumberMultiplier + Tanks.Count, PlayerColor);
+        GameObject tank = PhotonNetwork.Instantiate(_tankPrefab.name, position, Quaternion.identity, 0,
+            new object[] { _gameManager.ActorNumber * TankInfo.TankNumberMultiplier + Tanks.Count,
+                new Vector3(PlayerColor.r,  PlayerColor.g, PlayerColor.b) });
         tank.transform.Find("Vision").gameObject.SetActive(true);
         Tanks.Add(tank);
         return tank;
@@ -113,6 +113,7 @@ public class PlayerManager
         {
             float[] eventData = (float[])obj.CustomData;
             Vector3 position = new Vector3(eventData[0], 0f, eventData[1]);
+            // TODO - Use instantiation data for stats as well (to avoid RPC call)
             GameObject tank = InstantiateDefaultTank(position);
             // The third float tells if the tank should be a default one or if it has duplicated stats instead
             if (eventData[2] == 0f)

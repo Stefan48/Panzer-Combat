@@ -11,19 +11,24 @@ public class TurretLifetime : MonoBehaviour
     [SerializeField] private Image _healthBarFillImage;
     [SerializeField] private Color _maxHealthColor = new Color32(0, 255, 0, 180);
     [SerializeField] private Color _minHealthColor = new Color32(255, 0, 0, 180);
-    private const float _lifetime = 1000f; // TODO - 10f
+    private const float _lifetime = 10f;
     private float _timeRemaining = _lifetime;
     [SerializeField] private Slider _timeBarSlider;
     [SerializeField] private GameObject _turretExplosionPrefab;
     private bool _destructionPending = false;
-
-    // TODO - TurretGotDestroyedEvent for camera size?
     
 
     private void Awake()
     {
+        GameManager.RoundStartingEvent += OnRoundStarting;
+
         _photonView = GetComponent<PhotonView>();
         _turretInfo = GetComponent<TurretInfo>();
+    }
+
+    private void OnDestroy()
+    {
+        GameManager.RoundStartingEvent -= OnRoundStarting;
     }
 
     private void Start()
@@ -115,5 +120,13 @@ public class TurretLifetime : MonoBehaviour
         turretExplosionParticleSystem.Play();
         turretExplosionAudioSource.Play();
         Destroy(turretExplosion, Math.Max(turretExplosionParticleSystem.main.duration, turretExplosionAudioSource.clip.length));
+    }
+
+    private void OnRoundStarting(int round)
+    {
+        if (PhotonNetwork.IsMasterClient)
+        {
+            PhotonNetwork.Destroy(gameObject);
+        }
     }
 }

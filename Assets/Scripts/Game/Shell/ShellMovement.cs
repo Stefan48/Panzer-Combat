@@ -29,7 +29,7 @@ public class ShellMovement : MonoBehaviour
         _distanceTraveled += distance;
         if (_distanceTraveled >= _range)
         {
-            _shellExplosion.OnRangeReached();
+            _shellExplosion.OnRangeReachedOrTargetGotDestroyed();
         }
     }
 }

@@ -71,6 +71,7 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
         CheckForCollision();
     }
 
+    // TODO - No more collisions between shells? (trying to shoot a turret that is targeting you is pretty awkward)
     private void OnTriggerEnter(Collider other)
     {
         // Shell collisions are checked only by the Master Client
@@ -204,7 +205,7 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
         StartCoroutine(Explosion(0f));
     }
 
-    public void OnRangeReached()
+    public void OnRangeReachedOrTargetGotDestroyed()
     {
         StartCoroutine(Explosion(0f));
     }

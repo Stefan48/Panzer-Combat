@@ -2,14 +2,14 @@ using Photon.Pun;
 using System;
 using UnityEngine;
 
-public class TankInfo : MonoBehaviour
+public class TankInfo : MonoBehaviour, IPunInstantiateMagicCallback
 {
     private PhotonView _photonView;
     [SerializeField] private MeshRenderer[] _coloredMeshRenderers;
     [SerializeField] private TextMesh _usernameTextMesh;
     [SerializeField] private SpriteRenderer _minimapIconSpriteRenderer;
     private TankShooting _tankShooting;
-    public int ActorNumber { get; private set; } = -1; // initializing is for testing only
+    public int ActorNumber { get; private set; } = -1;
     public static readonly int TankNumberMultiplier = 100;
     // Unique identifier for tanks, equal to ActorNumber * TankNumberMultiplier + the index in the Tanks list of the PlayerManager
     // (could get reused after the tank gets destroyed)
@@ -38,24 +38,19 @@ public class TankInfo : MonoBehaviour
         _photonView = GetComponent<PhotonView>();
         _tankShooting = GetComponent<TankShooting>();
         Health = MaxHealth;
-
-        //ActorNumber = Random.Range(0, 100) % 2 == 0 ? 0 : -1; // this is for testing only
     }
 
-    public void SetInitialInfo(int tankNumber, Color color)
+    // This is called after Awake and before Start
+    public void OnPhotonInstantiate(PhotonMessageInfo info)
     {
-        _photonView.RPC("RPC_SetInitialInfo", RpcTarget.AllViaServer, tankNumber, new Vector3(color.r, color.g, color.b));
-    }
-
-    [PunRPC]
-    private void RPC_SetInitialInfo(int tankNumber, Vector3 color)
-    {
-        ActorNumber = tankNumber / TankNumberMultiplier;
-        TankNumber = tankNumber;
+        object[] instantiationData = info.photonView.InstantiationData;
+        TankNumber = (int)instantiationData[0];
+        ActorNumber = TankNumber / TankNumberMultiplier;
         _tankShooting.CurrentShellId = TankNumber * TankShooting.ShellIdMultiplier;
         Username = PhotonNetwork.CurrentRoom.GetPlayer(ActorNumber).NickName;
         _usernameTextMesh.text = Username;
 
+        Vector3 color = (Vector3)instantiationData[1];
         Color = new Color(color.x, color.y, color.z);
         foreach (MeshRenderer renderer in _coloredMeshRenderers)
         {

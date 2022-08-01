@@ -1,62 +1,58 @@
 using Photon.Pun;
 using UnityEngine;
 
-public class TurretInfo : MonoBehaviour
+public class TurretInfo : MonoBehaviour, IPunInstantiateMagicCallback
 {
     private PhotonView _photonView;
     [SerializeField] private TextMesh _usernameTextMesh;
-    public int ActorNumber { get; private set; } = -1; // initializing is for testing only
+    private readonly Quaternion _uiComponentsRotation = Quaternion.Euler(0f, 60f, 0f);
+    public int ActorNumber { get; private set; } = -1;
     public string Username { get; private set; }
-    [SerializeField] private Color _color;
-    public Color Color => _color;
     public int MaxHealth = 500;
     public int Health;
     public int Damage { get; private set; } = 20;
     public int Armor { get; private set; } = 0;
-    public int ShellSpeed { get; private set; } = 20; // TODO - Higher shell speed (have a static constant for the difference)
+    // Turret shells are faster than regular shells
+    public static readonly int TurretShellsExtraSpeed = 5;
+    public int ShellSpeed { get; private set; } = 25;
     public int Range { get; private set; } = 10;
     private static readonly int s_defaultRange = 10;
     [SerializeField] private GameObject _vision;
+    [SerializeField] private GameObject _range;
     private const float _visionPerRange = 0.065f;
-
-    // public static event Action<int> TurretRangeIncreasedEvent; // TODO?
 
 
     private void Awake()
     {
         _photonView = GetComponent<PhotonView>();
         Health = MaxHealth;
+        transform.Find("HealthAndTimeBars").rotation = _uiComponentsRotation;
+        transform.Find("OwnerText").rotation = _uiComponentsRotation;
     }
 
-    public void SetInfo(int actorNumber, int damage, int armor, int shellSpeed, int range)
+    // This is called after Awake and before Start
+    public void OnPhotonInstantiate(PhotonMessageInfo info)
     {
-        _photonView.RPC("RPC_SetInfo", RpcTarget.AllViaServer, actorNumber, damage, armor, shellSpeed, range);
-        // TODO - if (actorNumber == local actor number &&) range > s_defaultRange, increase vision scale
-    }
-
-    [PunRPC]
-    private void RPC_SetInfo(int actorNumber, int damage, int armor, int shellSpeed, int range)
-    {
-        ActorNumber = actorNumber;
-        Username = PhotonNetwork.CurrentRoom.GetPlayer(ActorNumber).NickName;
+        object[] instantiationData = info.photonView.InstantiationData;
+        ActorNumber = (int)instantiationData[0];
+        Username = PhotonNetwork.CurrentRoom.GetPlayer(ActorNumber)?.NickName;
         _usernameTextMesh.text = Username;
-        Damage = damage;
-        Armor = armor;
-        ShellSpeed = shellSpeed;
-        Range = range;
-    }
-
-    
-    /*[PunRPC]
-    private void RPC_IncreaseRange(int extraRange)
-    {
-        Range += extraRange;
-        if (_photonView.IsMine)
+        Damage = (int)instantiationData[1];
+        Armor = (int)instantiationData[2];
+        ShellSpeed = (int)instantiationData[3];
+        Range = (int)instantiationData[4];
+        if (ActorNumber == PhotonNetwork.LocalPlayer.ActorNumber)
         {
-            Vector3 visionCurrentScale = _vision.transform.localScale;
-            _vision.transform.localScale = new Vector3(visionCurrentScale.x + _visionPerRange * extraRange,
-                visionCurrentScale.y + _visionPerRange * extraRange, visionCurrentScale.z);
-            TankRangeIncreasedEvent?.Invoke(Range);
+            _vision.SetActive(true);
         }
-    }*/
+        if (Range > s_defaultRange)
+        {
+            float newScale = _vision.transform.localScale.x + _visionPerRange * (Range - s_defaultRange);
+            // The vision and range scales match
+            _vision.transform.localScale = new Vector3(newScale, newScale, 0f);
+            // The range scale has to be up to date on all clients so they can check for trigger enters/exits correctly
+            _range.transform.localScale = new Vector3(newScale, newScale, newScale);
+            // For simplicity and due to the lack of importance, the max camera size is not influenced by the owned turrets' ranges
+        }
+    }
 }

@@ -12,6 +12,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     public int ActorNumber { get; private set; }
     private Player[] _players;
     [SerializeField] private List<Color> _availablePlayerColors = new List<Color>();
+    public List<Color> AvailablePlayerColors { get; private set; }
     [SerializeField] private List<Transform> _availablePlayerSpawnPoints = new List<Transform>();
     [SerializeField] private List<Transform> _crateSpawnPoints = new List<Transform>();
     [SerializeField] private readonly int _initialTankCount = 1; // TODO - Creator of the room should set this in the UI
@@ -57,6 +58,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         _photonView = GetComponent<PhotonView>();
         ActorNumber = PhotonNetwork.LocalPlayer.ActorNumber;
         _players = PhotonNetwork.PlayerList;
+        AvailablePlayerColors = new List<Color>(_availablePlayerColors);
 
         _cratePrefabs.Add(CrateType.Ability, _crateAbilityPrefab);
         _cratePrefabs.Add(CrateType.Ammo, _crateAmmoPrefab);
@@ -246,9 +248,9 @@ public class GameManager : MonoBehaviourPunCallbacks
         }
         if (roll < 90)
         {
-            return CrateType.Ammo;
+            return CrateType.Tank;
         }
-        return CrateType.Armor;
+        return CrateType.Ammo;
         //return (CrateType)UnityEngine.Random.Range(0, Enum.GetNames(typeof(CrateType)).Length);
     }
 

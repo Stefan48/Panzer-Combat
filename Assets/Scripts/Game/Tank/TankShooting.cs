@@ -15,7 +15,9 @@ public class TankShooting : MonoBehaviour
     [SerializeField] private Transform _muzzleRight;
     [SerializeField] private GameObject _shellPrefab;
     [SerializeField] private AudioSource _shotFiredAudioSource;
-    [SerializeField] private AudioSource _noAmmoAudioSource;
+    [SerializeField] private AudioSource _warningAudioSource;
+    [SerializeField] private AudioClip _noAmmoAudioClip;
+    private const float _noAmmoAudioClipVolumeScale = 0.5f;
 
 
     private void Awake()
@@ -67,7 +69,7 @@ public class TankShooting : MonoBehaviour
         }
         if (_tankInfo.Ammo == 0)
         {
-            _noAmmoAudioSource.Play();
+            _warningAudioSource.PlayOneShot(_noAmmoAudioClip, _noAmmoAudioClipVolumeScale);
             return;
         }
         _photonView.RPC("RPC_Shoot", RpcTarget.AllViaServer, CurrentShellId);

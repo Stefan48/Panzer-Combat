@@ -760,7 +760,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: -1445993664337586518, guid: 0cf0e5b5fa67df2469800ccfeddd02b9, type: 2}
-  m_audioClip: {fileID: 8300000, guid: dc4a5d8d9402ccd4ca733b6cbef388a9, type: 3}
+  m_audioClip: {fileID: 0}
   m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
@@ -932,7 +932,8 @@ MonoBehaviour:
   _muzzleRight: {fileID: 153578981098393054}
   _shellPrefab: {fileID: 3838508987572279607, guid: c0d26d418d4db5e419b72a5b7296ebdd, type: 3}
   _shotFiredAudioSource: {fileID: 6208117420013672361}
-  _noAmmoAudioSource: {fileID: 6518737633657472470}
+  _warningAudioSource: {fileID: 6518737633657472470}
+  _noAmmoAudioClip: {fileID: 8300000, guid: dc4a5d8d9402ccd4ca733b6cbef388a9, type: 3}
 --- !u!114 &6094971885566981549
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -946,8 +947,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   EscPanelIsActive: 0
+  _groundLayerMask:
+    serializedVersion: 2
+    m_Bits: 256
+  _defaultTanksAndTurretsLayerMask:
+    serializedVersion: 2
+    m_Bits: 32833
+  _warningAudioSource: {fileID: 6518737633657472470}
+  _cannotUseAbilityAudioClip: {fileID: 8300000, guid: e44f92752f2415d4f86fe9057e11e0c8, type: 3}
   _laserBeam: {fileID: 3405190032011472232}
   _minePrefab: {fileID: 129334, guid: 02d77a2176f3e5d4491182ed65f90851, type: 3}
+  _turretPrefabs:
+  - {fileID: 5878429568433736632, guid: cd2fc314fcc620740bab3ded34c687d9, type: 3}
+  - {fileID: 7511308568064747168, guid: f5cb147c141bd7c47af03fe2dce9c31d, type: 3}
+  - {fileID: 7832814510724803276, guid: 08c27080b6a841248ba43f626e48473a, type: 3}
+  - {fileID: 43745020902031910, guid: f79d73a8ff8f5c245b9f5cf5e017eebb, type: 3}
+  - {fileID: 2108528798271473010, guid: 9d04465a94fad4a49a76a1acd99440e7, type: 3}
+  - {fileID: 730671769376168641, guid: bb5aefda475656b488d75994e09a5b05, type: 3}
+  - {fileID: 1993871771951951861, guid: b7dcb06dabc12404c969d662c49aa2f8, type: 3}
+  - {fileID: 6703301875406010525, guid: d65956360646bc24c9e3b2d149124a99, type: 3}
+  - {fileID: 4911913406865395373, guid: d3f0df7e1d6b50c4a9221d55b1aacb5b, type: 3}
 --- !u!114 &-2153250219920769582
 MonoBehaviour:
   m_ObjectHideFlags: 0

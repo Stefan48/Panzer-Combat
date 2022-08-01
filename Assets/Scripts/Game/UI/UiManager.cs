@@ -51,6 +51,7 @@ public class UiManager : MonoBehaviourPunCallbacks
     [SerializeField] private Texture _deflectShellsAbilityIcon;
     [SerializeField] private Texture _laserBeamAbilityIcon;
     [SerializeField] private Texture _mineAbilityIcon;
+    [SerializeField] private Texture _turretAbilityIcon;
     private Dictionary<AbilityType, Texture> _abilityIconsTextures = new Dictionary<AbilityType, Texture>();
     [SerializeField] private Color _abilityNotActiveColor;
     [SerializeField] private Color _abilityActiveColor;
@@ -74,6 +75,7 @@ public class UiManager : MonoBehaviourPunCallbacks
         _abilityIconsTextures.Add(AbilityType.DeflectShells, _deflectShellsAbilityIcon);
         _abilityIconsTextures.Add(AbilityType.LaserBeam, _laserBeamAbilityIcon);
         _abilityIconsTextures.Add(AbilityType.Mine, _mineAbilityIcon);
+        _abilityIconsTextures.Add(AbilityType.Turret, _turretAbilityIcon);
     }
 
     private void OnDestroy()
