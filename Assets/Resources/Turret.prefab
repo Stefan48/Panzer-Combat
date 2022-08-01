@@ -498,6 +498,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _usernameTextMesh: {fileID: 7934933968395264889}
+  _color: {r: 0.6313726, g: 0.6313726, b: 0.6313726, a: 1}
   MaxHealth: 500
   Health: 0
   _vision: {fileID: 623164183463281197}

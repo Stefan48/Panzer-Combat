@@ -16,6 +16,8 @@ public class RoomManager : MonoBehaviourPunCallbacks
     [SerializeField] private Transform _playerListingsContent;
     [SerializeField] private PlayerListing _playerListingPrefab;
     private List<PlayerListing> _playerListings = new List<PlayerListing>();
+    [SerializeField] private GameObject _notEnoughPlayersText;
+
 
     private void Start()
     {
@@ -72,7 +74,13 @@ public class RoomManager : MonoBehaviourPunCallbacks
         {
             return;
         }
+        if (PhotonNetwork.CurrentRoom.PlayerCount < 2)
+        {
+            _notEnoughPlayersText.SetActive(true);
+            return;
+        }
         _startGameButtonClicked = true;
+        _notEnoughPlayersText.SetActive(false);
         // Load the scene at the same time for everyone in the room
         if (PhotonNetwork.IsMasterClient)
         {

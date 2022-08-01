@@ -8,6 +8,8 @@ public class TurretInfo : MonoBehaviour, IPunInstantiateMagicCallback
     private readonly Quaternion _uiComponentsRotation = Quaternion.Euler(0f, 60f, 0f);
     public int ActorNumber { get; private set; } = -1;
     public string Username { get; private set; }
+    [SerializeField] private Color _color;
+    public Color Color => _color;
     public int MaxHealth = 500;
     public int Health;
     public int Damage { get; private set; } = 20;

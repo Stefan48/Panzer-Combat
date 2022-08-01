@@ -28,15 +28,15 @@ public class CrateAbility : Crate
     {
         int roll = UnityEngine.Random.Range(0, 100);
         // TODO - Probabilities
-        if (roll < 60)
-        {
-            _abilityType = AbilityType.Mine;
-        }
-        else if (roll < 75)
+        if (roll < 80)
         {
             _abilityType = AbilityType.Turret;
         }
         else if (roll < 85)
+        {
+            _abilityType = AbilityType.Mine;
+        }
+        else if (roll < 90)
         {
             _abilityType = AbilityType.LaserBeam;
         }

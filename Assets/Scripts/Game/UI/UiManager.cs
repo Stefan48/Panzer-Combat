@@ -24,6 +24,7 @@ public class UiManager : MonoBehaviourPunCallbacks
     [SerializeField] private Text _infoText;
     [SerializeField] private LayerMask _tanksLayerMask;
     [SerializeField] private LayerMask _visionLayerMask;
+    [SerializeField] private LayerMask _turretsLayerMask;
     private List<GameObject> _selectedAlliedTanks = new List<GameObject>();
     private GameObject _selectedEnemyTank = null;
     [SerializeField] private GameObject _tankInfoPanel;
@@ -37,6 +38,17 @@ public class UiManager : MonoBehaviourPunCallbacks
     [SerializeField] private GameObject _multipleTanksSelectedPanel;
     [SerializeField] private Text _multipleTanksSelectedPanelUsernameText;
     [SerializeField] private Text _numTanksSelectedText;
+    private readonly Vector3 _turretColliderPoint0 = Vector3.zero;
+    private readonly Vector3 _turretColliderPoint1 = new Vector3(0f, 2f, 0f);
+    private GameObject _selectedAlliedTurret = null;
+    private GameObject _selectedEnemyTurret = null;
+    [SerializeField] private GameObject _turretInfoPanel;
+    [SerializeField] private Text _turretInfoPanelUsernameText;
+    [SerializeField] private Text _turretInfoPanelHealthText;
+    [SerializeField] private Text _turretInfoPanelDamageText;
+    [SerializeField] private Text _turretInfoPanelArmorText;
+    [SerializeField] private Text _turretInfoPanelShellsSpeedText;
+    [SerializeField] private Text _turretInfoPanelRangeText;
     [SerializeField] private GameObject _minimapPanel;
     private const int _maxGameLogs = 4;
     [SerializeField] private Text[] _gameLogsTexts = new Text[_maxGameLogs];
@@ -108,12 +120,13 @@ public class UiManager : MonoBehaviourPunCallbacks
             {
                 if (Input.GetMouseButtonDown(0))
                 {
-                    UpdateSelectedTanks();
+                    UpdateSelectedTanksAndTurrets();
                     return;
                 }
             }
         }
         UpdateTankInfoPanel(false);
+        UpdateTurretInfoPanel(false);
         UpdateAbilityPanels(false);
     }
 
@@ -150,34 +163,49 @@ public class UiManager : MonoBehaviourPunCallbacks
         SceneManager.LoadScene("LobbyScene");
     }
 
-    private void SetTankSelectionRingEnabled(GameObject tank, bool allied, bool enabled)
+    private void SetSelectionRingEnabled(GameObject gameObj, bool allied, bool enabled)
     {
-        tank.transform.Find(allied ? "AlliedSelectionRing" : "EnemySelectionRing").gameObject.SetActive(enabled);
+        gameObj.transform.Find(allied ? "AlliedSelectionRing" : "EnemySelectionRing").gameObject.SetActive(enabled);
     }
 
-    private void DeselectEnemyTank()
+    private void DeselectEnemyTankAndTurret()
     {
         if (_selectedEnemyTank != null)
         {
-            SetTankSelectionRingEnabled(_selectedEnemyTank, false, false);
+            SetSelectionRingEnabled(_selectedEnemyTank, false, false);
         }
         _selectedEnemyTank = null;
+        if (_selectedEnemyTurret != null)
+        {
+            SetSelectionRingEnabled(_selectedEnemyTurret, false, false);
+        }
+        _selectedEnemyTurret = null;
     }
 
-    private void DeselectAlliedTanks()
+    private void DeselectAlliedTurret()
+    {
+        if (_selectedAlliedTurret != null)
+        {
+            SetSelectionRingEnabled(_selectedAlliedTurret, true, false);
+        }
+        _selectedAlliedTurret = null;
+    }
+
+    private void DeselectAlliedTanksAndTurret()
     {
         for (int i = _selectedAlliedTanks.Count - 1; i >= 0; --i)
         {
             if (_selectedAlliedTanks[i] != null)
             {
-                SetTankSelectionRingEnabled(_selectedAlliedTanks[i], true, false);
+                SetSelectionRingEnabled(_selectedAlliedTanks[i], true, false);
                 _selectedAlliedTanks[i].GetComponent<TankInfo>().IsSelected = false;
             }
         }
         _selectedAlliedTanks.Clear();
+        DeselectAlliedTurret();
     }
 
-    private void UpdateSelectedTanks()
+    private void UpdateSelectedTanksAndTurrets()
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, _tanksLayerMask, QueryTriggerInteraction.Ignore))
@@ -187,10 +215,11 @@ public class UiManager : MonoBehaviourPunCallbacks
             if (tankInfo.ActorNumber == _gameManager.ActorNumber)
             {
                 // Player selected an allied tank
-                DeselectEnemyTank();
+                DeselectEnemyTankAndTurret();
                 if (Input.GetKey(KeyCode.LeftAlt))
                 {
                     // Player might have selected multiple allied tanks
+                    DeselectAlliedTurret();
                     bool selectedNewTank = true;
                     for (int i = 0; i < _selectedAlliedTanks.Count; ++i)
                     {
@@ -198,7 +227,7 @@ public class UiManager : MonoBehaviourPunCallbacks
                         {
                             selectedNewTank = false;
                             // Player deselected one of the selected tanks
-                            SetTankSelectionRingEnabled(tank, true, false);
+                            SetSelectionRingEnabled(tank, true, false);
                             tankInfo.IsSelected = false;
                             _selectedAlliedTanks.RemoveAt(i);
                             break;
@@ -207,7 +236,7 @@ public class UiManager : MonoBehaviourPunCallbacks
                     if (selectedNewTank)
                     {
                         // Player selected one more tank
-                        SetTankSelectionRingEnabled(tank, true, true);
+                        SetSelectionRingEnabled(tank, true, true);
                         tankInfo.IsSelected = true;
                         _selectedAlliedTanks.Add(tank);
                     }
@@ -215,47 +244,84 @@ public class UiManager : MonoBehaviourPunCallbacks
                 else
                 {
                     // Player selected a single allied tank
-                    DeselectAlliedTanks();
-                    SetTankSelectionRingEnabled(tank, true, true);
+                    DeselectAlliedTanksAndTurret();
+                    SetSelectionRingEnabled(tank, true, true);
                     tankInfo.IsSelected = true;
                     _selectedAlliedTanks.Add(tank);
                 }
             }
             else
             {
+                DeselectAlliedTanksAndTurret();
                 SphereCollider sphere = tank.GetComponent<SphereCollider>();
                 if (Physics.OverlapSphere(sphere.transform.position, sphere.radius, _visionLayerMask, QueryTriggerInteraction.Collide).Length > 0)
                 {
                     // Player selected a (visible) enemy tank
-                    DeselectAlliedTanks();
                     if (!ReferenceEquals(tank, _selectedEnemyTank))
                     {
-                        DeselectEnemyTank();
-                        SetTankSelectionRingEnabled(tank, false, true);
+                        DeselectEnemyTankAndTurret();
+                        SetSelectionRingEnabled(tank, false, true);
                         _selectedEnemyTank = tank;
                     }
                 }
                 else
                 {
                     // Player clicked on an enemy tank that is not visible
-                    DeselectAlliedTanks();
-                    DeselectEnemyTank();
+                    DeselectEnemyTankAndTurret();
+                }
+            }
+        }
+        else if (Physics.Raycast(ray, out hit, Mathf.Infinity, _turretsLayerMask, QueryTriggerInteraction.Ignore))
+        {
+            GameObject turret = hit.transform.gameObject;
+            TurretInfo turretInfo = turret.GetComponent<TurretInfo>();
+            if (turretInfo.ActorNumber == _gameManager.ActorNumber)
+            {
+                // Player selected an allied turret
+                DeselectEnemyTankAndTurret();
+                if (!ReferenceEquals(turret, _selectedAlliedTurret))
+                {
+                    DeselectAlliedTanksAndTurret();
+                    SetSelectionRingEnabled(turret, true, true);
+                    _selectedAlliedTurret = turret;
+                }
+            }
+            else
+            {
+                DeselectAlliedTanksAndTurret();
+                CapsuleCollider capsule = turret.GetComponent<CapsuleCollider>();
+                if (Physics.OverlapCapsule(_turretColliderPoint0 + capsule.transform.position, _turretColliderPoint1 + capsule.transform.position,
+                    capsule.radius, _visionLayerMask, QueryTriggerInteraction.Collide).Length > 0)
+                {
+                    // Player selected a (visible) enemy turret
+                    if (!ReferenceEquals(turret, _selectedEnemyTurret))
+                    {
+                        DeselectEnemyTankAndTurret();
+                        SetSelectionRingEnabled(turret, false, true);
+                        _selectedEnemyTurret = turret;
+                    }
+                }
+                else
+                {
+                    // Player clicked on an enemy turret that is not visible
+                    DeselectEnemyTankAndTurret();
                 }
             }
         }
         else
-        {            
-            // Left-clicking  outside of any tank deselects the currently selected tanks (if any)
-            DeselectAlliedTanks();
-            DeselectEnemyTank();
+        {
+            // Left-clicking  outside of any tank or turret deselects the currently selected tanks and turrets (if any)
+            DeselectAlliedTanksAndTurret();
+            DeselectEnemyTankAndTurret();
         }
         UpdateTankInfoPanel(true);
+        UpdateTurretInfoPanel(true);
         UpdateAbilityPanels(true);
     }
 
-    private void UpdateTankInfoPanel(bool tankSelectionUpdated)
+    private void UpdateTankInfoPanel(bool tanksAndTurretsSelectionUpdated)
     {
-        if (!tankSelectionUpdated)
+        if (!tanksAndTurretsSelectionUpdated)
         {
             if (_selectedAlliedTanks.Count == 1)
             {
@@ -309,6 +375,52 @@ public class UiManager : MonoBehaviourPunCallbacks
         }
     }
 
+    private void UpdateTurretInfoPanel(bool tanksAndTurretsSelectionUpdated)
+    {
+        if (!tanksAndTurretsSelectionUpdated)
+        {
+            if (!ReferenceEquals(_selectedAlliedTurret, null))
+            {
+                if (_selectedAlliedTurret == null)
+                {
+                    _selectedAlliedTurret = null;
+                    _turretInfoPanel.SetActive(false);
+                }
+                else
+                {
+                    SetTurretInfoPanelTexts(_selectedAlliedTurret.GetComponent<TurretInfo>());
+                }
+            }
+            else if (!ReferenceEquals(_selectedEnemyTurret, null))
+            {
+                if (_selectedEnemyTurret == null)
+                {
+                    _selectedEnemyTurret = null;
+                    _turretInfoPanel.SetActive(false);
+                }
+                else
+                {
+                    SetTurretInfoPanelTexts(_selectedEnemyTurret.GetComponent<TurretInfo>());
+                }
+            }
+            return;
+        }
+        if (!ReferenceEquals(_selectedAlliedTurret, null))
+        {
+            _turretInfoPanel.SetActive(true);
+            SetTurretInfoPanelTexts(_selectedAlliedTurret.GetComponent<TurretInfo>());
+        }
+        else if (!ReferenceEquals(_selectedEnemyTurret, null))
+        {
+            _turretInfoPanel.SetActive(true);
+            SetTurretInfoPanelTexts(_selectedEnemyTurret.GetComponent<TurretInfo>());
+        }
+        else
+        {
+            _turretInfoPanel.SetActive(false);
+        }
+    }
+
     private void SetTankInfoPanelTexts(TankInfo tankInfo)
     {
         _tankInfoPanelUsernameText.text = GetColoredText(tankInfo.Username, tankInfo.Color);
@@ -338,9 +450,28 @@ public class UiManager : MonoBehaviourPunCallbacks
         }
     }
 
-    private void UpdateAbilityPanels(bool tankSelectionUpdated)
+    private void SetTurretInfoPanelTexts(TurretInfo turretInfo)
     {
-        if (!tankSelectionUpdated)
+        _turretInfoPanelUsernameText.text = GetColoredText(turretInfo.Username, turretInfo.Color);
+        _turretInfoPanelHealthText.text = $"{turretInfo.Health}/{turretInfo.MaxHealth}";
+        _turretInfoPanelDamageText.text = $"{turretInfo.Damage}";
+        _turretInfoPanelArmorText.text = $"{turretInfo.Armor}";
+        _turretInfoPanelShellsSpeedText.text = $"{turretInfo.ShellSpeed}";
+        if (turretInfo.Range == CrateRange.InfiniteRange)
+        {
+            _turretInfoPanelRangeText.text = "∞";
+            _turretInfoPanelRangeText.fontStyle = FontStyle.Bold;
+        }
+        else
+        {
+            _turretInfoPanelRangeText.text = $"{turretInfo.Range}";
+            _turretInfoPanelRangeText.fontStyle = FontStyle.Normal;
+        }
+    }
+
+    private void UpdateAbilityPanels(bool tanksAndTurretsSelectionUpdated)
+    {
+        if (!tanksAndTurretsSelectionUpdated)
         {
             if (_selectedAlliedTanks.Count == 1)
             {
@@ -587,9 +718,10 @@ public class UiManager : MonoBehaviourPunCallbacks
 
     private void Reset()
     {
-        DeselectAlliedTanks();
-        DeselectEnemyTank();
+        DeselectAlliedTanksAndTurret();
+        DeselectEnemyTankAndTurret();
         UpdateTankInfoPanel(true);
+        UpdateTurretInfoPanel(true);
         UpdateAbilityPanels(true);
     }
 
