@@ -44,24 +44,46 @@ public class PlayerManager
         // Rotate them towards the map's center?
         for (int i = 0; i < 2; ++i)
         {
-            InstantiateDefaultTank(_spawnPosition);
-
-            /*if (_gameManager.ActorNumber > 1) // this is for testing only
-            {
-                break;
-            }*/
+            InstantiateTank(_spawnPosition);
         }
     }
 
-    private GameObject InstantiateDefaultTank(Vector3 position)
+    private void InstantiateTank(Vector3 position)
     {
         GameObject tank = PhotonNetwork.Instantiate(_tankPrefab.name, position, Quaternion.identity, 0,
             new object[] { _gameManager.ActorNumber * TankInfo.TankNumberMultiplier + Tanks.Count,
-                new Vector3(PlayerColor.r,  PlayerColor.g, PlayerColor.b) });
+                new Vector3(PlayerColor.r,  PlayerColor.g, PlayerColor.b), true });
         tank.transform.Find("Vision").gameObject.SetActive(true);
         Tanks.Add(tank);
-        return tank;
     }
+
+    private void InstantiateTank(Vector3 position, int originalTankNumber)
+    {
+        GameObject originalTank = Tanks.Find(t => t.GetComponent<TankInfo>().TankNumber == originalTankNumber);
+        if (originalTank == null)
+        {
+            return;
+        }
+        // Duplicate stats
+        TankInfo tankInfo = originalTank.GetComponent<TankInfo>();
+        GameObject newTank = PhotonNetwork.Instantiate(_tankPrefab.name, position, Quaternion.identity, 0,
+            new object[] { _gameManager.ActorNumber * TankInfo.TankNumberMultiplier + Tanks.Count,
+                new Vector3(PlayerColor.r,  PlayerColor.g, PlayerColor.b), false, tankInfo.Health, tankInfo.MaxHealth,
+                tankInfo.Ammo, tankInfo.Damage, tankInfo.Armor, tankInfo.Speed, tankInfo.Range });
+        newTank.transform.Find("Vision").gameObject.SetActive(true);
+        // Duplicate abilities
+        TankAbilities originalTankAbilities = originalTank.GetComponent<TankAbilities>();
+        TankAbilities newTankAbilities = newTank.GetComponent<TankAbilities>();
+        for (int i = 0; i < TankAbilities.MaxAbilities; ++i)
+        {
+            if (originalTankAbilities.Abilities[i] != null && !originalTankAbilities.Abilities[i].IsActive)
+            {
+                newTankAbilities.Abilities[i] = new Ability(originalTankAbilities.Abilities[i].Type);
+            }
+        }
+        Tanks.Add(newTank);
+    }
+    
 
     public void SetControlEnabled(bool enabled)
     {
@@ -113,19 +135,16 @@ public class PlayerManager
         {
             float[] eventData = (float[])obj.CustomData;
             Vector3 position = new Vector3(eventData[0], 0f, eventData[1]);
-            // TODO - Use instantiation data for stats as well (to avoid RPC call)
-            GameObject tank = InstantiateDefaultTank(position);
-            // The third float tells if the tank should be a default one or if it has duplicated stats instead
-            if (eventData[2] == 0f)
+            int originalTankNumber = (int)eventData[2];
+            if (originalTankNumber == -1)
             {
-                int health = (int)eventData[3];
-                int maxHealth = (int)eventData[4];
-                int ammo = (int)eventData[5];
-                int damage = (int)eventData[6];
-                int armor = (int)eventData[7];
-                int speed = (int)eventData[8];
-                int range = (int)eventData[9];
-                tank.GetComponent<TankInfo>().SetStats(health, maxHealth, ammo, damage, armor, speed, range);
+                // The tank has default stats
+                InstantiateTank(position);
+            }
+            else
+            {
+                // The tank has duplicated stats
+                InstantiateTank(position, originalTankNumber);
             }
         }
     }

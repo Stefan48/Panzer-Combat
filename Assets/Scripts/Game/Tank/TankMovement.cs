@@ -109,7 +109,6 @@ public class TankMovement : MonoBehaviour, IPunObservable
         {
             Vector3 movement = (_movingForward ?  transform.forward : -transform.forward) * _tankInfo.Speed * Time.fixedDeltaTime;
             // Check if the tank would hit any colliders
-            // Not using Physics.OverlapSphere since it doesn't work with the objects instantiated with PhotonNetwork.Instantiate
             bool wouldHitColliders = false;
             Vector3 currentRaycastPosition = _movementRaycastDirection.position;
             Quaternion currentRaycastRotation = _movementRaycastDirection.rotation;

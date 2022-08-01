@@ -3,7 +3,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 
-public class Mine : MonoBehaviourPunCallbacks
+public class Mine : MonoBehaviourPunCallbacks, IPunInstantiateMagicCallback
 {
     private PhotonView _photonView;
     private BoxCollider _boxCollider;
@@ -29,6 +29,13 @@ public class Mine : MonoBehaviourPunCallbacks
     private void OnDestroy()
     {
         GameManager.RoundStartingEvent -= OnRoundStarting;
+    }
+
+    // This is called after Awake and before Start
+    public void OnPhotonInstantiate(PhotonMessageInfo info)
+    {
+        object[] instantiationData = info.photonView.InstantiationData;
+        _deployedByActorNumber = (int)instantiationData[0];
     }
 
     private void OnTriggerEnter(Collider other)
@@ -57,17 +64,6 @@ public class Mine : MonoBehaviourPunCallbacks
     {
         yield return new WaitForSeconds(_timeToActivate);
         _boxCollider.enabled = true;
-    }
-
-    public void SetActorNumber(int actorNumber)
-    {
-        _photonView.RPC("RPC_SetActorNumber", RpcTarget.AllViaServer, actorNumber);
-    }
-
-    [PunRPC]
-    private void RPC_SetActorNumber(int actorNumber)
-    {
-        _deployedByActorNumber = actorNumber;
     }
 
     private void Detonate()

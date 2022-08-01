@@ -6,16 +6,10 @@ using UnityEngine;
 public class CrateTank : Crate
 {
     private static readonly int s_duplicateTankChance = 20;
+    private bool _defaultTank;
     private float _positionX;
     private float _positionZ;
-    private bool _defaultTank;
-    private int _health;
-    private int _maxHealth;
-    private int _ammo;
-    private int _damage;
-    private int _armor;
-    private int _speed;
-    private int _range;
+    private int _originalTankNumber = -1;
 
 
     [PunRPC]
@@ -55,14 +49,7 @@ public class CrateTank : Crate
         _positionZ = extraTankPosition.z;
         if (!_defaultTank)
         {
-            TankInfo tankInfo = tank.GetComponent<TankInfo>();
-            _health = tankInfo.Health;
-            _maxHealth = tankInfo.MaxHealth;
-            _ammo = tankInfo.Ammo;
-            _damage = tankInfo.Damage;
-            _armor = tankInfo.Armor;
-            _speed = tankInfo.Speed;
-            _range = tankInfo.Range;
+            _originalTankNumber = tank.GetComponent<TankInfo>().TankNumber;
         }
         return "Extra Tank";
     }
@@ -70,26 +57,7 @@ public class CrateTank : Crate
     protected override void RewardPlayer(GameObject tank)
     {
         int rewardedPlayer = tank.GetComponent<TankInfo>().ActorNumber;
-        if (_defaultTank)
-        {
-            PhotonNetwork.RaiseEvent(PlayerManager.TankCrateCollectedNetworkEvent, new float[] { _positionX, _positionZ, 1f },
-                new RaiseEventOptions { TargetActors = new int[] { rewardedPlayer } }, SendOptions.SendReliable);
-        }
-        else
-        {
-            float[] eventContent = new float[10];
-            eventContent[0] = _positionX;
-            eventContent[1] = _positionZ;
-            eventContent[2] = 0f;
-            eventContent[3] = _health;
-            eventContent[4] = _maxHealth;
-            eventContent[5] = _ammo;
-            eventContent[6] = _damage;
-            eventContent[7] = _armor;
-            eventContent[8] = _speed;
-            eventContent[9] = _range;
-            PhotonNetwork.RaiseEvent(PlayerManager.TankCrateCollectedNetworkEvent, eventContent,
-                new RaiseEventOptions { TargetActors = new int[] { rewardedPlayer } }, SendOptions.SendReliable);
-        }
+        PhotonNetwork.RaiseEvent(PlayerManager.TankCrateCollectedNetworkEvent, new float[] { _positionX, _positionZ, _originalTankNumber },
+            new RaiseEventOptions { TargetActors = new int[] { rewardedPlayer } }, SendOptions.SendReliable);
     }
 }

@@ -161,7 +161,6 @@ public class TurretShooting : MonoBehaviour
     }
 
 
-    // Commit here
     // TODO - UI for selected turrets (max 1 turret selected at a time; gets disabled if the selected turret gets destroyed)
     // TODO - Test turret stats if not default (including vision and range)
     // TODO - Shouldn't be able to start the game if there's only 1 player in the room

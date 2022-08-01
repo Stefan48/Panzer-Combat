@@ -30,11 +30,11 @@ public class CrateAbility : Crate
         // TODO - Probabilities
         if (roll < 60)
         {
-            _abilityType = AbilityType.Turret;
+            _abilityType = AbilityType.Mine;
         }
         else if (roll < 75)
         {
-            _abilityType = AbilityType.Mine;
+            _abilityType = AbilityType.Turret;
         }
         else if (roll < 85)
         {

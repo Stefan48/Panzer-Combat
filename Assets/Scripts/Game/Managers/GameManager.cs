@@ -244,11 +244,11 @@ public class GameManager : MonoBehaviourPunCallbacks
         // TODO - Probabilities
         if (roll < 60)
         {
-            return CrateType.Ability;
+            return CrateType.Tank;
         }
         if (roll < 90)
         {
-            return CrateType.Tank;
+            return CrateType.Ability;
         }
         return CrateType.Ammo;
         //return (CrateType)UnityEngine.Random.Range(0, Enum.GetNames(typeof(CrateType)).Length);

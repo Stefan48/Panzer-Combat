@@ -262,9 +262,8 @@ public class TankAbilities : MonoBehaviour
     [PunRPC]
     private void RPC_PlaceMine()
     {
-        GameObject mine = PhotonNetwork.InstantiateRoomObject(_minePrefab.name, transform.position + _minePrefab.transform.position, transform.rotation);
-        // TODO - Use instantiate data (also in other scripts where PhotonNetwork.Instantiate is used?)
-        mine.GetComponent<Mine>().SetActorNumber(_tankInfo.ActorNumber);
+        PhotonNetwork.InstantiateRoomObject(_minePrefab.name, transform.position + _minePrefab.transform.position, transform.rotation,
+            0, new object[] { _tankInfo.ActorNumber });
     }
 
     private void PlaceTurret()

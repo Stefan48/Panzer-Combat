@@ -58,26 +58,23 @@ public class TankInfo : MonoBehaviour, IPunInstantiateMagicCallback
         }
         _usernameTextMesh.color = Color;
         _minimapIconSpriteRenderer.color = Color;
-    }
 
-    public void SetStats(int health, int maxHealth, int ammo, int damage, int armor, int speed, int range)
-    {
-        _photonView.RPC("RPC_SetStats", RpcTarget.AllViaServer, health, maxHealth, ammo, damage, armor, speed, range);
-    }
-
-    [PunRPC]
-    private void RPC_SetStats(int health, int maxHealth, int ammo, int damage, int armor, int speed, int range)
-    {
-        GetComponent<TankHealth>().SetHealthAndMaxHealth(health, maxHealth);
-        Ammo = ammo;
-        Damage = damage;
-        Armor = armor;
-        Speed = speed;
-        ShellSpeed = Speed + s_speedShellSpeedDifference;
-        int extraRange = range - s_defaultRange;
-        if (extraRange > 0)
+        bool tankHasDefaultStats = (bool)instantiationData[2];
+        if (!tankHasDefaultStats)
         {
-            RPC_IncreaseRange(extraRange);
+            int health = (int)instantiationData[3];
+            int maxHealth = (int)instantiationData[4];
+            GetComponent<TankHealth>().SetHealthAndMaxHealth(health, maxHealth);
+            Ammo = (int)instantiationData[5];
+            Damage = (int)instantiationData[6];
+            Armor = (int)instantiationData[7];
+            Speed = (int)instantiationData[8];
+            ShellSpeed = Speed + s_speedShellSpeedDifference;
+            int range = (int)instantiationData[9];
+            if (range > s_defaultRange)
+            {
+                RPC_IncreaseRange(range - s_defaultRange);
+            }
         }
     }
 
