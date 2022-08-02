@@ -246,11 +246,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         {
             return CrateType.Ability;
         }
-        if (roll < 80)
-        {
-            return CrateType.Range;
-        }
-        return (CrateType)UnityEngine.Random.Range(0, Enum.GetNames(typeof(CrateType)).Length);
+        return CrateType.Ammo;
         //return (CrateType)UnityEngine.Random.Range(0, Enum.GetNames(typeof(CrateType)).Length);
     }
 

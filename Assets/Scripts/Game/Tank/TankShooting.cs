@@ -10,6 +10,7 @@ public class TankShooting : MonoBehaviour
     public static readonly int ShellIdMultiplier = 1000000;
     public int CurrentShellId = -1; // this gets set in the TankInfo script
     private static readonly int s_maxShellsShotAtOnce = 3;
+    [SerializeField] private Transform _muzzles;
     [SerializeField] private Transform _muzzleCenter;
     [SerializeField] private Transform _muzzleLeft;
     [SerializeField] private Transform _muzzleRight;
@@ -75,19 +76,23 @@ public class TankShooting : MonoBehaviour
             _warningAudioSource.PlayOneShot(_noAmmoAudioClip, _noAmmoAudioClipVolumeScale);
             return;
         }
-        _photonView.RPC("RPC_Shoot", RpcTarget.AllViaServer, CurrentShellId);
+        // Send the position and rotation of the muzzle so that all clients can shoot in sync
+        _photonView.RPC("RPC_Shoot", RpcTarget.AllViaServer, CurrentShellId, _muzzles.position.x, _muzzles.position.z, _muzzles.eulerAngles.y);
         CurrentShellId += s_maxShellsShotAtOnce;
     }
 
     [PunRPC]
-    private void RPC_Shoot(int shellId)
+    private void RPC_Shoot(int shellId, float muzzlesPositionX, float muzzlesPositionZ, float muzzlesRotationY)
     {
         // Due to the latency, the ammo might already be 0
         if (_tankInfo.Ammo == 0)
         {
             return;
         }
-        _tankInfo.Ammo--;        
+        _tankInfo.Ammo--;
+        // Set the position and rotation of the muzzle to match the tank owner's
+        _muzzles.position = new Vector3(muzzlesPositionX, _muzzles.position.y, muzzlesPositionZ);
+        _muzzles.rotation = Quaternion.Euler(0f, muzzlesRotationY, 0f);
         // TODO - Object pooling
         GameObject shell = Instantiate(_shellPrefab, _muzzleCenter.position, _muzzleCenter.rotation);
         shell.GetComponent<ShellMovement>().Init(_tankInfo.ShellSpeed, _tankInfo.Range);
@@ -102,5 +107,8 @@ public class TankShooting : MonoBehaviour
             shell.GetComponent<ShellExplosion>().Init(shellId + 2, _tankInfo.ActorNumber, _tankInfo.TankNumber, _tankInfo.Damage);
         }
         _shotFiredAudioSource.Play();
+        // Reset the position and rotation of the muzzle
+        _muzzles.position = transform.position;
+        _muzzles.rotation = transform.rotation;
     }
 }

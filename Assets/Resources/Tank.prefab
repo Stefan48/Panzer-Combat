@@ -927,6 +927,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   EscPanelIsActive: 0
   CurrentShellId: -1
+  _muzzles: {fileID: 6745234407787935852}
   _muzzleCenter: {fileID: 1110268858}
   _muzzleLeft: {fileID: 857558313454813711}
   _muzzleRight: {fileID: 153578981098393054}
@@ -1017,7 +1018,7 @@ MonoBehaviour:
   m_RotationModel:
     SynchronizeEnabled: 1
     InterpolateOption: 2
-    InterpolateRotateTowardsSpeed: 180
+    InterpolateRotateTowardsSpeed: 1440
     InterpolateLerpSpeed: 10
   m_ScaleModel:
     SynchronizeEnabled: 0
