@@ -72,6 +72,8 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
     }
 
     // TODO - No more collisions between shells? (trying to shoot a turret that is targeting you is pretty awkward)
+    // Or maybe when a shell hits something, disable its collider (instantly, on the Master Client only)?
+    // (shells belonging to different players shouldn't trade 2 for 1, for example)
     private void OnTriggerEnter(Collider other)
     {
         // Shell collisions are checked only by the Master Client

@@ -26,7 +26,7 @@ public class UiManager : MonoBehaviourPunCallbacks
     [SerializeField] private LayerMask _visionLayerMask;
     [SerializeField] private LayerMask _turretsLayerMask;
     private List<GameObject> _selectedAlliedTanks = new List<GameObject>();
-    private GameObject _selectedEnemyTank = null;
+    public GameObject SelectedEnemyTank { get; private set; } = null;
     [SerializeField] private GameObject _tankInfoPanel;
     [SerializeField] private Text _tankInfoPanelUsernameText;
     [SerializeField] private Text _tankInfoPanelHealthText;
@@ -40,8 +40,8 @@ public class UiManager : MonoBehaviourPunCallbacks
     [SerializeField] private Text _numTanksSelectedText;
     private readonly Vector3 _turretColliderPoint0 = Vector3.zero;
     private readonly Vector3 _turretColliderPoint1 = new Vector3(0f, 2f, 0f);
-    private GameObject _selectedAlliedTurret = null;
-    private GameObject _selectedEnemyTurret = null;
+    public GameObject SelectedAlliedTurret { get; private set; } = null;
+    public GameObject SelectedEnemyTurret { get; private set; } = null;
     [SerializeField] private GameObject _turretInfoPanel;
     [SerializeField] private Text _turretInfoPanelUsernameText;
     [SerializeField] private Text _turretInfoPanelHealthText;
@@ -170,25 +170,25 @@ public class UiManager : MonoBehaviourPunCallbacks
 
     private void DeselectEnemyTankAndTurret()
     {
-        if (_selectedEnemyTank != null)
+        if (SelectedEnemyTank != null)
         {
-            SetSelectionRingEnabled(_selectedEnemyTank, false, false);
+            SetSelectionRingEnabled(SelectedEnemyTank, false, false);
         }
-        _selectedEnemyTank = null;
-        if (_selectedEnemyTurret != null)
+        SelectedEnemyTank = null;
+        if (SelectedEnemyTurret != null)
         {
-            SetSelectionRingEnabled(_selectedEnemyTurret, false, false);
+            SetSelectionRingEnabled(SelectedEnemyTurret, false, false);
         }
-        _selectedEnemyTurret = null;
+        SelectedEnemyTurret = null;
     }
 
     private void DeselectAlliedTurret()
     {
-        if (_selectedAlliedTurret != null)
+        if (SelectedAlliedTurret != null)
         {
-            SetSelectionRingEnabled(_selectedAlliedTurret, true, false);
+            SetSelectionRingEnabled(SelectedAlliedTurret, true, false);
         }
-        _selectedAlliedTurret = null;
+        SelectedAlliedTurret = null;
     }
 
     private void DeselectAlliedTanksAndTurret()
@@ -257,11 +257,11 @@ public class UiManager : MonoBehaviourPunCallbacks
                 if (Physics.OverlapSphere(sphere.transform.position, sphere.radius, _visionLayerMask, QueryTriggerInteraction.Collide).Length > 0)
                 {
                     // Player selected a (visible) enemy tank
-                    if (!ReferenceEquals(tank, _selectedEnemyTank))
+                    if (!ReferenceEquals(tank, SelectedEnemyTank))
                     {
                         DeselectEnemyTankAndTurret();
                         SetSelectionRingEnabled(tank, false, true);
-                        _selectedEnemyTank = tank;
+                        SelectedEnemyTank = tank;
                     }
                 }
                 else
@@ -279,11 +279,11 @@ public class UiManager : MonoBehaviourPunCallbacks
             {
                 // Player selected an allied turret
                 DeselectEnemyTankAndTurret();
-                if (!ReferenceEquals(turret, _selectedAlliedTurret))
+                if (!ReferenceEquals(turret, SelectedAlliedTurret))
                 {
                     DeselectAlliedTanksAndTurret();
                     SetSelectionRingEnabled(turret, true, true);
-                    _selectedAlliedTurret = turret;
+                    SelectedAlliedTurret = turret;
                 }
             }
             else
@@ -294,11 +294,11 @@ public class UiManager : MonoBehaviourPunCallbacks
                     capsule.radius, _visionLayerMask, QueryTriggerInteraction.Collide).Length > 0)
                 {
                     // Player selected a (visible) enemy turret
-                    if (!ReferenceEquals(turret, _selectedEnemyTurret))
+                    if (!ReferenceEquals(turret, SelectedEnemyTurret))
                     {
                         DeselectEnemyTankAndTurret();
                         SetSelectionRingEnabled(turret, false, true);
-                        _selectedEnemyTurret = turret;
+                        SelectedEnemyTurret = turret;
                     }
                 }
                 else
@@ -335,16 +335,16 @@ public class UiManager : MonoBehaviourPunCallbacks
                     SetTankInfoPanelTexts(_selectedAlliedTanks[0].GetComponent<TankInfo>());
                 }
             }
-            else if (!ReferenceEquals(_selectedEnemyTank, null))
+            else if (!ReferenceEquals(SelectedEnemyTank, null))
             {
-                if (_selectedEnemyTank == null)
+                if (SelectedEnemyTank == null)
                 {
-                    _selectedEnemyTank = null;
+                    SelectedEnemyTank = null;
                     _tankInfoPanel.SetActive(false);
                 }
                 else
                 {
-                    SetTankInfoPanelTexts(_selectedEnemyTank.GetComponent<TankInfo>());
+                    SetTankInfoPanelTexts(SelectedEnemyTank.GetComponent<TankInfo>());
                 }
             }
             return;
@@ -363,10 +363,10 @@ public class UiManager : MonoBehaviourPunCallbacks
                 _tankInfoPanel.SetActive(true);
                 SetTankInfoPanelTexts(_selectedAlliedTanks[0].GetComponent<TankInfo>());
             }
-            else if (_selectedEnemyTank != null)
+            else if (SelectedEnemyTank != null)
             {
                 _tankInfoPanel.SetActive(true);
-                SetTankInfoPanelTexts(_selectedEnemyTank.GetComponent<TankInfo>());
+                SetTankInfoPanelTexts(SelectedEnemyTank.GetComponent<TankInfo>());
             }
             else
             {
@@ -379,41 +379,41 @@ public class UiManager : MonoBehaviourPunCallbacks
     {
         if (!tanksAndTurretsSelectionUpdated)
         {
-            if (!ReferenceEquals(_selectedAlliedTurret, null))
+            if (!ReferenceEquals(SelectedAlliedTurret, null))
             {
-                if (_selectedAlliedTurret == null)
+                if (SelectedAlliedTurret == null)
                 {
-                    _selectedAlliedTurret = null;
+                    SelectedAlliedTurret = null;
                     _turretInfoPanel.SetActive(false);
                 }
                 else
                 {
-                    SetTurretInfoPanelTexts(_selectedAlliedTurret.GetComponent<TurretInfo>());
+                    SetTurretInfoPanelTexts(SelectedAlliedTurret.GetComponent<TurretInfo>());
                 }
             }
-            else if (!ReferenceEquals(_selectedEnemyTurret, null))
+            else if (!ReferenceEquals(SelectedEnemyTurret, null))
             {
-                if (_selectedEnemyTurret == null)
+                if (SelectedEnemyTurret == null)
                 {
-                    _selectedEnemyTurret = null;
+                    SelectedEnemyTurret = null;
                     _turretInfoPanel.SetActive(false);
                 }
                 else
                 {
-                    SetTurretInfoPanelTexts(_selectedEnemyTurret.GetComponent<TurretInfo>());
+                    SetTurretInfoPanelTexts(SelectedEnemyTurret.GetComponent<TurretInfo>());
                 }
             }
             return;
         }
-        if (!ReferenceEquals(_selectedAlliedTurret, null))
+        if (!ReferenceEquals(SelectedAlliedTurret, null))
         {
             _turretInfoPanel.SetActive(true);
-            SetTurretInfoPanelTexts(_selectedAlliedTurret.GetComponent<TurretInfo>());
+            SetTurretInfoPanelTexts(SelectedAlliedTurret.GetComponent<TurretInfo>());
         }
-        else if (!ReferenceEquals(_selectedEnemyTurret, null))
+        else if (!ReferenceEquals(SelectedEnemyTurret, null))
         {
             _turretInfoPanel.SetActive(true);
-            SetTurretInfoPanelTexts(_selectedEnemyTurret.GetComponent<TurretInfo>());
+            SetTurretInfoPanelTexts(SelectedEnemyTurret.GetComponent<TurretInfo>());
         }
         else
         {

@@ -7,6 +7,7 @@ public class CameraControl : MonoBehaviour
 {
     [SerializeField] private Camera _camera;
     [SerializeField] private GameManager _gameManager;
+    [SerializeField] private UiManager _uiManager;
     private bool _playerManagerIsSetUp = false;
     private List<GameObject> _tanks = null;
     private GameObject _viewedTank = null;
@@ -17,8 +18,7 @@ public class CameraControl : MonoBehaviour
     private const float _cameraSizeUpperLimit = 21f;
     private int _cameraZoomPending = 0;
     // TODO - Adjustable camera speed in settings (useful only in spectator mode)
-    private const float _cameraSpeed = 15f;
-
+    private const float _cameraSpeed = 20f;
     private int _screenHeight;
     private int _screenWidth;
     private const float _mouseThresholdLowerLimit = 0.05f;
@@ -27,23 +27,36 @@ public class CameraControl : MonoBehaviour
     private float _mouseThresholdBottom;
     private float _mouseThresholdRight;
     private float _mouseThresholdLeft;
-
-    /* private readonly float[] _mouseThresholdsTop = { Screen.height * 0.95f, Screen.height * 0.99999f };
-    private readonly float[] _mouseThresholdsBottom = { Screen.height * 0.00001f, Screen.height * 0.05f };
-    private readonly float[] _mouseThresholdsRight = { Screen.width * 0.95f, Screen.width * 0.99999f };
-    private readonly float[] _mouseThresholdsLeft = { Screen.width * 0.00001f, Screen.width * 0.05f }; */
-
-    private readonly Vector3 _cameraUp = Vector3.Normalize(new Vector3(1f, 0f, 0f) * 1.7f + new Vector3(0f, 0f, 1f));
-    private readonly Vector3 _cameraRight = Vector3.Normalize(new Vector3(1f, 0f, 0f) - new Vector3(0f, 0f, 1f) * 1.7f);
+    private static readonly Vector3 s_cameraUp = (new Vector3(1f, 0f, 0f) * 1.7f + new Vector3(0f, 0f, 1f)).normalized;
+    private static readonly Vector3 s_cameraDown = -s_cameraUp;
+    private static readonly Vector3 s_cameraRight = (new Vector3(1f, 0f, 0f) - new Vector3(0f, 0f, 1f) * 1.7f).normalized;
+    private static readonly Vector3 s_cameraLeft = -s_cameraRight;
+    private static readonly Vector3 s_cameraUpRight = (s_cameraUp + s_cameraRight).normalized;
+    private static readonly Vector3 s_cameraUpLeft = (s_cameraUp + s_cameraLeft).normalized;
+    private static readonly Vector3 s_cameraDownRight = (s_cameraDown + s_cameraRight).normalized;
+    private static readonly Vector3 s_cameraDownLeft = (s_cameraDown + s_cameraLeft).normalized;
     private bool _escPanelIsActive = false;
     private Vector3 _cameraMovementDirection;
     [SerializeField] private GameObject _level;
     private bool _insideLevel = true;
-
     [SerializeField] private Camera _fogCamera;
     [SerializeField] private GameObject _fog;
     [SerializeField] private RenderTexture _fogRenderTexture;
     [SerializeField] private GameObject _fogPlane;
+    [SerializeField] private GameObject _globalVision;
+    private bool _spectating = false;
+    private bool _autoFollowWhileSpectating = false;
+    private enum CursorOrientation { Regular, Up, Down, Right, Left, UpRight, UpLeft, DownRight, DownLeft};
+    private CursorOrientation _cursorOrientation = CursorOrientation.Regular;
+    [SerializeField] private Texture2D _cursorRegular;
+    [SerializeField] private Texture2D _cursorUp;
+    [SerializeField] private Texture2D _cursorDown;
+    [SerializeField] private Texture2D _cursorRight;
+    [SerializeField] private Texture2D _cursorLeft;
+    [SerializeField] private Texture2D _cursorUpRight;
+    [SerializeField] private Texture2D _cursorUpLeft;
+    [SerializeField] private Texture2D _cursorDownRight;
+    [SerializeField] private Texture2D _cursorDownLeft;
 
 
     private void Awake()
@@ -55,6 +68,7 @@ public class CameraControl : MonoBehaviour
         PlayerManager.TanksListReducedEvent += OnAlliedTankGotDestroyed;
         TankInfo.TankRangeIncreasedEvent += OnTankRangeIncreased;
 
+        Cursor.SetCursor(_cursorRegular, Vector2.zero, CursorMode.Auto);
         OnScreenResized();
     }
 
@@ -74,18 +88,30 @@ public class CameraControl : MonoBehaviour
         {
             OnScreenResized();
         }
-        if (!_playerManagerIsSetUp || _escPanelIsActive)
+        if (!_playerManagerIsSetUp || (_escPanelIsActive && !_spectating))
         {
             return;
         }
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (!_escPanelIsActive)
         {
-            if (_tanks.Count > 0)
+            if (Input.GetKeyDown(KeyCode.Space))
             {
-                _switchViewedTankPending = true;
+                if (_spectating)
+                {
+                    _autoFollowWhileSpectating = !_autoFollowWhileSpectating;
+                }
+                else
+                {
+                    _switchViewedTankPending = true;
+                }
             }
+            ProcessScrollInput();
         }
-        ProcessScrollInput();
+        if (_spectating)
+        {
+            // Spectate is called in Update instead of FixedUpdate since the latter option causes jittering
+            Spectate();
+        }
     }
 
     private void FixedUpdate()
@@ -96,11 +122,8 @@ public class CameraControl : MonoBehaviour
             return;
         }
         ApplyZoom();
-        if (_tanks.Count == 0)
+        if (_spectating)
         {
-            // TODO - Being able to select tanks in spectator mode (currently the fog gets disable but there's still no Vision)
-            // TODO - Camera auto-follow in spectator mode?
-            GlideCamera();
             return;
         }
         if (_switchViewedTankPending)
@@ -109,7 +132,7 @@ public class CameraControl : MonoBehaviour
             SwitchViewedTank();
             return;
         }
-        FollowViewedTank();        
+        FollowViewedTank();
     }
 
     private void SetCameraInitialPosition()
@@ -209,35 +232,82 @@ public class CameraControl : MonoBehaviour
         _fogPlane.transform.localScale = new Vector3(fogPlanceScaleX, 1f, fogPlaneScaleZ);
     }
 
+    private void Spectate()
+    {
+        SetCursorOrientation(CursorOrientation.Regular);
+        if (_autoFollowWhileSpectating)
+        {
+            if (_uiManager.SelectedEnemyTank != null)
+            {
+                transform.position = _uiManager.SelectedEnemyTank.transform.position;
+            }
+            else if (_uiManager.SelectedEnemyTurret != null)
+            {
+                transform.position = _uiManager.SelectedEnemyTurret.transform.position;
+            }
+            else if (_uiManager.SelectedAlliedTurret != null)
+            {
+                transform.position = _uiManager.SelectedAlliedTurret.transform.position;
+            }
+            return;
+        }
+        GlideCamera();
+    }
+
     private void GlideCamera()
     {
         _cameraMovementDirection = Vector3.zero;
         if (Input.mousePosition.y >= _mouseThresholdTop)
-        //if (Input.mousePosition.y >= _mouseThresholdsTop[0] && Input.mousePosition.y <= _mouseThresholdsTop[1])
         {
-            _cameraMovementDirection += _cameraUp;
+            _cameraMovementDirection = s_cameraUp;
+            SetCursorOrientation(CursorOrientation.Up);
         }
         else if (Input.mousePosition.y <= _mouseThresholdBottom)
-        //else if (Input.mousePosition.y >= _mouseThresholdsBottom[0] && Input.mousePosition.y <= _mouseThresholdsBottom[1])
         {
-            _cameraMovementDirection -= _cameraUp;
+            _cameraMovementDirection = s_cameraDown;
+            SetCursorOrientation(CursorOrientation.Down);
         }
         if (Input.mousePosition.x >= _mouseThresholdRight)
-        //if (Input.mousePosition.x >= _mouseThresholdsRight[0] && Input.mousePosition.x <= _mouseThresholdsRight[1])
         {
-            _cameraMovementDirection += _cameraRight;
+            if (_cameraMovementDirection == Vector3.zero)
+            {
+                _cameraMovementDirection = s_cameraRight;
+                SetCursorOrientation(CursorOrientation.Right);
+            }
+            else if (_cameraMovementDirection == s_cameraUp)
+            {
+                _cameraMovementDirection = s_cameraUpRight;
+                SetCursorOrientation(CursorOrientation.UpRight);
+            }
+            else if (_cameraMovementDirection == s_cameraDown)
+            {
+                _cameraMovementDirection = s_cameraDownRight;
+                SetCursorOrientation(CursorOrientation.DownRight);
+            }
         }
         else if (Input.mousePosition.x <= _mouseThresholdLeft)
-        //else if (Input.mousePosition.x >= _mouseThresholdsLeft[0] && Input.mousePosition.x <= _mouseThresholdsLeft[1])
         {
-            _cameraMovementDirection -= _cameraRight;
+            if (_cameraMovementDirection == Vector3.zero)
+            {
+                _cameraMovementDirection = s_cameraLeft;
+                SetCursorOrientation(CursorOrientation.Left);
+            }
+            else if (_cameraMovementDirection == s_cameraUp)
+            {
+                _cameraMovementDirection = s_cameraUpLeft;
+                SetCursorOrientation(CursorOrientation.UpLeft);
+            }
+            else if (_cameraMovementDirection == s_cameraDown)
+            {
+                _cameraMovementDirection = s_cameraDownLeft;
+                SetCursorOrientation(CursorOrientation.DownLeft);
+            }
         }
         if (_cameraMovementDirection != Vector3.zero)
         {
             if (_insideLevel)
             {
-                // Normalize the direction so the camera's speed won't increase when scrolling diagonally
-                transform.Translate(Vector3.Normalize(_cameraMovementDirection) * _cameraSpeed * Time.fixedDeltaTime, Space.World);
+                transform.Translate(_cameraMovementDirection * _cameraSpeed * Time.fixedDeltaTime, Space.World);
             }
             else
             {
@@ -250,6 +320,47 @@ public class CameraControl : MonoBehaviour
                     transform.position = newPosition;
                 }
             }
+        }
+    }
+
+    private void SetCursorOrientation(CursorOrientation orientation)
+    {
+        if (_cursorOrientation == orientation)
+        {
+            return;
+        }
+        _cursorOrientation = orientation;
+        switch (orientation)
+        {
+            case CursorOrientation.Regular:
+                Cursor.SetCursor(_cursorRegular, Vector2.zero, CursorMode.Auto);
+                break;
+            case CursorOrientation.Up:
+                Cursor.SetCursor(_cursorUp, Vector2.zero, CursorMode.Auto);
+                break;
+            case CursorOrientation.Down:
+                Cursor.SetCursor(_cursorDown, Vector2.zero, CursorMode.Auto);
+                break;
+            case CursorOrientation.Right:
+                Cursor.SetCursor(_cursorRight, Vector2.zero, CursorMode.Auto);
+                break;
+            case CursorOrientation.Left:
+                Cursor.SetCursor(_cursorLeft, Vector2.zero, CursorMode.Auto);
+                break;
+            case CursorOrientation.UpRight:
+                Cursor.SetCursor(_cursorUpRight, Vector2.zero, CursorMode.Auto);
+                break;
+            case CursorOrientation.UpLeft:
+                Cursor.SetCursor(_cursorUpLeft, Vector2.zero, CursorMode.Auto);
+                break;
+            case CursorOrientation.DownRight:
+                Cursor.SetCursor(_cursorDownRight, Vector2.zero, CursorMode.Auto);
+                break;
+            case CursorOrientation.DownLeft:
+                Cursor.SetCursor(_cursorDownLeft, Vector2.zero, CursorMode.Auto);
+                break;
+            default:
+                break;
         }
     }
 
@@ -281,7 +392,9 @@ public class CameraControl : MonoBehaviour
             // So the PlayerManager should avoid reinstantiating the list
             _tanks = _gameManager.PlayerManager.Tanks;
         }
+        _spectating = false;
         _fog.SetActive(true);
+        _globalVision.SetActive(false);
         SetCameraInitialPosition();
         SetCameraInitialSize();
         enabled = false;
@@ -295,6 +408,7 @@ public class CameraControl : MonoBehaviour
     private void OnRoundEnding(PlayerInfo roundWinner, bool isGameWinner)
     {
         // TODO - Play round end/game end sounds
+        SetCursorOrientation(CursorOrientation.Regular);
         _fog.SetActive(false);
         GameObject[] tanks = GameObject.FindGameObjectsWithTag("Tank");
         // Disable engine sounds
@@ -318,8 +432,10 @@ public class CameraControl : MonoBehaviour
         if (_tanks.Count == 0)
         {
             // After losing his last tank, the player is in spectator mode until a new round starts
+            _spectating = true;
             _viewedTank = null;
             _fog.SetActive(false);
+            _globalVision.SetActive(true);
             _maxCameraSize = _cameraSizeUpperLimit;
             return;
         }

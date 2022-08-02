@@ -74,11 +74,12 @@ public class RoomManager : MonoBehaviourPunCallbacks
         {
             return;
         }
-        if (PhotonNetwork.CurrentRoom.PlayerCount < 2)
+        // commented for testing
+        /*if (PhotonNetwork.CurrentRoom.PlayerCount < 2)
         {
             _notEnoughPlayersText.SetActive(true);
             return;
-        }
+        }*/
         _startGameButtonClicked = true;
         _notEnoughPlayersText.SetActive(false);
         // Load the scene at the same time for everyone in the room
