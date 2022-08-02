@@ -80,6 +80,8 @@ public class CameraControl : MonoBehaviour
         UiManager.EscPanelToggledEvent -= OnEscPanelToggled;
         PlayerManager.TanksListReducedEvent -= OnAlliedTankGotDestroyed;
         TankInfo.TankRangeIncreasedEvent -= OnTankRangeIncreased;
+
+        Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
     }
 
     private void Update()
