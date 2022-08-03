@@ -22,8 +22,6 @@ public class Mine : MonoBehaviourPunCallbacks, IPunInstantiateMagicCallback
 
         _photonView = GetComponent<PhotonView>();
         _boxCollider = GetComponent<BoxCollider>();
-        GetComponent<AudioSource>().Play();
-        StartCoroutine(Activate());
     }
 
     private void OnDestroy()
@@ -36,6 +34,12 @@ public class Mine : MonoBehaviourPunCallbacks, IPunInstantiateMagicCallback
     {
         object[] instantiationData = info.photonView.InstantiationData;
         _deployedByActorNumber = (int)instantiationData[0];
+    }
+
+    private void Start()
+    {
+        GetComponent<AudioSource>().Play();
+        StartCoroutine(Activate());
     }
 
     private void OnTriggerEnter(Collider other)

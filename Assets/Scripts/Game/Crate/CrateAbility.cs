@@ -28,11 +28,11 @@ public class CrateAbility : Crate
     {
         int roll = UnityEngine.Random.Range(0, 100);
         // TODO - Probabilities
-        if (roll < 80)
+        if (roll < 50)
         {
             _abilityType = AbilityType.Turret;
         }
-        else if (roll < 85)
+        else if (roll < 80)
         {
             _abilityType = AbilityType.Mine;
         }

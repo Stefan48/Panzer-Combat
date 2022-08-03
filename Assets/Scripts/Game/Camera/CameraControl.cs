@@ -57,6 +57,9 @@ public class CameraControl : MonoBehaviour
     [SerializeField] private Texture2D _cursorUpLeft;
     [SerializeField] private Texture2D _cursorDownRight;
     [SerializeField] private Texture2D _cursorDownLeft;
+    private AudioSource _audioSource;
+    [SerializeField] private AudioClip _victoryAudioClip;
+    [SerializeField] private AudioClip _defeatAudioClip;
 
 
     private void Awake()
@@ -70,6 +73,7 @@ public class CameraControl : MonoBehaviour
 
         Cursor.SetCursor(_cursorRegular, Vector2.zero, CursorMode.Auto);
         OnScreenResized();
+        _audioSource = GetComponent<AudioSource>();
     }
 
     private void OnDestroy()
@@ -409,7 +413,6 @@ public class CameraControl : MonoBehaviour
 
     private void OnRoundEnding(PlayerInfo roundWinner, bool isGameWinner)
     {
-        // TODO - Play round end/game end sounds
         SetCursorOrientation(CursorOrientation.Regular);
         _fog.SetActive(false);
         GameObject[] tanks = GameObject.FindGameObjectsWithTag("Tank");
@@ -424,6 +427,15 @@ public class CameraControl : MonoBehaviour
             if (tanks.Length > 0)
             {
                 transform.position = tanks[0].transform.position;
+            }
+            // Play game end audio clip
+            if (roundWinner.ActorNumber == _gameManager.ActorNumber)
+            {
+                _audioSource.PlayOneShot(_victoryAudioClip);
+            }
+            else
+            {
+                _audioSource.PlayOneShot(_defeatAudioClip);
             }
         }
         enabled = false;

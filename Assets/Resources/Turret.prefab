@@ -359,7 +359,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: -1445993664337586518, guid: 0cf0e5b5fa67df2469800ccfeddd02b9, type: 2}
-  m_audioClip: {fileID: 8300000, guid: ce7d6c1f300567841b12c0ff6dfbe52d, type: 3}
+  m_audioClip: {fileID: 0}
   m_PlayOnAwake: 0
   m_Volume: 0.175
   m_Pitch: 1
@@ -538,7 +538,8 @@ MonoBehaviour:
   _muzzle: {fileID: 5367309814452526713}
   _turretShellPrefab: {fileID: 4455476058814314947, guid: 2f0097c2cb91a214d8ad092a0e63a62b, type: 3}
   _shotParticleSystem: {fileID: 715678711481188360}
-  _shotAudioSource: {fileID: 6163284198585889523}
+  _turretPlacedAudioClip: {fileID: 8300000, guid: 006fc4fa4528b0043b733b02ae9d07b5, type: 3}
+  _turretShotAudioClip: {fileID: 8300000, guid: ce7d6c1f300567841b12c0ff6dfbe52d, type: 3}
   _range: {fileID: 2233121280425738}
   _rangeCollider: {fileID: 951780031510479458}
   _tanksLayerMask:

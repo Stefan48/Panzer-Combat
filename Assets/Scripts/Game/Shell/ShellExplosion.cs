@@ -170,6 +170,7 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
                     // The shell hit a turret
                     _hitSomething = true;
                     hitGameObject.GetComponent<TurretLifetime>().TakeDamage(_damage, false);
+                    // Breaking so the turret doesn't take more damage if more raycasts hit
                     break;
                 }
             }

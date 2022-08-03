@@ -12,7 +12,9 @@ public class TurretShooting : MonoBehaviour
     [SerializeField] private Transform _muzzle;
     [SerializeField] private GameObject _turretShellPrefab;
     [SerializeField] private ParticleSystem _shotParticleSystem;
-    [SerializeField] private AudioSource _shotAudioSource;
+    private AudioSource _audioSource;
+    [SerializeField] private AudioClip _turretPlacedAudioClip;
+    [SerializeField] private AudioClip _turretShotAudioClip;
     [SerializeField] private GameObject _range;
     [SerializeField] private SphereCollider _rangeCollider;
     [SerializeField] private LayerMask _tanksLayerMask;
@@ -28,10 +30,12 @@ public class TurretShooting : MonoBehaviour
     {
         _photonView = GetComponent<PhotonView>();
         _turretInfo = GetComponent<TurretInfo>();
+        _audioSource = GetComponent<AudioSource>();
     }
 
     private void Start()
     {
+        _audioSource.PlayOneShot(_turretPlacedAudioClip);
         UpdateTarget();
         StartCoroutine(Shoot());
     }
@@ -157,6 +161,6 @@ public class TurretShooting : MonoBehaviour
         turretShell.GetComponent<ShellExplosion>().Init(turretShellId, _turretInfo.ActorNumber, -1, _turretInfo.Damage);
         _turretTopAnimator.SetTrigger("Shot");
         _shotParticleSystem.Play();
-        _shotAudioSource.Play();
+        _audioSource.PlayOneShot(_turretShotAudioClip);
     }
 }
