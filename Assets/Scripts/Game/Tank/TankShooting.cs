@@ -20,9 +20,6 @@ public class TankShooting : MonoBehaviour
     [SerializeField] private AudioClip _noAmmoAudioClip;
     private const float _noAmmoAudioClipVolumeScale = 0.5f;
 
-    // TODO - When tanks rotate and shoot quickly, the shells apear on different positions on different clients (since they are instantiated locally)
-    // Pass the rotation as a RPC parameter? Position too?
-
 
     private void Awake()
     {
@@ -48,22 +45,6 @@ public class TankShooting : MonoBehaviour
             }
         }
     }
-
-    /*
-    // for testing
-    private void Start()
-    {
-        StartCoroutine(ShootCoroutine());
-    }
-    private IEnumerator ShootCoroutine()
-    {
-        for(;;)
-        {
-            yield return new WaitForSeconds(1f);
-            Shoot();
-        }
-    }
-    */
 
     private void Shoot()
     {

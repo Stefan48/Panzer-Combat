@@ -74,7 +74,7 @@ public class RoomManager : MonoBehaviourPunCallbacks
         {
             return;
         }
-        // commented for testing
+        // TODO - commented for testing
         /*if (PhotonNetwork.CurrentRoom.PlayerCount < 2)
         {
             _notEnoughPlayersText.SetActive(true);

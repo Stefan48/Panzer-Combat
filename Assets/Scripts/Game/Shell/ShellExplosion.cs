@@ -8,6 +8,7 @@ using System.Collections.Generic;
 
 public class ShellExplosion : MonoBehaviourPunCallbacks
 {
+    private CapsuleCollider _capsuleCollider;
     [SerializeField] private LayerMask _defaultLayerMask;
     [SerializeField] private LayerMask _tanksLayerMask;
     [SerializeField] private LayerMask _shellsLayerMask;
@@ -34,6 +35,8 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
     private void Awake()
     {
         GameManager.RoundEndingEvent += OnRoundEnding;
+
+        _capsuleCollider = GetComponent<CapsuleCollider>();
     }
 
     private void OnDestroy()
@@ -71,9 +74,6 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
         CheckForCollision();
     }
 
-    // TODO - No more collisions between shells? (trying to shoot a turret that is targeting you is pretty awkward)
-    // Or maybe when a shell hits something, disable its collider (instantly, on the Master Client only)?
-    // (shells belonging to different players shouldn't trade 2 for 1, for example)
     private void OnTriggerEnter(Collider other)
     {
         // Shell collisions are checked only by the Master Client
@@ -176,6 +176,7 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
         }
         if (_hitSomething)
         {
+            _capsuleCollider.enabled = false;
             StartCoroutine(Explosion(0f));
         }
     }
@@ -197,6 +198,7 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
         if (!_hitSomething)
         {
             _hitSomething = true;
+            _capsuleCollider.enabled = false;
             StartCoroutine(Explosion(0f));
         }
     }
@@ -204,6 +206,7 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
     private void OnHitWithoutCheck()
     {
         _hitSomething = true;
+        _capsuleCollider.enabled = false;
         StartCoroutine(Explosion(0f));
     }
 
