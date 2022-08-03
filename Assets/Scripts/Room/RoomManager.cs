@@ -8,6 +8,8 @@ using UnityEngine.UI;
 public class RoomManager : MonoBehaviourPunCallbacks
 {
     [SerializeField] private Text _roomNameText;
+    [SerializeField] private Text _initialTanksText;
+    [SerializeField] private Text _roundsToWinText;
     [SerializeField] private GameObject _startGameButton;
     private bool _startGameButtonClicked = false;
     private bool _leftRoomIntentionally = false;
@@ -22,6 +24,10 @@ public class RoomManager : MonoBehaviourPunCallbacks
     private void Start()
     {
         _roomNameText.text = PhotonNetwork.CurrentRoom.Name;
+        byte initialTanks = (byte)PhotonNetwork.CurrentRoom.CustomProperties[LobbyManager.InitialTanksPropertyKey];
+        _initialTanksText.text = initialTanks + " initial " + (initialTanks > 1 ? "tanks" : "tank");
+        int roundsToWin = (int)PhotonNetwork.CurrentRoom.CustomProperties[LobbyManager.RoundsToWinPropertyKey];
+        _roundsToWinText.text = roundsToWin + (roundsToWin > 1 ? " rounds" : " round") + " to win";
         _startGameButton.SetActive(PhotonNetwork.IsMasterClient);
 
         Player[] players = PhotonNetwork.PlayerList;

@@ -10,12 +10,24 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 {
     private const string _usernamePrefKey = "Username";
     public static string PasswordPropertyKey = "p";
+    public static string InitialTanksPropertyKey = "t";
+    public static string RoundsToWinPropertyKey = "r";
     private bool _mainMenuButtonClicked = false;
     private bool _joinedRoom = false;
     [SerializeField] private InputField _usernameInputField;
-    [SerializeField] private InputField _roomNameInputField;
-    [SerializeField] private InputField _passwordInputField;
-    private const byte _maxPlayersPerRoom = 4;
+    [SerializeField] private GameObject _createRoomModal;
+    [SerializeField] private InputField _createRoomModalRoomNameInputField;
+    [SerializeField] private InputField _createRoomModalPasswordInputField;
+    [SerializeField] private Dropdown _createRoomModalMaxPlayersDropdown;
+    private const int _createRoomModalMaxPlayersDropdownDefaultValue = 2;
+    [SerializeField] private Text _createRoomModalMaxPlayersText;
+    [SerializeField] private Dropdown _createRoomModalInitialTanksDropdown;
+    private const int _createRoomModalInitialTanksDropdownDefaultValue = 0;
+    [SerializeField] private Text _createRoomModalInitialTanksText;
+    [SerializeField] private InputField _createRoomModalRoundsToWinInputField;
+    [SerializeField] private GameObject _joinRoomModal;
+    [SerializeField] private InputField _joinRoomModalRoomNameInputField;
+    [SerializeField] private InputField _joinRoomModalPasswordInputField;
     [SerializeField] private Text _errorText;
     [SerializeField] private Transform _roomListingsContent;
     [SerializeField] private RoomListing _roomListingPrefab;
@@ -24,7 +36,6 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     public GameObject PasswordModal => _passwordModal;
     [SerializeField] private Text _passwordModalRoomNameText;
     [SerializeField] private InputField _passwordModalPasswordInputField;
-    [SerializeField] private GameObject _passwordModalIncorrectPasswordText;
 
 
     private void Start()
@@ -100,20 +111,32 @@ public class LobbyManager : MonoBehaviourPunCallbacks
             _errorText.text = "Choose a username first";
             return;
         }
-        if (string.IsNullOrEmpty(_roomNameInputField.text))
+        if (string.IsNullOrEmpty(_createRoomModalRoomNameInputField.text))
         {
             _errorText.text = "Room name cannot be empty";
             return;
         }
+        if (string.IsNullOrEmpty(_createRoomModalRoundsToWinInputField.text))
+        {
+            _errorText.text = "Enter the number of rounds to win";
+            return;
+        }
+        if (int.Parse(_createRoomModalRoundsToWinInputField.text) < 1)
+        {
+            _errorText.text = "Invalid number of rounds to win";
+            return;
+        }
         _errorText.text = string.Empty;
         _joinedRoom = true;
-        RoomOptions options = new RoomOptions { MaxPlayers = _maxPlayersPerRoom };
-        if (!string.IsNullOrEmpty(_passwordInputField.text))
+        RoomOptions options = new RoomOptions { MaxPlayers = byte.Parse(_createRoomModalMaxPlayersText.text) };
+        options.CustomRoomProperties = new Hashtable { [InitialTanksPropertyKey] = byte.Parse(_createRoomModalInitialTanksText.text),
+            [RoundsToWinPropertyKey] = int.Parse(_createRoomModalRoundsToWinInputField.text) };
+        if (!string.IsNullOrEmpty(_createRoomModalPasswordInputField.text))
         {
             options.CustomRoomPropertiesForLobby = new string[1] { PasswordPropertyKey };
-            options.CustomRoomProperties = new Hashtable { [PasswordPropertyKey] = _passwordInputField.text };
+            options.CustomRoomProperties.Add(PasswordPropertyKey, _createRoomModalPasswordInputField.text);
         }
-        PhotonNetwork.CreateRoom(_roomNameInputField.text, options);
+        PhotonNetwork.CreateRoom(_createRoomModalRoomNameInputField.text, options);
     }
 
     public override void OnCreateRoomFailed(short returnCode, string message)
@@ -123,7 +146,16 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         _joinedRoom = false;
     }
 
-    // TODO - Check if username is already taken by someone else in the room
+    public void CloseCreateRoomModal()
+    {
+        _createRoomModalRoomNameInputField.text = string.Empty;
+        _createRoomModalPasswordInputField.text = string.Empty;
+        _createRoomModalMaxPlayersDropdown.value = _createRoomModalMaxPlayersDropdownDefaultValue;
+        _createRoomModalInitialTanksDropdown.value = _createRoomModalInitialTanksDropdownDefaultValue;
+        _createRoomModalRoundsToWinInputField.text = string.Empty;
+        _errorText.text = string.Empty;
+        _createRoomModal.SetActive(false);
+    }
 
     public void JoinRoom()
     {
@@ -136,12 +168,12 @@ public class LobbyManager : MonoBehaviourPunCallbacks
             _errorText.text = "Choose a username first";
             return;
         }
-        if (string.IsNullOrEmpty(_roomNameInputField.text))
+        if (string.IsNullOrEmpty(_joinRoomModalRoomNameInputField.text))
         {
             _errorText.text = "Room name cannot be empty";
             return;
         }
-        int index = _roomListings.FindIndex(listing => listing.RoomInfo.Name == _roomNameInputField.text);
+        int index = _roomListings.FindIndex(listing => listing.RoomInfo.Name == _joinRoomModalRoomNameInputField.text);
         if (index == -1)
         {
             _errorText.text = "This room does not exist";
@@ -150,7 +182,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         RoomInfo info = _roomListings[index].RoomInfo;
         if (info.CustomProperties.ContainsKey(PasswordPropertyKey))
         {
-            if (_passwordInputField.text != (string)info.CustomProperties[PasswordPropertyKey])
+            if (_joinRoomModalPasswordInputField.text != (string)info.CustomProperties[PasswordPropertyKey])
             {
                 _errorText.text = "Password is incorrect";
                 return;
@@ -159,6 +191,14 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         _errorText.text = string.Empty;
         _joinedRoom = true;
         PhotonNetwork.JoinRoom(info.Name);
+    }
+
+    public void CloseJoinRoomModal()
+    {
+        _joinRoomModalRoomNameInputField.text = string.Empty;
+        _joinRoomModalPasswordInputField.text = string.Empty;
+        _errorText.text = string.Empty;
+        _joinRoomModal.SetActive(false);
     }
 
     public void JoinRoomFromPasswordModal()
@@ -177,10 +217,10 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         if (_roomListings[index].RoomInfo.CustomProperties.ContainsKey(PasswordPropertyKey)
             && _passwordModalPasswordInputField.text != (string)_roomListings[index].RoomInfo.CustomProperties[PasswordPropertyKey])
         {
-            _passwordModalIncorrectPasswordText.SetActive(true);
+            _errorText.text = "Password is incorrect";
             return;
         }
-        _passwordModalIncorrectPasswordText.SetActive(false);
+        _errorText.text = string.Empty;
         _joinedRoom = true;
         PhotonNetwork.JoinRoom(_passwordModalRoomNameText.text);
     }
@@ -188,7 +228,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     public void ClosePasswordModal()
     {
         _passwordModalPasswordInputField.text = string.Empty;
-        _passwordModalIncorrectPasswordText.SetActive(false);
+        _errorText.text = string.Empty;
         _passwordModal.SetActive(false);
     }
 
