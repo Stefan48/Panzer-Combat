@@ -105,6 +105,8 @@ public class TurretLifetime : MonoBehaviour
     private void Explode()
     {
         _destructionPending = true;
+        // Disable the turret's collider so that it doesn't affect collisions till PhotonNetwork.Destroy gets executed
+        GetComponent<CapsuleCollider>().enabled = false;
         PlayExplosionEffects();
         if (PhotonNetwork.IsMasterClient)
         {

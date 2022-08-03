@@ -65,6 +65,8 @@ public class TankHealth : MonoBehaviour
         UpdateHealthBar();
         if (_tankInfo.Health == 0)
         {
+            // Disable the tank's collider so that it doesn't affect collisions till PhotonNetwork.Destroy gets executed
+            GetComponent<SphereCollider>().enabled = false;
             PlayDeathEffects();
             if (_photonView.IsMine)
             {

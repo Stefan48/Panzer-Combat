@@ -4,6 +4,7 @@ public class UiFixedRotation : MonoBehaviour
 {
     private Quaternion _initialRotation;
 
+
     private void Awake()
     {
         _initialRotation = transform.rotation;
