@@ -41,11 +41,11 @@ public class TankMovement : MonoBehaviour, IPunObservable
         _photonView = GetComponent<PhotonView>();
         _tankInfo = GetComponent<TankInfo>();
         _rigidbody = GetComponent<Rigidbody>();
-    }
 
-    private void Start()
-    {
         _engineOriginalPitch = _engineAudioSource.pitch;
+        // Tanks are initially rotated towards the map's center
+        _orientation.LookAt(Vector3.zero);
+        _rigidbody.MoveRotation(_orientation.rotation);
     }
 
     private void Update()

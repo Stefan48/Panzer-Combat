@@ -9,7 +9,8 @@ public class PlayerManager
 {
     private readonly GameManager _gameManager;
     public readonly Color PlayerColor;
-    private readonly Vector3 _spawnPosition;
+    private readonly int _numberOfInitialTanks;
+    private readonly Vector3[] _spawnPositions;
     private readonly GameObject _tankPrefab;
     // Reinstantiating this would cause errors in the CameraControl script
     public List<GameObject> Tanks { get; private set; } = new List<GameObject>();
@@ -18,11 +19,12 @@ public class PlayerManager
     public static readonly byte TankCrateCollectedNetworkEvent = 1;
 
 
-    public PlayerManager(GameManager gameManager, Color playerColor, Vector3 spawnPosition, GameObject tankPrefab)
+    public PlayerManager(GameManager gameManager, Color playerColor, int numberOfInitialTanks, Vector3[] spawnPositions, GameObject tankPrefab)
     {
         _gameManager = gameManager;
         PlayerColor = playerColor;
-        _spawnPosition = spawnPosition;
+        _numberOfInitialTanks = numberOfInitialTanks;
+        _spawnPositions = spawnPositions;
         _tankPrefab = tankPrefab;
 
         TankHealth.AlliedTankGotDestroyedEvent += OnAlliedTankGotDestroyed;
@@ -39,12 +41,12 @@ public class PlayerManager
 
     public void Setup()
     {
-        // TODO - Have user-defined initial number of tanks
-        // If there are multiple tanks, make sure they don't overlap
-        // Rotate them towards the map's center?
-        for (int i = 0; i < 2; ++i)
+        List<Vector3> availableSpawnPositions = new List<Vector3>(_spawnPositions);
+        for (int i = 0; i < _numberOfInitialTanks; ++i)
         {
-            InstantiateTank(_spawnPosition);
+            int index = UnityEngine.Random.Range(0, availableSpawnPositions.Count);
+            InstantiateTank(availableSpawnPositions[index]);
+            availableSpawnPositions.RemoveAt(index);
         }
     }
 

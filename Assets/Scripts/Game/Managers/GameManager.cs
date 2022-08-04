@@ -13,10 +13,15 @@ public class GameManager : MonoBehaviourPunCallbacks
     private Player[] _players;
     [SerializeField] private List<Color> _availablePlayerColors = new List<Color>();
     public List<Color> AvailablePlayerColors { get; private set; }
-    [SerializeField] private List<Transform> _availablePlayerSpawnPoints = new List<Transform>();
+    private const int _maxNumberOfInitialTanks = 3;
+    private int _numberOfInitialTanks;
+    private int _totalRoundsToWin;
+    [SerializeField] private Transform[] _firstSpawnPointsGroup = new Transform[_maxNumberOfInitialTanks];
+    [SerializeField] private Transform[] _secondSpawnPointsGroup = new Transform[_maxNumberOfInitialTanks];
+    [SerializeField] private Transform[] _thirdSpawnPointsGroup = new Transform[_maxNumberOfInitialTanks];
+    [SerializeField] private Transform[] _fourthSpawnPointsGroup = new Transform[_maxNumberOfInitialTanks];
+    private List<Transform[]> _playerSpawnPointsGroups;
     [SerializeField] private List<Transform> _crateSpawnPoints = new List<Transform>();
-    [SerializeField] private readonly int _initialTankCount = 1; // TODO - Creator of the room should set this in the UI
-    [SerializeField] private readonly int _totalRoundsToWin = 2; // TODO - Creator of the room should set this in the UI
     public Dictionary<Player, PlayerInfo> PlayersInfo = new Dictionary<Player, PlayerInfo>();
     [SerializeField] private GameObject _tankPrefab;
     [SerializeField] private GameObject _crateAbilityPrefab;
@@ -58,6 +63,10 @@ public class GameManager : MonoBehaviourPunCallbacks
         _photonView = GetComponent<PhotonView>();
         ActorNumber = PhotonNetwork.LocalPlayer.ActorNumber;
         _players = PhotonNetwork.PlayerList;
+        _numberOfInitialTanks = (byte)PhotonNetwork.CurrentRoom.CustomProperties[LobbyManager.InitialTanksPropertyKey];
+        _totalRoundsToWin = (int)PhotonNetwork.CurrentRoom.CustomProperties[LobbyManager.RoundsToWinPropertyKey];
+        _playerSpawnPointsGroups = new List<Transform[]> { _firstSpawnPointsGroup, _secondSpawnPointsGroup,
+            _thirdSpawnPointsGroup, _fourthSpawnPointsGroup };
         AvailablePlayerColors = new List<Color>(_availablePlayerColors);
 
         _cratePrefabs.Add(CrateType.Ability, _crateAbilityPrefab);
@@ -121,19 +130,20 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     private void InitializePlayersManagers()
     {
+        List<int> availablePlayerSpawnPointsGroupsIndexes = new List<int>() { 0, 1, 2, 3 };
         foreach (Player player in _players)
         {
-            int index = UnityEngine.Random.Range(0, _availablePlayerSpawnPoints.Count);
-            Transform spawnPoint = _availablePlayerSpawnPoints[index];
-            _availablePlayerSpawnPoints.RemoveAt(index);
-            _photonView.RPC("RPC_SetPlayerManager", player, spawnPoint.position);
+            int index = UnityEngine.Random.Range(0, availablePlayerSpawnPointsGroupsIndexes.Count);
+            _photonView.RPC("RPC_SetPlayerManager", player, availablePlayerSpawnPointsGroupsIndexes[index]);
+            availablePlayerSpawnPointsGroupsIndexes.RemoveAt(index);
         }
     }
 
     [PunRPC]
-    private void RPC_SetPlayerManager(Vector3 spawnPosition)
+    private void RPC_SetPlayerManager(int spawnPointsGroupIndex)
     {
-        PlayerManager = new PlayerManager(this, PlayersInfo[PhotonNetwork.LocalPlayer].Color, spawnPosition, _tankPrefab);
+        PlayerManager = new PlayerManager(this, PlayersInfo[PhotonNetwork.LocalPlayer].Color, _numberOfInitialTanks,
+            _playerSpawnPointsGroups[spawnPointsGroupIndex].Select(t => t.position).ToArray() , _tankPrefab);
     }
 
     [PunRPC]
@@ -242,9 +252,13 @@ public class GameManager : MonoBehaviourPunCallbacks
     {
         int roll = UnityEngine.Random.Range(0, 100);
         // TODO - Probabilities
-        if (roll < 80)
+        if (roll < 50)
         {
             return CrateType.Ability;
+        }
+        if (roll < 80)
+        {
+            return CrateType.Tank;
         }
         return CrateType.Ammo;
         //return (CrateType)UnityEngine.Random.Range(0, Enum.GetNames(typeof(CrateType)).Length);

@@ -108,3 +108,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 795f6714165b3f741afe97de22a823f3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _eulerAngles: {x: 0, y: 60, z: 0}

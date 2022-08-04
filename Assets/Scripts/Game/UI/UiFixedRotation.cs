@@ -2,16 +2,17 @@ using UnityEngine;
 
 public class UiFixedRotation : MonoBehaviour
 {
-    private Quaternion _initialRotation;
+    [SerializeField] private Vector3 _eulerAngles;
+    private Quaternion _rotation;
 
 
     private void Awake()
     {
-        _initialRotation = transform.rotation;
+        _rotation = Quaternion.Euler(_eulerAngles);
     }
 
     private void Update()
     {
-        transform.rotation = _initialRotation;
+        transform.rotation = _rotation;
     }
 }

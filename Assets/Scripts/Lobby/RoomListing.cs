@@ -10,6 +10,7 @@ public class RoomListing : MonoBehaviourPunCallbacks
     [SerializeField] private GameObject _passwordRequiredImage;
     private GameObject _passwordModal;
     private Text _passwordModalRoomNameText;
+    private Text _errorText;
     private bool _joinedRoom = false;
 
 
@@ -17,6 +18,7 @@ public class RoomListing : MonoBehaviourPunCallbacks
     {
         _passwordModal = GameObject.Find("LobbyManager").GetComponent<LobbyManager>().PasswordModal;
         _passwordModalRoomNameText = _passwordModal.transform.Find("PasswordBox").Find("RoomNameText").GetComponent<Text>();
+        _errorText = GameObject.Find("Canvas").transform.Find("ErrorText").GetComponent<Text>();
     }
 
     public void SetRoomInfo(RoomInfo info)
@@ -28,6 +30,7 @@ public class RoomListing : MonoBehaviourPunCallbacks
 
     public void JoinRoom()
     {
+        _errorText.text = string.Empty;
         if (RoomInfo.CustomProperties.ContainsKey(LobbyManager.PasswordPropertyKey))
         {
             _passwordModal.SetActive(true);

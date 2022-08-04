@@ -146,6 +146,12 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         _joinedRoom = false;
     }
 
+    public void OpenModal(GameObject modal)
+    {
+        _errorText.text = string.Empty;
+        modal.SetActive(true);
+    }
+
     public void CloseCreateRoomModal()
     {
         _createRoomModalRoomNameInputField.text = string.Empty;
