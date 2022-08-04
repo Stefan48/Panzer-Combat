@@ -1,4 +1,5 @@
 using Photon.Pun;
+using System;
 using UnityEngine;
 
 public class CrateAbility : Crate
@@ -26,28 +27,8 @@ public class CrateAbility : Crate
 
     private void SetRandomAbilityType()
     {
-        int roll = UnityEngine.Random.Range(0, 100);
-        // TODO - Probabilities
-        if (roll < 50)
-        {
-            _abilityType = AbilityType.Turret;
-        }
-        else if (roll < 80)
-        {
-            _abilityType = AbilityType.Mine;
-        }
-        else if (roll < 90)
-        {
-            _abilityType = AbilityType.TripleShells;
-        }
-        else if (roll < 95)
-        {
-            _abilityType = AbilityType.LaserBeam;
-        }
-        else
-        {
-            _abilityType = AbilityType.DeflectShells;
-        }
+        // All ability types are equiprobable
+        _abilityType = (AbilityType)UnityEngine.Random.Range(0, Enum.GetNames(typeof(AbilityType)).Length);
     }
 
     protected override string GetOnCollectText(GameObject tank)

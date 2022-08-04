@@ -21,7 +21,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     [SerializeField] private Transform[] _thirdSpawnPointsGroup = new Transform[_maxNumberOfInitialTanks];
     [SerializeField] private Transform[] _fourthSpawnPointsGroup = new Transform[_maxNumberOfInitialTanks];
     private List<Transform[]> _playerSpawnPointsGroups;
-    [SerializeField] private List<Transform> _crateSpawnPoints = new List<Transform>();
+    [SerializeField] private Transform[] _crateSpawnPoints;
     public Dictionary<Player, PlayerInfo> PlayersInfo = new Dictionary<Player, PlayerInfo>();
     [SerializeField] private GameObject _tankPrefab;
     [SerializeField] private GameObject _crateAbilityPrefab;
@@ -38,7 +38,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     private const float _startDelay = 2f;
     private const float _endDelay = 2f;
     private const float _potentialDrawDelay = 0.3f;
-    // TODO - Creator of the room should set the frequency of the crates in the UI
+    // TODO - The creator of the room should be able to set the frequency of the crates in the UI?
     // The crate spawn delay has to be greater than the crate lifetime and the crate destruction delay combined (which are set in the Crate script)
     private const float _crateSpawnDelay = 15f;
     private readonly WaitForSeconds _startWait = new WaitForSeconds(_startDelay);
@@ -250,18 +250,40 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     private CrateType GetRandomCrateType()
     {
-        int roll = UnityEngine.Random.Range(0, 100);
-        // TODO - Probabilities
-        if (roll < 50)
+        float roll = UnityEngine.Random.Range(0f, 100f);
+        if (roll < 7f)
         {
-            return CrateType.Ability;
+            return CrateType.RestoreHealth;
         }
-        if (roll < 80)
+        if (roll < 14f)
+        {
+            return CrateType.MaxHealth;
+        }
+        if (roll < 21f)
+        {
+            return CrateType.Ammo;
+        }
+        if (roll < 28f)
+        {
+            return CrateType.Damage;
+        }
+        if (roll < 35f)
+        {
+            return CrateType.Armor;
+        }
+        if (roll < 42f)
+        {
+            return CrateType.Speed;
+        }
+        if (roll < 49f)
+        {
+            return CrateType.Range;
+        }
+        if (roll < 74.5f)
         {
             return CrateType.Tank;
         }
-        return CrateType.Ammo;
-        //return (CrateType)UnityEngine.Random.Range(0, Enum.GetNames(typeof(CrateType)).Length);
+        return CrateType.Ability;
     }
 
     private IEnumerator SpawnCrates()
