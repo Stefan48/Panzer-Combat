@@ -14,19 +14,19 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private GameObject _videoSettingsModal;
     [SerializeField] private Dropdown _resolutionDropdown;
     [SerializeField] private Dropdown _fullScreenModeDropdown;
-    private const string _selectUnitsControlPrefKey = "SelectUnitsControl";
-    private const string _selectMultipleControlPrefKey = "SelectMultipleControl";
-    private const string _shootControlPrefKey = "ShootControl";
-    private const string _moveForwardControlPrefKey = "MoveForwardControl";
-    private const string _moveBackwardControlPrefKey = "MoveBackwardControl";
-    private const string _1stAbilityControlPrefKey = "1stAbilityControl";
-    private const string _2ndAbilityControlPrefKey = "2ndAbilityControl";
-    private const string _3rdAbilityControlPrefKey = "3rdAbilityControl";
-    private const string _4thAbilityControlPrefKey = "4thAbilityControl";
-    private const string _5thAbilityControlPrefKey = "5thAbilityControl";
-    private const string _hornControlPrefKey = "HornControl";
-    private const string _cameraControlPrefKey = "CameraControl";
-    private const string _standingsControlPrefKey = "StandingsControl";
+    public static readonly string SelectUnitsControlPrefKey = "SelectUnitsControl";
+    public static readonly string SelectMultipleControlPrefKey = "SelectMultipleControl";
+    public static readonly string ShootControlPrefKey = "ShootControl";
+    public static readonly string MoveForwardControlPrefKey = "MoveForwardControl";
+    public static readonly string MoveBackwardControlPrefKey = "MoveBackwardControl";
+    public static readonly string FirstAbilityControlPrefKey = "1stAbilityControl";
+    public static readonly string SecondAbilityControlPrefKey = "2ndAbilityControl";
+    public static readonly string ThirdAbilityControlPrefKey = "3rdAbilityControl";
+    public static readonly string FourthAbilityControlPrefKey = "4thAbilityControl";
+    public static readonly string FifthAbilityControlPrefKey = "5thAbilityControl";
+    public static readonly string HornControlPrefKey = "HornControl";
+    public static readonly string CameraControlPrefKey = "CameraControl";
+    public static readonly string StandingsControlPrefKey = "StandingsControl";
     [SerializeField] private GameObject _controlsModal;
     [SerializeField] private Text _selectUnitsButtonText;
     [SerializeField] private Text _selectMultipleButtonText;
@@ -178,22 +178,22 @@ public class MainMenuManager : MonoBehaviour
     public void OpenControlsModal()
     {
         _controlsModal.SetActive(true);
-        if (PlayerPrefs.HasKey(_selectUnitsControlPrefKey))
+        if (PlayerPrefs.HasKey(SelectUnitsControlPrefKey))
         {
             // If a custom control has been saved, then all controls have been saved
-            _selectUnitsButtonText.text = ((KeyCode)PlayerPrefs.GetInt(_selectUnitsControlPrefKey)).GetKeyName();
-            _selectMultipleButtonText.text = ((KeyCode)PlayerPrefs.GetInt(_selectMultipleControlPrefKey)).GetKeyName();
-            _shootButtonText.text = ((KeyCode)PlayerPrefs.GetInt(_shootControlPrefKey)).GetKeyName();
-            _moveForwardButtonText.text = ((KeyCode)PlayerPrefs.GetInt(_moveForwardControlPrefKey)).GetKeyName();
-            _moveBackwardButtonText.text = ((KeyCode)PlayerPrefs.GetInt(_moveBackwardControlPrefKey)).GetKeyName();
-            _1stAbilityButtonText.text = ((KeyCode)PlayerPrefs.GetInt(_1stAbilityControlPrefKey)).GetKeyName();
-            _2ndAbilityButtonText.text = ((KeyCode)PlayerPrefs.GetInt(_2ndAbilityControlPrefKey)).GetKeyName();
-            _3rdAbilityButtonText.text = ((KeyCode)PlayerPrefs.GetInt(_3rdAbilityControlPrefKey)).GetKeyName();
-            _4thAbilityButtonText.text = ((KeyCode)PlayerPrefs.GetInt(_4thAbilityControlPrefKey)).GetKeyName();
-            _5thAbilityButtonText.text = ((KeyCode)PlayerPrefs.GetInt(_5thAbilityControlPrefKey)).GetKeyName();
-            _hornButtonText.text = ((KeyCode)PlayerPrefs.GetInt(_hornControlPrefKey)).GetKeyName();
-            _cameraButtonText.text = ((KeyCode)PlayerPrefs.GetInt(_cameraControlPrefKey)).GetKeyName();
-            _standingsButtonText.text = ((KeyCode)PlayerPrefs.GetInt(_standingsControlPrefKey)).GetKeyName();
+            _selectUnitsButtonText.text = ((KeyCode)PlayerPrefs.GetInt(SelectUnitsControlPrefKey)).GetKeyName();
+            _selectMultipleButtonText.text = ((KeyCode)PlayerPrefs.GetInt(SelectMultipleControlPrefKey)).GetKeyName();
+            _shootButtonText.text = ((KeyCode)PlayerPrefs.GetInt(ShootControlPrefKey)).GetKeyName();
+            _moveForwardButtonText.text = ((KeyCode)PlayerPrefs.GetInt(MoveForwardControlPrefKey)).GetKeyName();
+            _moveBackwardButtonText.text = ((KeyCode)PlayerPrefs.GetInt(MoveBackwardControlPrefKey)).GetKeyName();
+            _1stAbilityButtonText.text = ((KeyCode)PlayerPrefs.GetInt(FirstAbilityControlPrefKey)).GetKeyName();
+            _2ndAbilityButtonText.text = ((KeyCode)PlayerPrefs.GetInt(SecondAbilityControlPrefKey)).GetKeyName();
+            _3rdAbilityButtonText.text = ((KeyCode)PlayerPrefs.GetInt(ThirdAbilityControlPrefKey)).GetKeyName();
+            _4thAbilityButtonText.text = ((KeyCode)PlayerPrefs.GetInt(FourthAbilityControlPrefKey)).GetKeyName();
+            _5thAbilityButtonText.text = ((KeyCode)PlayerPrefs.GetInt(FifthAbilityControlPrefKey)).GetKeyName();
+            _hornButtonText.text = ((KeyCode)PlayerPrefs.GetInt(HornControlPrefKey)).GetKeyName();
+            _cameraButtonText.text = ((KeyCode)PlayerPrefs.GetInt(CameraControlPrefKey)).GetKeyName();
+            _standingsButtonText.text = ((KeyCode)PlayerPrefs.GetInt(StandingsControlPrefKey)).GetKeyName();
         }
         else
         {
@@ -224,19 +224,19 @@ public class MainMenuManager : MonoBehaviour
 
     public void ApplyControlsSettings()
     {
-        PlayerPrefs.SetInt(_selectUnitsControlPrefKey, (int)_selectUnitsButtonText.text.GetKeyCode());
-        PlayerPrefs.SetInt(_selectMultipleControlPrefKey, (int)_selectMultipleButtonText.text.GetKeyCode());
-        PlayerPrefs.SetInt(_shootControlPrefKey, (int)_shootButtonText.text.GetKeyCode());
-        PlayerPrefs.SetInt(_moveForwardControlPrefKey, (int)_moveForwardButtonText.text.GetKeyCode());
-        PlayerPrefs.SetInt(_moveBackwardControlPrefKey, (int)_moveBackwardButtonText.text.GetKeyCode());
-        PlayerPrefs.SetInt(_1stAbilityControlPrefKey, (int)_1stAbilityButtonText.text.GetKeyCode());
-        PlayerPrefs.SetInt(_2ndAbilityControlPrefKey, (int)_2ndAbilityButtonText.text.GetKeyCode());
-        PlayerPrefs.SetInt(_3rdAbilityControlPrefKey, (int)_3rdAbilityButtonText.text.GetKeyCode());
-        PlayerPrefs.SetInt(_4thAbilityControlPrefKey, (int)_4thAbilityButtonText.text.GetKeyCode());
-        PlayerPrefs.SetInt(_5thAbilityControlPrefKey, (int)_5thAbilityButtonText.text.GetKeyCode());
-        PlayerPrefs.SetInt(_hornControlPrefKey, (int)_hornButtonText.text.GetKeyCode());
-        PlayerPrefs.SetInt(_cameraControlPrefKey, (int)_cameraButtonText.text.GetKeyCode());
-        PlayerPrefs.SetInt(_standingsControlPrefKey, (int)_standingsButtonText.text.GetKeyCode());        
+        PlayerPrefs.SetInt(SelectUnitsControlPrefKey, (int)_selectUnitsButtonText.text.GetKeyCode());
+        PlayerPrefs.SetInt(SelectMultipleControlPrefKey, (int)_selectMultipleButtonText.text.GetKeyCode());
+        PlayerPrefs.SetInt(ShootControlPrefKey, (int)_shootButtonText.text.GetKeyCode());
+        PlayerPrefs.SetInt(MoveForwardControlPrefKey, (int)_moveForwardButtonText.text.GetKeyCode());
+        PlayerPrefs.SetInt(MoveBackwardControlPrefKey, (int)_moveBackwardButtonText.text.GetKeyCode());
+        PlayerPrefs.SetInt(FirstAbilityControlPrefKey, (int)_1stAbilityButtonText.text.GetKeyCode());
+        PlayerPrefs.SetInt(SecondAbilityControlPrefKey, (int)_2ndAbilityButtonText.text.GetKeyCode());
+        PlayerPrefs.SetInt(ThirdAbilityControlPrefKey, (int)_3rdAbilityButtonText.text.GetKeyCode());
+        PlayerPrefs.SetInt(FourthAbilityControlPrefKey, (int)_4thAbilityButtonText.text.GetKeyCode());
+        PlayerPrefs.SetInt(FifthAbilityControlPrefKey, (int)_5thAbilityButtonText.text.GetKeyCode());
+        PlayerPrefs.SetInt(HornControlPrefKey, (int)_hornButtonText.text.GetKeyCode());
+        PlayerPrefs.SetInt(CameraControlPrefKey, (int)_cameraButtonText.text.GetKeyCode());
+        PlayerPrefs.SetInt(StandingsControlPrefKey, (int)_standingsButtonText.text.GetKeyCode());        
     }
 
     public void ExitApplication()

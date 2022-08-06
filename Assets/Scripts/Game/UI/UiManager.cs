@@ -9,8 +9,8 @@ using System.Collections;
 
 public class UiManager : MonoBehaviourPunCallbacks
 {
+    // TODO - Settings in the Esc panel; more info in the Tab panel
     private bool _gameUiIsEnabled = true;
-    // TODO - Options in the Esc panel; More info in the Tab panel
     [SerializeField] private GameObject _escPanel;
     [SerializeField] private GameObject _leaveConfirmationModal;
     private bool _leaveYesButtonClicked = false;
@@ -68,10 +68,11 @@ public class UiManager : MonoBehaviourPunCallbacks
     [SerializeField] private Color _abilityNotActiveColor;
     [SerializeField] private Color _abilityActiveColor;
     public static readonly float AbilityPanelShrinkTime = 1f;
+    private KeyCode _selectUnitsKey = KeyCode.Mouse0;
+    private KeyCode _selectMultipleKey = KeyCode.LeftAlt;
+    private KeyCode _standingsKey = KeyCode.Tab;
 
     public static event Action<bool> EscPanelToggledEvent;
-
-    // TODO - Have a set of predefined screen resolutions; make sure ability panels don't overlap with the tank info panel or the minimap
 
 
     private void Awake()
@@ -88,6 +89,8 @@ public class UiManager : MonoBehaviourPunCallbacks
         _abilityIconsTextures.Add(AbilityType.LaserBeam, _laserBeamAbilityIcon);
         _abilityIconsTextures.Add(AbilityType.Mine, _mineAbilityIcon);
         _abilityIconsTextures.Add(AbilityType.Turret, _turretAbilityIcon);
+
+        OnControlsUpdated();
     }
 
     private void OnDestroy()
@@ -108,17 +111,17 @@ public class UiManager : MonoBehaviourPunCallbacks
         }
         else if (!_escPanel.activeSelf)
         {
-            if (Input.GetKeyDown(KeyCode.Tab))
+            if (Input.GetKeyDown(_standingsKey))
             {
                 _tabPanel.SetActive(true);
             }
-            else if (Input.GetKeyUp(KeyCode.Tab))
+            else if (Input.GetKeyUp(_standingsKey))
             {
                 _tabPanel.SetActive(false);
             }
             if (_gameUiIsEnabled)
             {
-                if (Input.GetMouseButtonDown(0))
+                if (Input.GetKeyDown(_selectUnitsKey))
                 {
                     UpdateSelectedTanksAndTurrets();
                     return;
@@ -135,7 +138,7 @@ public class UiManager : MonoBehaviourPunCallbacks
         if (_escPanel.activeSelf)
         {
             _leaveConfirmationModal.SetActive(false);
-            if (Input.GetKey(KeyCode.Tab))
+            if (Input.GetKey(_standingsKey))
             {
                 _tabPanel.SetActive(true);
             }
@@ -216,7 +219,7 @@ public class UiManager : MonoBehaviourPunCallbacks
             {
                 // Player selected an allied tank
                 DeselectEnemyTankAndTurret();
-                if (Input.GetKey(KeyCode.LeftAlt))
+                if (Input.GetKey(_selectMultipleKey))
                 {
                     // Player might have selected multiple allied tanks
                     DeselectAlliedTurret();
@@ -756,5 +759,16 @@ public class UiManager : MonoBehaviourPunCallbacks
     private string GetColoredText(string text, Color color)
     {
         return "<color=#" + ColorUtility.ToHtmlStringRGB(color) + ">" + text + "</color>";
+    }
+
+    private void OnControlsUpdated()
+    {        
+        if (PlayerPrefs.HasKey(MainMenuManager.SelectUnitsControlPrefKey))
+        {
+            // If a custom control has been saved, then all controls have been saved
+            _selectUnitsKey = (KeyCode)PlayerPrefs.GetInt(MainMenuManager.SelectUnitsControlPrefKey);
+            _selectMultipleKey = (KeyCode)PlayerPrefs.GetInt(MainMenuManager.SelectMultipleControlPrefKey);
+            _standingsKey = (KeyCode)PlayerPrefs.GetInt(MainMenuManager.StandingsControlPrefKey);
+        }
     }
 }

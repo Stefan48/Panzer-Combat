@@ -22,6 +22,8 @@ public class TankMovement : MonoBehaviour, IPunObservable
     [SerializeField] private Transform _movementRaycastLowerPoint;
     private const float _movementRaycastAngleStep = 10f;
     private const float _movementRaycastMagnitude = 1f;
+    private KeyCode _moveForwardKey = KeyCode.W;
+    private KeyCode _moveBackwardKey = KeyCode.Q;
 
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
@@ -42,6 +44,7 @@ public class TankMovement : MonoBehaviour, IPunObservable
         _tankInfo = GetComponent<TankInfo>();
         _rigidbody = GetComponent<Rigidbody>();
 
+        OnControlsUpdated();
         _engineOriginalPitch = _engineAudioSource.pitch;
         // Tanks are initially rotated towards the map's center
         _orientation.LookAt(Vector3.zero);
@@ -79,12 +82,12 @@ public class TankMovement : MonoBehaviour, IPunObservable
 
     private void ProcessMovementInput()
     {
-        if (Input.GetKey(KeyCode.W))
+        if (Input.GetKey(_moveForwardKey))
         {
             _isMoving = true;
             _movingForward = true;
         }
-        else if (Input.GetKey(KeyCode.Q))
+        else if (Input.GetKey(_moveBackwardKey))
         {
             _isMoving = true;
             _movingForward = false;
@@ -158,6 +161,16 @@ public class TankMovement : MonoBehaviour, IPunObservable
             _engineAudioSource.clip = _engineIdleAudioClip;
             _engineAudioSource.pitch = Random.Range(_engineOriginalPitch - _enginePitchRange, _engineOriginalPitch + _enginePitchRange);
             _engineAudioSource.Play();
+        }
+    }
+
+    private void OnControlsUpdated()
+    {
+        if (PlayerPrefs.HasKey(MainMenuManager.SelectUnitsControlPrefKey))
+        {
+            // If a custom control has been saved, then all controls have been saved
+            _moveForwardKey = (KeyCode)PlayerPrefs.GetInt(MainMenuManager.MoveForwardControlPrefKey);
+            _moveBackwardKey = (KeyCode)PlayerPrefs.GetInt(MainMenuManager.MoveBackwardControlPrefKey);
         }
     }
 }

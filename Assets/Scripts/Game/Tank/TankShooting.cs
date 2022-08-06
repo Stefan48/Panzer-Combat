@@ -19,6 +19,7 @@ public class TankShooting : MonoBehaviour
     [SerializeField] private AudioSource _warningAudioSource;
     [SerializeField] private AudioClip _noAmmoAudioClip;
     private const float _noAmmoAudioClipVolumeScale = 0.5f;
+    private KeyCode _shootKey = KeyCode.Mouse1;
 
 
     private void Awake()
@@ -30,6 +31,8 @@ public class TankShooting : MonoBehaviour
         }
         _tankInfo = GetComponent<TankInfo>();
         _tankAbilities = GetComponent<TankAbilities>();
+
+        OnControlsUpdated();
     }
 
     private void Update()
@@ -38,7 +41,7 @@ public class TankShooting : MonoBehaviour
         {
             if (_tankInfo.IsSelected)
             {
-                if (Input.GetMouseButtonDown(1))
+                if (Input.GetKeyDown(_shootKey))
                 {
                     Shoot();
                 }
@@ -91,5 +94,14 @@ public class TankShooting : MonoBehaviour
         // Reset the position and rotation of the muzzle
         _muzzles.position = transform.position;
         _muzzles.rotation = transform.rotation;
+    }
+
+    private void OnControlsUpdated()
+    {
+        if (PlayerPrefs.HasKey(MainMenuManager.SelectUnitsControlPrefKey))
+        {
+            // If a custom control has been saved, then all controls have been saved
+            _shootKey = (KeyCode)PlayerPrefs.GetInt(MainMenuManager.ShootControlPrefKey);
+        }
     }
 }

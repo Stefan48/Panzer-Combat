@@ -60,6 +60,7 @@ public class CameraControl : MonoBehaviour
     private AudioSource _audioSource;
     [SerializeField] private AudioClip _victoryAudioClip;
     [SerializeField] private AudioClip _defeatAudioClip;
+    private KeyCode _cameraControlKey = KeyCode.Space;
 
 
     private void Awake()
@@ -73,6 +74,7 @@ public class CameraControl : MonoBehaviour
 
         Cursor.SetCursor(_cursorRegular, Vector2.zero, CursorMode.Auto);
         OnScreenResized();
+        OnControlsUpdated();
         _audioSource = GetComponent<AudioSource>();
     }
 
@@ -100,7 +102,7 @@ public class CameraControl : MonoBehaviour
         }
         if (!_escPanelIsActive)
         {
-            if (Input.GetKeyDown(KeyCode.Space))
+            if (Input.GetKeyDown(_cameraControlKey))
             {
                 if (_spectating)
                 {
@@ -513,5 +515,14 @@ public class CameraControl : MonoBehaviour
         // Resetting the fog GameObject is required for the changes to take place
         _fog.SetActive(!_fog.activeSelf);
         _fog.SetActive(!_fog.activeSelf);
+    }
+
+    private void OnControlsUpdated()
+    {
+        if (PlayerPrefs.HasKey(MainMenuManager.SelectUnitsControlPrefKey))
+        {
+            // If a custom control has been saved, then all controls have been saved
+            _cameraControlKey = (KeyCode)PlayerPrefs.GetInt(MainMenuManager.CameraControlPrefKey);
+        }
     }
 }

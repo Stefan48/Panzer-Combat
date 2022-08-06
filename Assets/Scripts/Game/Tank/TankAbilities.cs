@@ -27,6 +27,14 @@ public class TankAbilities : MonoBehaviour
     [SerializeField] private LaserBeam _laserBeam;
     [SerializeField] private GameObject _minePrefab;
     [SerializeField] private GameObject[] _turretPrefabs;
+    [SerializeField] private AudioSource _hornAudioSource;
+    [SerializeField] private AudioClip _hornAudioClip;
+    private KeyCode _1stAbilityKey = KeyCode.Alpha1;
+    private KeyCode _2ndAbilityKey = KeyCode.Alpha2;
+    private KeyCode _3rdAbilityKey = KeyCode.Alpha3;
+    private KeyCode _4thAbilityKey = KeyCode.Alpha4;
+    private KeyCode _5thAbilityKey = KeyCode.Alpha5;
+    private KeyCode _hornKey = KeyCode.H;
 
 
     private void Awake()
@@ -38,6 +46,8 @@ public class TankAbilities : MonoBehaviour
         }
         _gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         _tankInfo = GetComponent<TankInfo>();
+
+        OnControlsUpdated();
     }
 
     private void Update()
@@ -46,25 +56,29 @@ public class TankAbilities : MonoBehaviour
         {
             if (_tankInfo.IsSelected)
             {
-                if (Input.GetKeyDown(KeyCode.Alpha1))
+                if (Input.GetKeyDown(_1stAbilityKey))
                 {
                     UseAbility(0);
                 }
-                if (Input.GetKeyDown(KeyCode.Alpha2))
+                if (Input.GetKeyDown(_2ndAbilityKey))
                 {
                     UseAbility(1);
                 }
-                if (Input.GetKeyDown(KeyCode.Alpha3))
+                if (Input.GetKeyDown(_3rdAbilityKey))
                 {
                     UseAbility(2);
                 }
-                if (Input.GetKeyDown(KeyCode.Alpha4))
+                if (Input.GetKeyDown(_4thAbilityKey))
                 {
                     UseAbility(3);
                 }
-                if (Input.GetKeyDown(KeyCode.Alpha5))
+                if (Input.GetKeyDown(_5thAbilityKey))
                 {
                     UseAbility(4);
+                }
+                if (Input.GetKeyDown(_hornKey))
+                {
+                    Honk();
                 }
             }
         }
@@ -280,5 +294,30 @@ public class TankAbilities : MonoBehaviour
         int turretShellSpeed = _tankInfo.ShellSpeed + TurretInfo.TurretShellsExtraSpeed;
         GameObject turret = PhotonNetwork.InstantiateRoomObject(_turretPrefabs[index].name, position, transform.rotation, 0,
             new object[] { _tankInfo.ActorNumber, _tankInfo.Damage, _tankInfo.Armor, turretShellSpeed, _tankInfo.Range });
+    }
+
+    private void Honk()
+    {
+        _photonView.RPC("RPC_Honk", RpcTarget.AllViaServer);
+    }
+
+    [PunRPC]
+    private void RPC_Honk()
+    {
+        _hornAudioSource.PlayOneShot(_hornAudioClip);
+    }
+
+    private void OnControlsUpdated()
+    {
+        if (PlayerPrefs.HasKey(MainMenuManager.SelectUnitsControlPrefKey))
+        {
+            // If a custom control has been saved, then all controls have been saved
+            _1stAbilityKey = (KeyCode)PlayerPrefs.GetInt(MainMenuManager.FirstAbilityControlPrefKey);
+            _2ndAbilityKey = (KeyCode)PlayerPrefs.GetInt(MainMenuManager.SecondAbilityControlPrefKey);
+            _3rdAbilityKey = (KeyCode)PlayerPrefs.GetInt(MainMenuManager.ThirdAbilityControlPrefKey);
+            _4thAbilityKey = (KeyCode)PlayerPrefs.GetInt(MainMenuManager.FourthAbilityControlPrefKey);
+            _5thAbilityKey = (KeyCode)PlayerPrefs.GetInt(MainMenuManager.FifthAbilityControlPrefKey);
+            _hornKey = (KeyCode)PlayerPrefs.GetInt(MainMenuManager.HornControlPrefKey);
+        }
     }
 }
