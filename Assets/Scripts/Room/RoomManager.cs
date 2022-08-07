@@ -82,12 +82,13 @@ public class RoomManager : MonoBehaviourPunCallbacks
         {
             return;
         }
-        // TODO - commented for testing
-        /*if (PhotonNetwork.CurrentRoom.PlayerCount < 2)
+        // Commenting this and/or disabling 'Force Single Instance' in the Project Settings might be necessary for local testing
+        // Also, enabling 'Development Build' in the Build Settings enables a useful console for logging warnings and errors
+        if (PhotonNetwork.CurrentRoom.PlayerCount < 2)
         {
             _notEnoughPlayersText.SetActive(true);
             return;
-        }*/
+        }
         _startGameButtonClicked = true;
         _notEnoughPlayersText.SetActive(false);
         // Load the scene at the same time for everyone in the room
