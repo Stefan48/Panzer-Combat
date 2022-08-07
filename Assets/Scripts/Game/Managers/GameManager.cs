@@ -294,9 +294,10 @@ public class GameManager : MonoBehaviourPunCallbacks
             foreach (Transform spawnPoint in _crateSpawnPoints)
             {
                 GameObject cratePrefab = _cratePrefabs[GetRandomCrateType()];
+                Vector3 cratePositionOffset = new Vector3(UnityEngine.Random.Range(-1f, 1f), 0f, UnityEngine.Random.Range(-1f, 1f));
                 Quaternion crateRotation = Quaternion.Euler(0f, UnityEngine.Random.Range(0f, 360f), 0f);
                 // Using PhotonNetwork.InstantiateRoomObject so that the crates don't get destroyed if the Master Client leaves
-                GameObject crate = PhotonNetwork.InstantiateRoomObject(cratePrefab.name, spawnPoint.position, crateRotation);
+                GameObject crate = PhotonNetwork.InstantiateRoomObject(cratePrefab.name, spawnPoint.position + cratePositionOffset, crateRotation);
             }
         }
         yield return _crateSpawnWait;

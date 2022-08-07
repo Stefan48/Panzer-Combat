@@ -93,6 +93,7 @@ public class PlayerManager
         {
             tank.GetComponent<TankMovement>().enabled = enabled;
             tank.GetComponent<TankShooting>().enabled = enabled;
+            tank.GetComponent<TankAbilities>().enabled = enabled;
             tank.transform.Find("HealthBar").gameObject.SetActive(enabled);
             tank.transform.Find("OwnerText").gameObject.SetActive(enabled);
         }
