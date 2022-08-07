@@ -21,7 +21,8 @@ public class ConnectToServer : MonoBehaviourPunCallbacks
     private void Start()
     {
         PhotonNetwork.ConnectUsingSettings();
-        PhotonNetwork.GameVersion = "1";
+        // Players can play only with other players who are on the same game version
+        PhotonNetwork.GameVersion = "1.0";
         PhotonNetwork.EnableCloseConnection = true;
     }
 
