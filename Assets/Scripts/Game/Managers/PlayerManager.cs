@@ -85,7 +85,6 @@ public class PlayerManager
         }
         Tanks.Add(newTank);
     }
-    
 
     public void SetControlEnabled(bool enabled)
     {
@@ -94,8 +93,10 @@ public class PlayerManager
             tank.GetComponent<TankMovement>().enabled = enabled;
             tank.GetComponent<TankShooting>().enabled = enabled;
             tank.GetComponent<TankAbilities>().enabled = enabled;
-            tank.transform.Find("HealthBar").gameObject.SetActive(enabled);
-            tank.transform.Find("OwnerText").gameObject.SetActive(enabled);
+            // Disable the slider instead of the entire health bar, so the health bar gets the proper rotation (in the first FixedUpdate call) without delay
+            tank.transform.Find("HealthBar").Find("Slider").gameObject.SetActive(enabled);
+            // Disable the mesh renderer instead of the owner text, so the owner text gets the proper rotation (in the first FixedUpdate call) without delay
+            tank.transform.Find("OwnerText").GetComponent<MeshRenderer>().enabled = enabled;
         }
     }
 

@@ -19,6 +19,8 @@ public class RoomManager : MonoBehaviourPunCallbacks
     [SerializeField] private PlayerListing _playerListingPrefab;
     private List<PlayerListing> _playerListings = new List<PlayerListing>();
     [SerializeField] private GameObject _notEnoughPlayersText;
+    // Hold a reference to the CurrentSessionData ScriptableObject so it doesn't get reset when the scene loads
+    [SerializeField] private CurrentSessionData _currentSessionData;
 
 
     private void Start()

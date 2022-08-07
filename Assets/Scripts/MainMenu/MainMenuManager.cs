@@ -61,8 +61,9 @@ public class MainMenuManager : MonoBehaviour
     private string _pressedButtonPreviousText;
     private AudioSource _warningAudioSource;
     [SerializeField] private GameObject _overlayPreventingButtonClicks;
+    [SerializeField] private Text _gameTipsText;
+    [SerializeField] private CurrentSessionData _currentSessionData;
 
-    // TODO - Tips (randomly chosen from a pool)
 
     private void Awake()
     {
@@ -90,6 +91,12 @@ public class MainMenuManager : MonoBehaviour
         int index = GetPreferredResolutionIndex();
         FullScreenMode fullScreenMode = GetPreferredFullScreenModeIndex() == 0 ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed;
         Screen.SetResolution(_resolutions[index].Item1, _resolutions[index].Item2, fullScreenMode);
+
+        if (_currentSessionData.GameTipIndex == -1)
+        {
+            _currentSessionData.GameTipIndex = UnityEngine.Random.Range(0, GameTips.Tips.Length);
+        }
+        _gameTipsText.text = "Tip: " + GameTips.Tips[_currentSessionData.GameTipIndex];
     }
 
     private void Update()

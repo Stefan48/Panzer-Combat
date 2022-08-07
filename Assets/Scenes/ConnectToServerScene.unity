@@ -852,6 +852,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _loadingText: {fileID: 1645309214}
   _mainMenuButton: {fileID: 1608230623}
+  _currentSessionData: {fileID: 11400000, guid: c5c562303dc90e74a992291fcf4255f2, type: 2}
 --- !u!1 &2126039223
 GameObject:
   m_ObjectHideFlags: 0

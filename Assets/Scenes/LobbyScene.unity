@@ -3674,6 +3674,7 @@ MonoBehaviour:
   _passwordModal: {fileID: 1034055335}
   _passwordModalRoomNameText: {fileID: 254166741}
   _passwordModalPasswordInputField: {fileID: 41704961}
+  _currentSessionData: {fileID: 11400000, guid: c5c562303dc90e74a992291fcf4255f2, type: 2}
 --- !u!1 &769011079
 GameObject:
   m_ObjectHideFlags: 0

@@ -175,6 +175,7 @@ MonoBehaviour:
   _playerListingsContent: {fileID: 1687670140}
   _playerListingPrefab: {fileID: 8736518349118092244, guid: 0a13ff8ff0244e64fb91b82d2a81f527, type: 3}
   _notEnoughPlayersText: {fileID: 143356622}
+  _currentSessionData: {fileID: 11400000, guid: c5c562303dc90e74a992291fcf4255f2, type: 2}
 --- !u!1 &68394648
 GameObject:
   m_ObjectHideFlags: 0

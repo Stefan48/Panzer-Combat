@@ -8,6 +8,9 @@ public class ConnectToServer : MonoBehaviourPunCallbacks
 {
     [SerializeField] private Text _loadingText;
     [SerializeField] private GameObject _mainMenuButton;
+    // Hold a reference to the CurrentSessionData ScriptableObject so it doesn't get reset when the scene loads
+    [SerializeField] private CurrentSessionData _currentSessionData;
+
 
     private void Awake()
     {

@@ -9,6 +9,7 @@ public class UiFixedRotation : MonoBehaviour
     private void Awake()
     {
         _rotation = Quaternion.Euler(_eulerAngles);
+        transform.rotation = _rotation;
     }
 
     private void Update()

@@ -36,6 +36,8 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     public GameObject PasswordModal => _passwordModal;
     [SerializeField] private Text _passwordModalRoomNameText;
     [SerializeField] private InputField _passwordModalPasswordInputField;
+    // Hold a reference to the CurrentSessionData ScriptableObject so it doesn't get reset when the scene loads
+    [SerializeField] private CurrentSessionData _currentSessionData;
 
 
     private void Start()
