@@ -33,7 +33,6 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     [SerializeField] private RoomListing _roomListingPrefab;
     private List<RoomListing> _roomListings = new List<RoomListing>();
     [SerializeField] private GameObject _passwordModal;
-    public GameObject PasswordModal => _passwordModal;
     [SerializeField] private Text _passwordModalRoomNameText;
     [SerializeField] private InputField _passwordModalPasswordInputField;
     // Hold a reference to the CurrentSessionData ScriptableObject so it doesn't get reset when the scene loads
@@ -150,6 +149,11 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
     public void OpenModal(GameObject modal)
     {
+        if (string.IsNullOrEmpty(_usernameInputField.text))
+        {
+            _errorText.text = "Choose a username first";
+            return;
+        }
         _errorText.text = string.Empty;
         modal.SetActive(true);
     }
@@ -169,11 +173,6 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     {
         if (_joinedRoom)
         {
-            return;
-        }
-        if (string.IsNullOrEmpty(_usernameInputField.text))
-        {
-            _errorText.text = "Choose a username first";
             return;
         }
         if (string.IsNullOrEmpty(_joinRoomModalRoomNameInputField.text))
