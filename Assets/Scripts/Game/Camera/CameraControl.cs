@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class CameraControl : MonoBehaviour
 {
+    // TODO - UI to indicate the player which is the currently viewed tank - have a translucid circle segment on the minimap (similar to CS:GO)
+    // or maybe a rectangle on the minimap showing the viewed area (although not ideal because it has to be rotated, just like the camera)
     [SerializeField] private Camera _camera;
     [SerializeField] private GameManager _gameManager;
     [SerializeField] private UiManager _uiManager;

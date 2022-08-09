@@ -10,6 +10,7 @@ using System.Collections;
 public class UiManager : MonoBehaviourPunCallbacks
 {
     // TODO - Settings in the Esc panel; more info in the Tab panel
+    // TODO - Draw a rectangle using the mouse to select multiple tanks at once (similar to Warcraft III)?
     private bool _gameUiIsEnabled = true;
     [SerializeField] private GameObject _escPanel;
     [SerializeField] private GameObject _leaveConfirmationModal;

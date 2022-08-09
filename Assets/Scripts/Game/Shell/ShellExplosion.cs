@@ -244,11 +244,22 @@ public class ShellExplosion : MonoBehaviourPunCallbacks
             float[] customData = (float[])obj.CustomData;
             if (customData[0] == _id)
             {
-                _deflectionPending = false;
-                float newRotation = transform.eulerAngles.y + 180f + customData[1];
-                transform.eulerAngles = new Vector3(0f, newRotation, 0f);
-                // Play the deflection sound using the shell explosion AudioSource so that it can't get canceled by the explosion sound
-                _shellExplosionAudioSource.PlayOneShot(_shellDeflectionAudioClip, _shellDeflectionAudioVolumeScale);
+                if (GetComponent<TurretShellMovement>() != null)
+                {
+                    // If the shell is a turret shell, it explodes right after it got deflected
+                    _shellExplosionAudioSource.PlayOneShot(_shellDeflectionAudioClip, _shellDeflectionAudioVolumeScale);
+                    _hitSomething = true;
+                    _capsuleCollider.enabled = false;
+                    Explode();
+                }
+                else
+                {
+                    _deflectionPending = false;
+                    float newRotation = transform.eulerAngles.y + 180f + customData[1];
+                    transform.eulerAngles = new Vector3(0f, newRotation, 0f);
+                    // Play the deflection sound using the shell explosion AudioSource so that it can't get canceled by the explosion sound
+                    _shellExplosionAudioSource.PlayOneShot(_shellDeflectionAudioClip, _shellDeflectionAudioVolumeScale);
+                }
             }
         }
     }

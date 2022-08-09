@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class TankHealth : MonoBehaviour
 {
+    // TODO - Visual effects when health decreases (e.g. health bar effect similar to LoL, screen edges effects)?
     private PhotonView _photonView;
     private TankInfo _tankInfo;
     [SerializeField] private Slider _healthBarSlider;
