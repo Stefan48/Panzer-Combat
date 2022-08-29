@@ -238,8 +238,8 @@ public class CameraControl : MonoBehaviour
         _fogCamera.orthographicSize = _camera.orthographicSize;
         _cameraZoomPending = 0;
         float fogPlaneScaleZ = _camera.orthographicSize * 0.2f;
-        float fogPlanceScaleX = (float)_screenWidth / _screenHeight * fogPlaneScaleZ;
-        _fogPlane.transform.localScale = new Vector3(fogPlanceScaleX, 1f, fogPlaneScaleZ);
+        float fogPlaneScaleX = (float)_screenWidth / _screenHeight * fogPlaneScaleZ;
+        _fogPlane.transform.localScale = new Vector3(fogPlaneScaleX, 1f, fogPlaneScaleZ);
     }
 
     private void Spectate()
